@@ -9,6 +9,8 @@ python-dotenv>=1.0           # Load .env file in settings.py
 # ── Authentication ─────────────────────────────────────────────
 django-allauth>=0.61
 cryptography>=41.0        # Required by allauth for Google/GitHub OAuth JWT
+PyJWT>=2.0                # Required by allauth for Google OAuth JWT decoding
+stripe>=5.0               # Stripe payment integration
 
 # ── Celery + Redis ─────────────────────────────────────────────
 celery>=5.3
