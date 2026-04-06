@@ -4,6 +4,7 @@ whitenoise>=6.0
 psycopg2-binary>=2.9.11
 gunicorn>=21.0               # Production WSGI server (used by Render)
 dj-database-url>=2.1         # Parse DATABASE_URL from Render/Railway
+python-dotenv>=1.0           # Load .env file in settings.py
 
 # ── Authentication ─────────────────────────────────────────────
 django-allauth>=0.61
