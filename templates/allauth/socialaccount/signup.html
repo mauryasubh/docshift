@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load allauth socialaccount %}
+{% block title %}Complete Sign Up — DocShift{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto px-5 py-12">
+  <div class="g-card rounded-2xl p-8">
+    <div class="text-center mb-6">
+      <div class="text-3xl mb-2">🔗</div>
+      <h1 class="logo-text text-xl text-gray-800 dark:text-[#e2f0ff] mb-1">Almost there!</h1>
+      <p class="text-sm g-sub-text">Pick a username to complete your DocShift account</p>
+    </div>
+    <form method="post" action="{% url 'socialaccount_signup' %}">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="msg-error mb-4 text-sm">{{ form.non_field_errors|join:", " }}</div>
+      {% endif %}
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-[#c8dff5] mb-1.5">Username</label>
+        <input type="text" name="username" class="g-input" value="{{ form.username.value|default:'' }}" placeholder="Choose a username">
+        {% if form.username.errors %}<p class="text-xs text-red-500 mt-1">{{ form.username.errors|join:", " }}</p>{% endif %}
+      </div>
+      <button type="submit" class="g-btn w-full py-2.5 rounded-lg">Finish signing up</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

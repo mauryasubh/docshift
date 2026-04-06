@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+{% block title %}{{ tool.name }} Result — DocShift{% endblock %}
+
+{% block extra_head %}
+<style>
+  .status-card {
+    transition: none;
+  }
+
+  /* no hover lift on status page */
+  .status-card:hover {
+    transform: none;
+    box-shadow: var(--g-shadow);
+  }
+
+  html.dark .status-card:hover {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, .35);
+  }
+
+  /* Ratio bar */
+  .ratio-fill {
+    background: linear-gradient(90deg, #1a73e8, #4f46e5);
+    border-radius: 999px;
+    height: 100%;
+    transition: width 1s ease;
+  }
+
+  html.dark .ratio-fill {
+    background: linear-gradient(90deg, #38b6ff, #818cf8);
+  }
+
+  /* Download button pulse when ready */
+  @keyframes dl-pulse {
+
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(26, 115, 232, .4);
+    }
+
+    50% {
+      box-shadow: 0 0 0 10px rgba(26, 115, 232, 0);
+    }
+  }
+
+  html.dark @keyframes dl-pulse {
+
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(56, 182, 255, .35);
+    }
+
+    50% {
+      box-shadow: 0 0 0 10px rgba(56, 182, 255, 0);
+    }
+  }
+
+  .dl-ready {
+    animation: dl-pulse 2s ease infinite;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-5 py-10">
+
+  <!-- Back button -->
+  <a href="/tool/{{ job.tool }}/"
+    class="inline-flex items-center gap-1.5 text-sm g-sub-text hover:text-blue-600 dark:hover:text-[#38b6ff] transition-colors mb-6 group">
+    <svg class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24"
+      stroke="currentColor" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+    </svg>
+    Back to {{ tool.name }}
+  </a>
+
+  <!-- Header -->
+  <div class="flex items-start justify-between gap-4 mb-7">
+    <div>
+      <div class="flex items-center gap-2.5 mb-1">
+        <span class="text-2xl">{{ tool.icon }}</span>
+        <h1 class="font-bold text-[1.3rem] text-gray-800 dark:text-[#e2f0ff]">{{ tool.name }}</h1>
+      </div>
+      <!-- Job ID: only first 8 chars shown for cleanliness -->
+      <p class="text-xs font-mono g-sub-text">
+        Job <span class="text-blue-600 dark:text-[#38b6ff]">#{{ job.id|slice:":8" }}</span>
+      </p>
+    </div>
+    <span id="status-badge" class="text-xs font-semibold px-3 py-1.5 rounded-full shrink-0 uppercase tracking-wide
+                 g-badge-{{ job.status }}">
+      {{ job.status }}
+    </span>
+  </div>
+
+  <!-- HTMX polling wrapper -->
+  <div id="status-panel" {% if job.status == 'pending' or job.status == 'processing' %}
+    hx-get="/job/{{ job.id }}/status/json/" hx-trigger="every 2s" hx-swap="none" {% endif %}>
+
+    <!-- Progress card -->
+    <div class="g-card status-card rounded-xl p-5 mb-4">
+      <div class="flex items-center justify-between mb-2.5">
+        <span class="text-xs font-medium g-sub-text uppercase tracking-wide">Progress</span>
+        <span class="text-xs font-mono font-semibold text-blue-600 dark:text-[#38b6ff]" id="pct-label">
+          {% if job.status == 'done' %}100%{% elif job.status == 'failed' %}—{% elif job.status == 'processing' %}50% {% else %} 0% {% endif %}
+        </span>
+      </div>
+
+      <div class="g-progress-track h-2 mb-3">
+        <div id="prog-bar" class="g-progress-bar h-full
+               {% if job.status == 'processing' or job.status == 'pending' %}shimmer{% endif %}
+               {% if job.status == 'done' %}g-progress-done{% endif %}
+               {% if job.status == 'failed' %}g-progress-fail{% endif %}"
+          style="width:{% if job.status == 'done' or job.status == 'failed' %} 100 {% elif job.status == 'processing' %} 50 {% else %} 0 {% endif %}%">
+        </div>
+      </div>
+
+      <div id="status-msg" class="text-sm flex items-center gap-2">
+        {% if job.status == 'pending' %}
+        <span class="text-yellow-500">⏳</span>
+        <span class="g-sub-text">Queued — waiting for worker…</span>
+        {% elif job.status == 'processing' %}
+        <span class="text-blue-500 dark:text-[#38b6ff]">⚙</span>
+        <span class="g-sub-text">Processing your file…</span>
+        {% elif job.status == 'done' %}
+        <span class="text-green-600 dark:text-[#34d399]">✓</span>
+        <span class="font-medium text-green-700 dark:text-[#34d399]">Conversion complete!</span>
+        {% elif job.status == 'failed' %}
+        <span class="text-red-500">✗</span>
+        <span class="font-medium text-red-600 dark:text-[#f87171]">Conversion failed.</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- File details card -->
+    <div class="g-card status-card rounded-xl p-5 mb-4">
+      <p class="text-xs font-semibold g-sub-text uppercase tracking-wide mb-3">File Details</p>
+      <div class="grid grid-cols-2 gap-6">
+        <div>
+          <p class="text-xs g-sub-text mb-1">Input Size</p>
+          <p class="text-lg font-mono font-bold text-gray-800 dark:text-[#e2f0ff]">{{ input_size_human }}</p>
+        </div>
+        <div>
+          <p class="text-xs g-sub-text mb-1">Output Size</p>
+          <p class="text-lg font-mono font-bold text-gray-800 dark:text-[#e2f0ff]" id="output-size">
+            {% if output_size_human %}{{ output_size_human }}{% else %}<span class="g-sub-text text-base">—</span>{% endif %}
+          </p>
+        </div>
+      </div>
+
+      <!-- Compression ratio -->
+      <div id="ratio-row" class="{% if not job.compression_ratio %}hidden{% endif %} mt-4 pt-4 border-t g-divider">
+        {% if job.compression_ratio %}
+        <div class="flex items-center gap-3">
+          <span class="text-xs g-sub-text whitespace-nowrap">Space saved</span>
+          <span class="font-mono font-bold text-sm text-blue-600 dark:text-[#38b6ff]" id="ratio-pct">{{ job.compression_ratio }}%</span>
+          <div class="flex-1 h-1.5 rounded-full overflow-hidden bg-gray-100 dark:bg-[rgba(255,255,255,.06)]">
+            <div class="ratio-fill" id="ratio-fill" style="width:{{ job.compression_ratio }}%"></div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Error card -->
+    <div id="error-card" class="{% if job.status != 'failed' %}hidden{% endif %} g-card status-card rounded-xl p-5 mb-4
+                                 border-red-200 dark:border-[rgba(248,113,113,.25)]">
+      <p class="text-xs font-semibold text-red-600 dark:text-[#f87171] uppercase tracking-wide mb-2.5">Error Details</p>
+      <pre id="error-msg"
+        class="text-sm text-red-700 dark:text-[#f87171] bg-red-50 dark:bg-[rgba(248,113,113,.06)]
+                                  rounded-lg p-3 border border-red-200 dark:border-[rgba(248,113,113,.15)]
+                                  whitespace-pre-wrap break-words font-mono">{% if job.status == 'failed' and job.error_message %}{{ job.error_message }}{% endif %}</pre>
+    </div>
+
+    <!-- Download button -->
+    <div id="dl-wrap" class="{% if job.status != 'done' %}hidden{% endif %} mb-4">
+      <a id="dl-btn" href="{% if job.status == 'done' %}/job/{{ job.id }}/download/{% else %}#{% endif %}"
+        class="g-btn dl-ready w-full py-3.5 rounded-xl text-center text-base block">
+        ⬇&nbsp; Download {{ job.output_ext|upper }}
+      </a>
+      <p class="text-center text-xs g-sub-text mt-2">
+        {% if user.is_authenticated %}File kept for 24 hours{% else %}Guest file — deleted in 5 minutes · <a href="/auth/signup/" class="text-blue-600 dark:text-[#38b6ff] hover:underline">Sign up</a> to keep for 24h{% endif %}
+      </p>
+    </div>
+
+  </div><!-- /status-panel -->
+
+  <!-- Footer actions -->
+  <div class="flex items-center justify-center gap-6 mt-4 text-sm">
+    <a href="/tool/{{ job.tool }}/" class="g-sub-text hover:text-blue-600 dark:hover:text-[#38b6ff] transition-colors">
+      ↺ Convert another file
+    </a>
+    <span class="g-sub-text">·</span>
+    <a href="/" class="g-sub-text hover:text-blue-600 dark:hover:text-[#38b6ff] transition-colors">
+      ← All tools
+    </a>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  var fakeInterval = null;
+
+  // ── HTMX polling handler ──
+  document.body.addEventListener('htmx:afterRequest', function (evt) {
+    var url = (evt.detail.requestConfig && evt.detail.requestConfig.path) || '';
+    if (!url.includes('/status/json/')) return;
+    var data;
+    try { data = JSON.parse(evt.detail.xhr.responseText); } catch (e) { return; }
+    applyUpdate(data);
+    if (data.status === 'done' || data.status === 'failed') {
+      stopPolling();
+      if (fakeInterval) { clearInterval(fakeInterval); fakeInterval = null; }
+    }
+  });
+
+  function stopPolling() {
+    var panel = document.getElementById('status-panel');
+    if (!panel) return;
+    panel.removeAttribute('hx-trigger');
+    panel.removeAttribute('hx-get');
+    panel.removeAttribute('hx-swap');
+    htmx.process(panel);
+  }
+
+  function applyUpdate(data) {
+    var status = data.status;
+    var pct = data.progress || 0;
+
+    // Badge
+    var badge = document.getElementById('status-badge');
+    badge.className = 'text-xs font-semibold px-3 py-1.5 rounded-full shrink-0 uppercase tracking-wide g-badge-' + status;
+    badge.textContent = status;
+
+    // Progress bar
+    var bar = document.getElementById('prog-bar');
+    bar.style.width = pct + '%';
+    bar.className = 'g-progress-bar h-full';   // reset classes
+    if (status === 'done') { bar.classList.add('g-progress-done'); }
+    else if (status === 'failed') { bar.classList.add('g-progress-fail'); }
+    else { bar.classList.add('shimmer'); }
+
+    // Pct label
+    document.getElementById('pct-label').textContent = status === 'failed' ? '—' : pct + '%';
+
+    // Status message
+    var msg = document.getElementById('status-msg');
+    if (status === 'pending') {
+      msg.innerHTML = '<span class="text-yellow-500">⏳</span><span class="g-sub-text">Queued — waiting for worker…</span>';
+    } else if (status === 'processing') {
+      msg.innerHTML = '<span class="text-blue-500">⚙</span><span class="g-sub-text">Processing your file…</span>';
+    } else if (status === 'done') {
+      msg.innerHTML = '<span class="text-green-600 dark:text-[#34d399]">✓</span><span class="font-medium text-green-700 dark:text-[#34d399]">Conversion complete!</span>';
+    } else if (status === 'failed') {
+      msg.innerHTML = '<span class="text-red-500">✗</span><span class="font-medium text-red-600 dark:text-[#f87171]">Conversion failed.</span>';
+    }
+
+    // Output size
+    if (data.output_size_human) {
+      document.getElementById('output-size').textContent = data.output_size_human;
+    }
+
+    // Compression ratio
+    if (data.compression_ratio != null) {
+      var row = document.getElementById('ratio-row');
+      row.classList.remove('hidden');
+      row.innerHTML =
+        '<div class="flex items-center gap-3">' +
+        '<span class="text-xs g-sub-text whitespace-nowrap">Space saved</span>' +
+        '<span class="font-mono font-bold text-sm text-blue-600 dark:text-[#38b6ff]">' + data.compression_ratio + '%</span>' +
+        '<div class="flex-1 h-1.5 rounded-full overflow-hidden bg-gray-100 dark:bg-[rgba(255,255,255,.06)]">' +
+        '<div class="ratio-fill" style="width:' + data.compression_ratio + '%"></div>' +
+        '</div>' +
+        '</div>';
+    }
+
+    // Download
+    if (status === 'done' && data.download_url) {
+      var wrap = document.getElementById('dl-wrap');
+      wrap.classList.remove('hidden');
+      var dlBtn = document.getElementById('dl-btn');
+      dlBtn.href = data.download_url;
+      // Update label with correct file extension
+      var ext = (data.download_url || '').split('.').pop().toUpperCase() || 'FILE';
+      dlBtn.innerHTML = '⬇&nbsp; Download ' + ext;
+    }
+
+    // Error
+    if (status === 'failed') {
+      document.getElementById('error-card').classList.remove('hidden');
+      if (data.error_message) {
+        document.getElementById('error-msg').textContent = data.error_message;
+      }
+    }
+  }
+
+  // ── Fake progress for processing state on page load ──
+  // Only start if not already final
+  {% if job.status == 'processing' %}
+  (function () {
+    var prog = 50;
+    fakeInterval = setInterval(function () {
+      prog = Math.min(prog + Math.random() * 4, 88);
+      var bar = document.getElementById('prog-bar');
+      if (bar) bar.style.width = prog + '%';
+      var lbl = document.getElementById('pct-label');
+      if (lbl) lbl.textContent = Math.floor(prog) + '%';
+    }, 1200);
+  })();
+  {% endif %}
+
+  {% if job.status == 'pending' %}
+  (function () {
+    var prog = 0;
+    fakeInterval = setInterval(function () {
+      prog = Math.min(prog + Math.random() * 2, 20);
+      var bar = document.getElementById('prog-bar');
+      if (bar) bar.style.width = prog + '%';
+    }, 1500);
+  })();
+  {% endif %}
+</script>
+{% endblock %}

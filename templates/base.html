@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}DocShift — Document Converter{% endblock %}</title>
+  <script>(function () { var t = localStorage.getItem('ds_theme'); if (t === 'light') document.documentElement.classList.remove('dark'); else document.documentElement.classList.add('dark'); })();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } } }</script>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="grid-bg-light">
+  <div class="content-z min-h-screen flex flex-col">
+    <!-- ── Navbar ── -->
+    <header
+      class="site-nav sticky top-0 z-50 bg-white/80 dark:bg-[#050d1e]/80 backdrop-blur-md border-b g-divider shadow-[0_2px_15px_rgba(0,0,0,0.03)] dark:shadow-none">
+      <div class="max-w-6xl mx-auto px-5 py-2.5 flex items-center gap-2">
+
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-2.5 group no-underline mr-4">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center font-mono font-black text-sm
+                    bg-blue-600 dark:bg-transparent dark:border dark:border-[rgba(56,182,255,.35)]
+                    text-white dark:text-[#38b6ff] group-hover:scale-105 transition-transform">DS</div>
+          <span class="logo-text text-[1.1rem] text-gray-800 dark:text-[#e2f0ff]
+                     group-hover:text-blue-600 dark:group-hover:text-[#38b6ff] transition-colors">DocShift</span>
+        </a>
+
+        <!-- Tools Link (Visual Nav) -->
+        <a href="/#all-tools-header"
+          class="text-xs font-bold text-gray-600 dark:text-[#c8dff5] hover:bg-gray-100 dark:hover:bg-white/5 px-3 py-1.5 rounded-full transition-all hidden sm:flex items-center gap-2 group">
+          <span
+            class="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-white/5 rounded-full text-[0.65rem] group-hover:scale-110 transition-transform">🛠️</span>
+          Tools
+        </a>
+
+        <!-- PDF Editor -->
+        <a href="/editor/" class="editor-pill hidden sm:flex ml-1">
+          <svg style="width:13px;height:13px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+            </path>
+          </svg>
+          PDF Editor
+          <span
+            style="font-size:.55rem;background:rgba(255,255,255,.25);padding:1px 5px;border-radius:6px;letter-spacing:.04em;">NEW</span>
+        </a>
+
+        <!-- Translator -->
+        <a href="/translator/" class="translator-pill hidden sm:flex ml-1">
+          <svg style="width:13px;height:13px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129">
+            </path>
+          </svg>
+          Docs-Translator
+          <!-- <span
+            style="font-size:.55rem;background:rgba(255,255,255,.25);padding:1px 5px;border-radius:6px;letter-spacing:.04em;">NEW
+          </span> -->
+        </a>
+
+        <!-- Pricing Link (Visual Nav) -->
+        <a href="/pricing/"
+          class="text-xs font-bold text-gray-600 dark:text-[#c8dff5] hover:bg-gray-100 dark:hover:bg-white/5 px-3 py-1.5 rounded-full transition-all hidden sm:flex items-center gap-2 group">
+          <span
+            class="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-white/5 rounded-full text-[0.65rem] group-hover:scale-110 transition-transform">🏷️</span>
+          Pricing
+        </a>
+
+        <div class="flex-1"></div>
+
+        <!-- Theme toggle -->
+        <button onclick="dsToggleTheme()"
+          class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-gray-400 transition-colors"
+          id="theme-pill">
+          <span id="theme-icon">🌙</span>
+          <span id="theme-label" class="hidden">Dark</span>
+        </button>
+
+        <!-- Mobile hamburger (sm and below only) -->
+        <button class="mob-hamburger sm:hidden" onclick="mobDrawerOpen()" aria-label="Open menu" type="button">
+          <svg style="width:16px;height:16px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        <!-- Auth area -->
+        {% if user.is_authenticated %}
+        <div class="nav-dropdown" id="nav-dropdown">
+
+          <!-- Trigger button (Compact Pill) -->
+          <button
+            class="nav-dd-trigger px-2.5 py-1.5 rounded-full bg-gray-100/50 dark:bg-white/5 border border-gray-200 dark:border-white/5 hover:border-blue-500/50 transition-all flex items-center gap-2"
+            id="nav-dd-trigger" onclick="ddToggle()" type="button">
+            {% if user.profile.avatar_url %}
+            <img src="{{ user.profile.avatar_url }}" class="w-6 h-6 rounded-full ring-2 ring-white/10"
+              style="object-fit:cover" alt="">
+            {% else %}
+            <div
+              class="w-6 h-6 flex items-center justify-center rounded-full bg-blue-600 text-white text-[0.6rem] font-black">
+              {{ user.profile.initials }}</div>
+            {% endif %}
+            <span class="hidden sm:inline text-[0.78rem] font-bold text-gray-700 dark:text-[#c8dff5]">
+              {{ user.username }}
+            </span>
+            <svg id="nav-dd-arrow" style="width:10px;height:10px;transition:transform .2s" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- Menu (Restored) -->
+          <div class="nav-dd-menu rounded-2xl shadow-xl" id="nav-dd-menu">
+            <a href="/account/" class="nav-dd-item" onclick="ddClose()">
+              <svg style="width:15px;height:15px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              My Account
+            </a>
+            <a href="/dashboard/" class="nav-dd-item" onclick="ddClose()">
+              <svg style="width:15px;height:15px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h8m-8 6h16" />
+              </svg>
+              Dashboard
+            </a>
+            <div class="nav-dd-divider"></div>
+            <form method="post" action="/auth/logout/" style="margin:0">
+              {% csrf_token %}
+              <button type="submit" class="nav-dd-item danger"
+                style="width:100%; border:none; background:none; text-align:left; cursor:pointer;">
+                <svg style="width:15px;height:15px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                  stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign out
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {% else %}
+        <a href="/auth/login/"
+          class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 transition-colors">
+          Sign in
+        </a>
+        <a href="/auth/signup/"
+          class="g-btn ml-1 px-5 py-2 rounded-full text-[0.82rem] shadow-md hover:shadow-blue-500/20 transition-all">
+          Get started
+        </a>
+        {% endif %}
+
+      </div>
+    </header>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="max-w-6xl mx-auto w-full px-5 pt-3">
+      {% for message in messages %}
+      <div class="mb-2 {% if message.tags == 'success' %}msg-success{% else %}msg-error{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="flex-1">{% block content %}{% endblock %}</main>
+
+    <!-- ── Mobile Drawer ── -->
+    <div class="mob-backdrop" id="mob-backdrop" onclick="mobDrawerClose()"></div>
+    <div class="mob-drawer" id="mob-drawer">
+
+      <!-- Drawer header -->
+      <div class="mob-drawer-header">
+        <a href="/" class="mob-drawer-logo" onclick="mobDrawerClose()">
+          <div class="mob-drawer-logo-box">DS</div>
+          <span class="mob-drawer-logo-text">DocShift</span>
+        </a>
+        <button class="mob-close-btn" onclick="mobDrawerClose()" aria-label="Close menu">
+          <svg style="width:14px;height:14px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Drawer body -->
+      <div class="mob-drawer-body">
+
+        <!-- Nav links -->
+        <div class="mob-section-label">Navigation</div>
+        <a href="/dashboard/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-nav">
+            <svg style="width:15px;height:15px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h8m-8 6h16" />
+            </svg>
+          </span>
+          Dashboard
+        </a>
+        <a href="/editor/" class="mob-tool-item" onclick="mobDrawerClose()"
+          style="background:rgba(124,58,237,.07);border-radius:9px;">
+          <span class="mob-tool-icon" style="background:rgba(124,58,237,.15);">
+            <svg style="width:15px;height:15px" fill="none" viewBox="0 0 24 24" stroke="#7c3aed" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </span>
+          <span style="color:#7c3aed;font-weight:600;">PDF Editor</span>
+          <span
+            style="font-size:.6rem;background:rgba(124,58,237,.15);color:#7c3aed;padding:2px 6px;border-radius:8px;font-family:'JetBrains Mono',monospace;margin-left:auto;">NEW</span>
+        </a>
+        <a href="/translator/" class="mob-tool-item" onclick="mobDrawerClose()"
+          style="background:rgba(8,145,178,.07);border-radius:9px;">
+          <span class="mob-tool-icon" style="background:rgba(8,145,178,.15);">
+            <svg style="width:15px;height:15px" fill="none" viewBox="0 0 24 24" stroke="#0891b2" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+            </svg>
+          </span>
+          <span style="color:#0891b2;font-weight:600;">Translator</span>
+          <span
+            style="font-size:.6rem;background:rgba(8,145,178,.15);color:#0891b2;padding:2px 6px;border-radius:8px;font-family:'JetBrains Mono',monospace;margin-left:auto;">NEW</span>
+        </a>
+        {% if user.is_authenticated %}
+        <a href="/account/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-nav">
+            <svg style="width:15px;height:15px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </span>
+          My Account
+        </a>
+        {% endif %}
+
+        <div class="mob-divider"></div>
+
+        <!-- PDF Tools -->
+        <div class="mob-section-label">PDF Tools</div>
+        <a href="/tool/compress_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">🗜️</span>Compress PDF
+        </a>
+        <a href="/tool/merge_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">🔗</span>Merge PDFs
+        </a>
+        <a href="/tool/split_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">✂️</span>Split PDF
+        </a>
+        <a href="/tool/pdf_to_images/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">🖼️</span>PDF to Images
+        </a>
+        <a href="/tool/pdf_to_word/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">📝</span>PDF to Word
+        </a>
+        <a href="/tool/password_protect/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">🔒</span>Password Protect
+        </a>
+        <a href="/tool/unlock_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">🔓</span>Unlock PDF
+        </a>
+        <a href="/tool/rotate_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">🔃</span>Rotate PDF
+        </a>
+        <a href="/tool/watermark_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">💧</span>Watermark PDF
+        </a>
+        <a href="/tool/add_page_numbers/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">🔢</span>Add Page Numbers
+        </a>
+        <a href="/tool/edit_metadata/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">🏷️</span>Edit Metadata
+        </a>
+        <a href="/tool/flatten_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">🗜️</span>Flatten PDF
+        </a>
+        <a href="/tool/grayscale_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">🌗</span>Grayscale PDF
+        </a>
+        <a href="/tool/crop_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-pdf">📐</span>Crop PDF
+        </a>
+
+
+        <div class="mob-divider"></div>
+
+        <!-- Office -->
+        <div class="mob-section-label">Office</div>
+        <a href="/tool/docx_to_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-office">📄</span>DOCX to PDF
+        </a>
+        <a href="/tool/txt_to_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-office">📃</span>TXT to PDF
+        </a>
+
+        <div class="mob-divider"></div>
+
+        <!-- Image -->
+        <div class="mob-section-label">Image</div>
+        <a href="/tool/img_to_pdf/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-image">🗒️</span>Image to PDF
+        </a>
+        <a href="/tool/jpg_to_png/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-image">🔄</span>JPG to PNG
+        </a>
+        <a href="/tool/png_to_jpg/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-image">🔄</span>PNG to JPG
+        </a>
+        <a href="/tool/resize_image/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-image">📐</span>Resize Image
+        </a>
+
+        <div class="mob-divider"></div>
+
+        <!-- PDF Editor -->
+        <div class="mob-section-label">Editor</div>
+        <a href="/editor/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon" style="background:rgba(124,58,237,.12);">✏️</span>
+          PDF Editor
+          <span
+            style="font-size:.6rem;background:rgba(124,58,237,.12);color:#7c3aed;padding:2px 6px;border-radius:8px;font-family:'JetBrains Mono',monospace;margin-left:4px;">Stage
+            2</span>
+        </a>
+
+      </div><!-- /mob-drawer-body -->
+
+      <!-- Drawer footer -->
+      <div class="mob-drawer-footer">
+
+        <!-- Theme toggle row -->
+        <div class="mob-theme-row">
+          <span class="mob-theme-label">Theme</span>
+          <button class="mob-theme-switch" onclick="dsToggleTheme()" type="button">
+            <span id="mob-theme-icon">🌙</span>
+            <span id="mob-theme-label">Dark</span>
+          </button>
+        </div>
+
+        <!-- Auth buttons -->
+        {% if user.is_authenticated %}
+        <form method="post" action="/auth/logout/" style="margin:0">
+          {% csrf_token %}
+          <button type="submit"
+            style="width:100%;padding:.6rem;border-radius:9px;border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;font-size:.85rem;font-weight:600;cursor:pointer;transition:background .15s;">
+            Sign out
+          </button>
+        </form>
+        {% else %}
+        <a href="/auth/login/"
+          style="display:block;text-align:center;padding:.6rem;border-radius:9px;border:1.5px solid var(--g-blue);color:var(--g-blue);font-size:.85rem;font-weight:600;text-decoration:none;transition:background .15s;"
+          onclick="mobDrawerClose()">Sign in</a>
+        <a href="/auth/signup/"
+          style="display:block;text-align:center;padding:.6rem;border-radius:9px;background:#1a73e8;color:#fff;font-size:.85rem;font-weight:600;text-decoration:none;"
+          onclick="mobDrawerClose()">Sign up free</a>
+        {% endif %}
+
+        <p
+          style="font-size:.7rem;text-align:center;font-family:'JetBrains Mono',monospace;color:var(--g-sub);margin-top:.2rem;">
+          11 free tools · no account needed</p>
+      </div>
+
+    </div><!-- /mob-drawer -->
+
+    <footer class="border-t g-divider py-5 px-6 mt-8">
+      <div
+        class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+        <span class="font-mono text-xs g-sub-text">&copy; {% now "Y" %} DocShift. Designed & Built by Subhash
+          Maurya.</span>
+        <span class="font-mono text-xs g-sub-text">
+          <a href="/terms/" class="hover:underline">Terms</a> &middot;
+          <a href="/privacy/" class="hover:underline">Privacy</a> &middot;
+          <a href="/api/docs/" class="hover:underline">API Docs</a> &middot;
+          {% if user.is_authenticated %}
+          Files kept 24h
+          {% else %}
+          Guest files deleted in 1h &middot;
+          <a href="/auth/signup/" class="text-blue-600 dark:text-[#38b6ff] hover:underline">Sign up free</a>
+          {% endif %}
+        </span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ── Cookie Consent Banner ── -->
+  <div id="cookie-banner"
+    class="fixed bottom-0 inset-x-0 z-50 bg-white dark:bg-[#0b1630] border-t g-divider p-4 shadow-2xl transform translate-y-full transition-transform duration-500 ease-in-out flex flex-col sm:flex-row items-center justify-center gap-4">
+    <div class="text-[0.85rem] text-gray-700 dark:text-[#c8dff5] max-w-2xl">
+      🍪 We use essential cookies to maintain your conversion history locally. We do not use third-party tracking
+      cookies.
+      <a href="/privacy/" class="text-blue-600 dark:text-[#38b6ff] hover:underline font-medium">Read our Privacy
+        Policy</a>.
+    </div>
+    <div class="flex gap-3 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
+      <button onclick="acceptCookies()" class="w-full sm:w-auto g-btn px-6 py-2 rounded-xl font-semibold text-sm">Accept
+        & Continue</button>
+    </div>
+  </div>
+
+  <script>
+    /* ── Cookie Consent ── */
+    function checkCookieConsent() {
+      if (!localStorage.getItem('docshift_cookie_consent')) {
+        setTimeout(function () {
+          var banner = document.getElementById('cookie-banner');
+          if (banner) banner.classList.remove('translate-y-full');
+        }, 800);
+      }
+    }
+    function acceptCookies() {
+      localStorage.setItem('docshift_cookie_consent', 'true');
+      var banner = document.getElementById('cookie-banner');
+      if (banner) banner.classList.add('translate-y-full');
+    }
+    checkCookieConsent();
+
+    /* ── Theme ── */
+    function dsToggleTheme() {
+      var d = document.documentElement.classList.contains('dark');
+      if (d) { document.documentElement.classList.remove('dark'); localStorage.setItem('ds_theme', 'light'); }
+      else { document.documentElement.classList.add('dark'); localStorage.setItem('ds_theme', 'dark'); }
+      dsUpdateToggle();
+    }
+    function dsUpdateToggle() {
+      var d = document.documentElement.classList.contains('dark');
+      var i = document.getElementById('theme-icon');
+      var l = document.getElementById('theme-label');
+      if (i) i.textContent = d ? '🌙' : '☀️';
+      if (l) l.textContent = d ? 'Dark' : 'Light';
+      // sync mobile drawer theme label
+      var mi = document.getElementById('mob-theme-icon');
+      var ml = document.getElementById('mob-theme-label');
+      if (mi) mi.textContent = d ? '🌙' : '☀️';
+      if (ml) ml.textContent = d ? 'Dark' : 'Light';
+    }
+    /* ── Dropdown — JS click toggle, NO hover gap bug ── */
+    var _ddOpen = false;
+
+    function ddToggle() {
+      _ddOpen ? ddClose() : ddOpen();
+    }
+    function ddOpen() {
+      _ddOpen = true;
+      var menu = document.getElementById('nav-dd-menu');
+      var trigger = document.getElementById('nav-dd-trigger');
+      var arrow = document.getElementById('nav-dd-arrow');
+      if (menu) menu.classList.add('open');
+      if (trigger) trigger.classList.add('open');
+      if (arrow) arrow.style.transform = 'rotate(180deg)';
+      newDdClose(); toolsPanelClose();
+    }
+    function ddClose() {
+      _ddOpen = false;
+      var menu = document.getElementById('nav-dd-menu');
+      var trigger = document.getElementById('nav-dd-trigger');
+      var arrow = document.getElementById('nav-dd-arrow');
+      if (menu) menu.classList.remove('open');
+      if (trigger) trigger.classList.remove('open');
+      if (arrow) arrow.style.transform = '';
+    }
+
+    /* Close on outside click */
+    document.addEventListener('click', function (e) {
+      var dd = document.getElementById('nav-dropdown');
+      if (dd && !dd.contains(e.target)) ddClose();
+
+
+      var tp = document.getElementById('tools-panel-wrap');
+      if (tp && !tp.contains(e.target)) toolsPanelClose();
+    });
+    /* Close on Escape */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { ddClose(); toolsPanelClose(); mobDrawerClose(); }
+    });
+
+    /* ── Mobile Drawer ── */
+    function mobDrawerOpen() {
+      document.getElementById('mob-drawer').classList.add('open');
+      document.getElementById('mob-backdrop').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      ddClose(); toolsPanelClose();
+    }
+    function mobDrawerClose() {
+      document.getElementById('mob-drawer').classList.remove('open');
+      document.getElementById('mob-backdrop').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    /* ── Tools Panel ── */
+    var _tpOpen = false;
+    function toolsPanelToggle() { _tpOpen ? toolsPanelClose() : toolsPanelOpen(); }
+    function toolsPanelOpen() {
+      _tpOpen = true;
+      var panel = document.getElementById('tools-panel');
+      var trigger = document.getElementById('tools-panel-trigger');
+      var arrow = document.getElementById('tools-panel-arrow');
+      if (panel) panel.classList.add('open');
+      if (trigger) { trigger.classList.add('open'); trigger.setAttribute('aria-expanded', 'true'); }
+      if (arrow) arrow.style.transform = 'rotate(180deg)';
+      ddClose(); // close user-menu if open
+    }
+    function toolsPanelClose() {
+      _tpOpen = false;
+      var panel = document.getElementById('tools-panel');
+      var trigger = document.getElementById('tools-panel-trigger');
+      var arrow = document.getElementById('tools-panel-arrow');
+      if (panel) panel.classList.remove('open');
+      if (trigger) { trigger.classList.remove('open'); trigger.setAttribute('aria-expanded', 'false'); }
+      if (arrow) arrow.style.transform = '';
+    }
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>

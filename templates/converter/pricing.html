@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing — DocShift API{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-5 py-16">
+    <!-- Success Acknowledgement -->
+    <div id="contact-success-banner" class="hidden mb-12 transform transition-all duration-700 -translate-y-4 opacity-0">
+        <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 w-full shadow-sm">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 shrink-0">
+                    <svg style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-emerald-900 dark:text-emerald-400 text-lg">Inquiry Received!</h3>
+                    <p class="text-emerald-700 dark:text-emerald-500/80">Thank you for your interest in DocShift Corporate. Our enterprise team will review your requirements and reach out within 24 hours.</p>
+                </div>
+            </div>
+            <button onclick="document.getElementById('contact-success-banner').classList.add('opacity-0', '-translate-y-4'); setTimeout(() => document.getElementById('contact-success-banner').remove(), 700)" 
+                    class="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 font-bold text-sm px-6 py-3 rounded-xl transition-colors shrink-0">
+                Dismiss
+            </button>
+        </div>
+    </div>
+
+    <div class="text-center max-w-2xl mx-auto mb-16">
+        <h1 class="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-4">
+            Simple, transparent pricing
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300">
+            Whether you are converting a few files manually or processing thousands via our developer API, we have a plan for you.
+        </p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <!-- Free Plan -->
+        <div class="bg-white dark:bg-[#0b1630] rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm flex flex-col {% if user.api_profile.plan_tier == 'Free' %}ring-2 ring-blue-500/20{% endif %}">
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Hobby</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Perfect for everyday users manually converting files.</p>
+            </div>
+            <div class="mb-6">
+                <span class="text-4xl font-black text-gray-900 dark:text-white">$0</span>
+                <span class="text-gray-500 dark:text-gray-400">/month</span>
+            </div>
+            <ul class="space-y-4 mb-8 flex-1">
+                <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                    <span class="text-green-500 mr-2">✓</span> Unlimited Manual UI Conversions
+                </li>
+                <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                    <span class="text-green-500 mr-2">✓</span> 10MB Max File Size
+                </li>
+                <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                    <span class="text-green-500 mr-2">✓</span> Files deleted after 1 hour
+                </li>
+            </ul>
+            {% if user.is_authenticated and user.api_profile.plan_tier == 'Free' %}
+            <button disabled class="w-full py-3 px-4 rounded-xl border-2 border-gray-100 dark:border-gray-800 text-gray-400 dark:text-gray-600 font-bold cursor-not-allowed">
+                Current Plan
+            </button>
+            {% else %}
+            <button onclick="window.location.href='/auth/signup/';" class="w-full py-3 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                Get Started
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Developer Plan -->
+        <div class="{% if user.api_profile.plan_tier == 'Developer' %}bg-emerald-600{% else %}bg-blue-600{% endif %} rounded-3xl border border-blue-500 p-8 shadow-xl transform md:-translate-y-4 flex flex-col relative">
+            <div class="absolute top-0 right-8 transform -translate-y-1/2">
+                <span class="bg-gradient-to-r from-teal-400 to-blue-400 text-white text-xs font-black uppercase tracking-wider py-1 px-3 rounded-full shadow-sm">
+                    Most Popular
+                </span>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-white">Developer</h3>
+                <p class="text-blue-100 text-sm mt-2">For indie hackers and startups integrating file conversion.</p>
+            </div>
+            <div class="mb-6">
+                <span class="text-4xl font-black text-white">$19</span>
+                <span class="text-blue-200">/month</span>
+            </div>
+            <ul class="space-y-4 mb-8 flex-1">
+                <li class="flex items-start text-sm text-white">
+                    <span class="text-blue-300 mr-2">✓</span> <strong class="mr-1">5,000</strong> API Calls / month
+                </li>
+                <li class="flex items-start text-sm text-white">
+                    <span class="text-blue-300 mr-2">✓</span> 50MB Max File Size
+                </li>
+                <li class="flex items-start text-sm text-white">
+                    <span class="text-blue-300 mr-2">✓</span> Files kept for 24 hours
+                </li>
+                <li class="flex items-start text-sm text-white">
+                    <span class="text-blue-300 mr-2">✓</span> Webhook Callbacks
+                </li>
+            </ul>
+            
+            {% if user.is_authenticated %}
+                {% if user.api_profile.plan_tier == 'Developer' %}
+                <button disabled class="w-full py-3 px-4 rounded-xl bg-emerald-700 text-emerald-100 font-bold cursor-not-allowed">
+                    Current Plan
+                </button>
+                {% else %}
+                <button onclick="window.location.href='{% url 'checkout_developer' %}';" class="w-full py-3 px-4 rounded-xl bg-white text-blue-600 font-bold hover:bg-gray-50 transition-colors">
+                    Upgrade to Developer
+                </button>
+                {% endif %}
+            {% else %}
+            <button onclick="window.location.href='/auth/login/?next=/pricing/';" class="w-full py-3 px-4 rounded-xl bg-white text-blue-600 font-bold hover:bg-gray-50 transition-colors">
+                Sign in to Upgrade
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Corporate Plan -->
+        <div class="bg-white dark:bg-[#0b1630] rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm flex flex-col {% if user.api_profile.plan_tier == 'Corporate' %}ring-2 ring-purple-500/20{% endif %}">
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Corporate</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">For massive scale, priority processing, and high limits.</p>
+            </div>
+            <div class="mb-6 text-xl text-gray-400 dark:text-gray-500 font-bold py-2">
+                Custom Pricing
+            </div>
+            <ul class="space-y-4 mb-8 flex-1">
+                <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                    <span class="text-green-500 mr-2">✓</span> <strong class="mr-1">50,000+</strong> API Calls / month
+                </li>
+                <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                    <span class="text-green-500 mr-2">✓</span> 500MB+ Max File Size
+                </li>
+                <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                    <span class="text-green-500 mr-2">✓</span> Priority Processing Queue
+                </li>
+                <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                    <span class="text-green-500 mr-2">✓</span> Dedicated Success Manager
+                </li>
+            </ul>
+            
+            {% if user.is_authenticated and user.api_profile.plan_tier == 'Corporate' %}
+            <button disabled class="w-full py-3 px-4 rounded-xl border-2 border-purple-100 dark:border-purple-800 text-purple-400 dark:text-purple-600 font-bold cursor-not-allowed">
+                Current Plan
+            </button>
+            {% else %}
+            <button onclick="window.location.href='{% url 'contact_sales' %}';" class="w-full py-3 px-4 rounded-xl border-2 border-gray-900 dark:border-gray-600 text-gray-900 dark:text-white font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                Contact Sales
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('contact') === 'success') {
+            const banner = document.getElementById('contact-success-banner');
+            if (banner) {
+                banner.classList.remove('hidden');
+                setTimeout(() => {
+                    banner.classList.remove('-translate-y-4', 'opacity-0');
+                    banner.classList.add('translate-y-0', 'opacity-100');
+                }, 100);
+            }
+        }
+    });
+</script>
+{% endblock %}

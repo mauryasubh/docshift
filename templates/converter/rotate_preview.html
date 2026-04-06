@@ -1,0 +1,481 @@
+{% extends "base.html" %}
+{% block title %}Rotate PDF — DocShift{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── Layout ── */
+.rp-root { max-width: 1100px; margin: 0 auto; padding: 2rem 1.25rem; }
+
+/* ── Toolbar ── */
+.rp-toolbar {
+  position: sticky; top: 57px; z-index: 40;
+  background: #fff; border-bottom: 1px solid var(--g-border);
+  padding: .6rem 1rem; display: flex; align-items: center;
+  gap: .75rem; flex-wrap: wrap; margin: 0 -1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+html.dark .rp-toolbar {
+  background: rgba(5,13,30,.95); border-color: var(--d-border);
+  backdrop-filter: blur(12px); box-shadow: none;
+}
+.rp-tb-label {
+  font-size: .7rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--g-sub); white-space: nowrap;
+}
+html.dark .rp-tb-label { color: var(--d-sub); }
+.rp-btn {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .4rem .9rem; border-radius: 7px; font-size: .8rem;
+  font-weight: 600; cursor: pointer; border: 1.5px solid var(--g-border);
+  background: #fff; color: var(--g-text); transition: all .15s;
+  font-family: inherit; white-space: nowrap;
+}
+html.dark .rp-btn { background: rgba(255,255,255,.06); border-color: var(--d-border); color: var(--d-text); }
+.rp-btn:hover { border-color: var(--g-blue); color: var(--g-blue); background: #e8f0fe; }
+html.dark .rp-btn:hover { border-color: var(--d-accent); color: var(--d-accent); background: rgba(56,182,255,.1); }
+.rp-btn.active { background: #e8f0fe; border-color: var(--g-blue); color: var(--g-blue); }
+html.dark .rp-btn.active { background: rgba(56,182,255,.1); border-color: var(--d-accent); color: var(--d-accent); }
+.rp-btn-apply {
+  background: var(--g-blue); color: #fff; border-color: var(--g-blue);
+  padding: .45rem 1.2rem; font-size: .85rem;
+}
+html.dark .rp-btn-apply { background: linear-gradient(135deg,#1e6fd9,#4f46e5); border-color: transparent; }
+.rp-btn-apply:hover { background: var(--g-blue-h); color: #fff; border-color: var(--g-blue-h); }
+html.dark .rp-btn-apply:hover { color: #fff; }
+.rp-btn-apply:disabled { opacity: .5; cursor: not-allowed; }
+.rp-sep { width: 1px; height: 22px; background: var(--g-border); flex-shrink: 0; }
+html.dark .rp-sep { background: var(--d-border); }
+
+/* ── Selection info chip ── */
+.sel-chip {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .3rem .75rem; border-radius: 20px; font-size: .75rem;
+  font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  background: #e8f0fe; color: var(--g-blue); border: 1px solid #c5d6fb;
+}
+html.dark .sel-chip {
+  background: rgba(56,182,255,.12); color: var(--d-accent); border-color: rgba(56,182,255,.3);
+}
+
+/* ── Page grid ── */
+.rp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+/* ── Page card ── */
+.rp-page {
+  border: 2px solid var(--g-border); border-radius: 10px;
+  background: #fff; overflow: hidden; cursor: pointer;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+  position: relative; user-select: none;
+}
+html.dark .rp-page { background: #0b1630; border-color: var(--d-border); }
+.rp-page:hover { border-color: rgba(26,115,232,.5); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+html.dark .rp-page:hover { border-color: rgba(56,182,255,.4); }
+.rp-page.selected { border-color: var(--g-blue) !important; box-shadow: 0 0 0 3px rgba(26,115,232,.2); }
+html.dark .rp-page.selected { border-color: var(--d-accent) !important; box-shadow: 0 0 0 3px rgba(56,182,255,.18); }
+
+/* ── Thumbnail wrapper — fixed aspect ratio for image + rotation ── */
+.rp-thumb-wrap {
+  width: 100%; aspect-ratio: 0.707; /* A4 ratio */
+  overflow: hidden; background: #f0f4f9;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+html.dark .rp-thumb-wrap { background: #050d1e; }
+.rp-thumb {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; display: block;
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  transform-origin: center center;
+}
+
+/* ── Checkbox overlay ── */
+.rp-check {
+  position: absolute; top: 7px; left: 7px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(255,255,255,.9); border: 2px solid var(--g-border);
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s; z-index: 2; flex-shrink: 0;
+}
+html.dark .rp-check { background: rgba(11,22,48,.9); border-color: rgba(56,182,255,.35); }
+.rp-page.selected .rp-check {
+  background: var(--g-blue); border-color: var(--g-blue);
+}
+html.dark .rp-page.selected .rp-check {
+  background: var(--d-accent); border-color: var(--d-accent);
+}
+.rp-check svg { opacity: 0; transition: opacity .15s; }
+.rp-page.selected .rp-check svg { opacity: 1; }
+
+/* ── Rotation badge ── */
+.rp-rot-badge {
+  position: absolute; top: 7px; right: 7px;
+  background: rgba(0,0,0,.6); color: #fff;
+  font-size: .6rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+  padding: 2px 6px; border-radius: 4px; z-index: 2;
+  transition: opacity .2s;
+}
+.rp-rot-badge.zero { opacity: 0; }
+
+/* ── Page footer ── */
+.rp-page-footer {
+  padding: .45rem .6rem; display: flex; align-items: center;
+  justify-content: space-between; border-top: 1px solid var(--g-border);
+  background: #fafbfc; gap: .3rem;
+}
+html.dark .rp-page-footer { background: #081325; border-color: var(--d-border); }
+.rp-page-num {
+  font-size: .7rem; font-weight: 600; color: var(--g-sub);
+  font-family: 'JetBrains Mono', monospace;
+}
+html.dark .rp-page-num { color: var(--d-sub); }
+.rp-rot-btns { display: flex; gap: .2rem; }
+.rp-rot-btn {
+  width: 24px; height: 24px; border-radius: 5px; border: 1px solid var(--g-border);
+  background: transparent; cursor: pointer; font-size: .85rem; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .12s; color: var(--g-text);
+}
+html.dark .rp-rot-btn { border-color: var(--d-border); color: var(--d-text); }
+.rp-rot-btn:hover { background: #e8f0fe; border-color: var(--g-blue); color: var(--g-blue); }
+html.dark .rp-rot-btn:hover { background: rgba(56,182,255,.1); border-color: var(--d-accent); color: var(--d-accent); }
+.rp-rot-btn:active { transform: scale(.9); }
+
+/* ── Apply modal ── */
+.apply-ov {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.55); z-index: 500;
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.apply-ov.open { display: flex; }
+.apply-modal {
+  background: #fff; border-radius: 16px; padding: 2rem 2.5rem;
+  text-align: center; max-width: 340px; width: 90%;
+  box-shadow: 0 24px 80px rgba(0,0,0,.35);
+}
+html.dark .apply-modal { background: #0b1630; }
+
+/* ── Empty state for "no rotation" ── */
+.rp-no-changes {
+  padding: .5rem .75rem; border-radius: 8px; font-size: .78rem;
+  background: #fef3c7; border: 1px solid #fcd34d; color: #92400e;
+}
+html.dark .rp-no-changes {
+  background: rgba(251,191,36,.12); border-color: rgba(251,191,36,.3); color: #fbbf24;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rp-root">
+
+  <!-- Sticky toolbar -->
+  <div class="rp-toolbar">
+
+    <!-- Left: selection + bulk actions -->
+    <span class="rp-tb-label hidden sm:block">{{ page_count }} pages</span>
+    <div class="rp-sep hidden sm:block"></div>
+
+    <button class="rp-btn" onclick="selectAll()">☑ All</button>
+    <button class="rp-btn" onclick="selectNone()">☐ None</button>
+
+    <div class="rp-sep"></div>
+
+    <span class="rp-tb-label">Rotate selected:</span>
+    <button class="rp-btn" onclick="rotateSelected(-90)" title="90° Counter-clockwise">↺ 90° L</button>
+    <button class="rp-btn" onclick="rotateSelected(180)" title="180°">↕ 180°</button>
+    <button class="rp-btn" onclick="rotateSelected(90)"  title="90° Clockwise">↻ 90° R</button>
+
+    <div class="rp-sep"></div>
+    <button class="rp-btn" onclick="resetAll()" title="Reset all to original">↺ Reset</button>
+
+    <div class="flex-1"></div>
+
+    <!-- Selection count -->
+    <span class="sel-chip" id="sel-chip" style="display:none">
+      <svg style="width:11px;height:11px" fill="none" viewBox="0 0 24 24"
+           stroke="currentColor" stroke-width="3">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+      </svg>
+      <span id="sel-count">0</span> selected
+    </span>
+
+    <!-- Apply button -->
+    <button class="rp-btn rp-btn-apply" id="apply-btn" onclick="applyRotations()">
+      ✓ Apply &amp; Download
+    </button>
+
+  </div>
+
+  <!-- Header -->
+  <div class="flex items-center gap-3 mb-5">
+    <a href="/tool/rotate_pdf/"
+       class="flex items-center gap-1.5 text-sm g-sub-text
+              hover:text-blue-600 dark:hover:text-[#38b6ff] transition-colors group">
+      <svg class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform"
+           fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Upload different PDF
+    </a>
+    <span class="text-xs g-sub-text">·</span>
+    <span class="text-sm font-semibold text-gray-700 dark:text-[#c8dff5] truncate max-w-xs">
+      {{ filename }}
+    </span>
+  </div>
+
+  <!-- Hint bar -->
+  <div class="flex items-center gap-2 mb-5 p-3 rounded-xl text-xs g-sub-text
+              border g-divider bg-blue-50 dark:bg-[rgba(56,182,255,.05)]">
+    <span class="text-base">💡</span>
+    <span>
+      <strong class="text-gray-700 dark:text-[#c8dff5]">Click a page</strong> to select it,
+      then use the toolbar buttons to rotate.
+      Hold <kbd class="px-1 py-0.5 rounded bg-white dark:bg-[rgba(255,255,255,.08)]
+                       border border-gray-200 dark:border-[rgba(255,255,255,.12)]
+                       font-mono text-[.65rem]">Shift</kbd> to select a range.
+      The blue rotation arrow on each page shows the current rotation.
+    </span>
+  </div>
+
+  <!-- Page grid -->
+  <div class="rp-grid" id="page-grid">
+    {% for thumb_url in thumb_urls %}
+    <div class="rp-page" id="page-{{ forloop.counter0 }}"
+         onclick="togglePage({{ forloop.counter0 }}, event)"
+         data-idx="{{ forloop.counter0 }}"
+         data-rotation="0">
+
+      <!-- Checkbox -->
+      <div class="rp-check">
+        <svg style="width:12px;height:12px" fill="none" viewBox="0 0 24 24"
+             stroke="white" stroke-width="3">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+
+      <!-- Rotation badge -->
+      <div class="rp-rot-badge zero" id="badge-{{ forloop.counter0 }}">0°</div>
+
+      <!-- Thumbnail -->
+      <div class="rp-thumb-wrap">
+        <img class="rp-thumb"
+             id="thumb-{{ forloop.counter0 }}"
+             src="{{ thumb_url }}"
+             alt="Page {{ forloop.counter }}"
+             draggable="false">
+      </div>
+
+      <!-- Footer: page number + per-page rotate buttons -->
+      <div class="rp-page-footer" onclick="event.stopPropagation()">
+        <span class="rp-page-num">Pg {{ forloop.counter }}</span>
+        <div class="rp-rot-btns">
+          <button class="rp-rot-btn" title="90° Left"
+                  onclick="rotateSingle({{ forloop.counter0 }}, -90)">↺</button>
+          <button class="rp-rot-btn" title="180°"
+                  onclick="rotateSingle({{ forloop.counter0 }}, 180)">↕</button>
+          <button class="rp-rot-btn" title="90° Right"
+                  onclick="rotateSingle({{ forloop.counter0 }}, 90)">↻</button>
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- Apply overlay -->
+<div class="apply-ov" id="apply-ov">
+  <div class="apply-modal">
+    <div class="text-4xl mb-3" id="ao-icon">⚙️</div>
+    <p class="font-bold text-lg text-gray-800 dark:text-[#e2f0ff] mb-2" id="ao-title">
+      Applying rotations…
+    </p>
+    <p class="text-sm g-sub-text mb-4" id="ao-msg">
+      Saving your PDF, this won't take long.
+    </p>
+    <div class="g-progress-track h-2 rounded-full" id="ao-prog">
+      <div class="g-progress-bar shimmer h-2 rounded-full" style="width:60%"></div>
+    </div>
+    <a href="#" id="ao-dl" class="g-btn mt-5 inline-flex items-center gap-2"
+       style="display:none!important;padding:.55rem 1.4rem">
+      ⬇ Download Rotated PDF
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const JOB_ID    = "{{ job_id }}";
+const PAGE_COUNT = {{ page_count }};
+const APPLY_URL  = "/tool/rotate_pdf/apply/{{ job_id }}/";
+const STATUS_URL = "/job/{{ job_id }}/status/json/";
+const CSRF       = "{{ csrf_token }}";
+
+// State: rotations[i] = cumulative degrees added to page i (0 = no change)
+const rotations = new Array(PAGE_COUNT).fill(0);
+let selectedPages = new Set();
+let lastClickedIdx = null;
+
+// ── Page selection ──────────────────────────────────────────
+function togglePage(idx, evt) {
+  if (evt && evt.shiftKey && lastClickedIdx !== null) {
+    // Range select
+    const lo = Math.min(lastClickedIdx, idx);
+    const hi = Math.max(lastClickedIdx, idx);
+    const allSelected = [];
+    for (let i = lo; i <= hi; i++) allSelected.push(i);
+    const anyUnselected = allSelected.some(i => !selectedPages.has(i));
+    allSelected.forEach(i => {
+      if (anyUnselected) selectedPages.add(i);
+      else selectedPages.delete(i);
+    });
+  } else {
+    if (selectedPages.has(idx)) selectedPages.delete(idx);
+    else selectedPages.add(idx);
+  }
+  lastClickedIdx = idx;
+  renderSelection();
+}
+
+function selectAll() {
+  for (let i = 0; i < PAGE_COUNT; i++) selectedPages.add(i);
+  renderSelection();
+}
+function selectNone() {
+  selectedPages.clear();
+  renderSelection();
+}
+
+function renderSelection() {
+  for (let i = 0; i < PAGE_COUNT; i++) {
+    const card = document.getElementById('page-' + i);
+    if (!card) continue;
+    card.classList.toggle('selected', selectedPages.has(i));
+  }
+  const chip  = document.getElementById('sel-chip');
+  const count = document.getElementById('sel-count');
+  if (selectedPages.size > 0) {
+    chip.style.display = '';
+    count.textContent  = selectedPages.size;
+  } else {
+    chip.style.display = 'none';
+  }
+}
+
+// ── Rotation ────────────────────────────────────────────────
+function rotateSingle(idx, deg) {
+  rotations[idx] = (rotations[idx] + deg + 360) % 360;
+  applyVisual(idx);
+}
+
+function rotateSelected(deg) {
+  if (selectedPages.size === 0) {
+    // Rotate ALL if nothing selected
+    for (let i = 0; i < PAGE_COUNT; i++) {
+      rotations[i] = (rotations[i] + deg + 360) % 360;
+      applyVisual(i);
+    }
+    return;
+  }
+  selectedPages.forEach(i => {
+    rotations[i] = (rotations[i] + deg + 360) % 360;
+    applyVisual(i);
+  });
+}
+
+function resetAll() {
+  for (let i = 0; i < PAGE_COUNT; i++) {
+    rotations[i] = 0;
+    applyVisual(i);
+  }
+}
+
+function applyVisual(idx) {
+  const thumb = document.getElementById('thumb-' + idx);
+  const badge = document.getElementById('badge-' + idx);
+  const deg   = rotations[idx];
+
+  if (thumb) thumb.style.transform = `rotate(${deg}deg)`;
+
+  if (badge) {
+    badge.textContent = deg + '°';
+    badge.classList.toggle('zero', deg === 0);
+  }
+}
+
+// ── Submit ──────────────────────────────────────────────────
+async function applyRotations() {
+  // Build dict of only pages that have non-zero rotation
+  const payload = {};
+  let hasAny    = false;
+  for (let i = 0; i < PAGE_COUNT; i++) {
+    if (rotations[i] !== 0) {
+      payload[String(i)] = rotations[i];
+      hasAny = true;
+    }
+  }
+
+  if (!hasAny) {
+    alert('No pages have been rotated yet.\nUse the toolbar or per-page buttons to rotate pages first.');
+    return;
+  }
+
+  // Show overlay
+  const ov = document.getElementById('apply-ov');
+  ov.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  try {
+    const resp = await fetch(APPLY_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': CSRF,
+      },
+      body: JSON.stringify({ rotations: payload }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Apply failed');
+    pollStatus();
+  } catch (err) {
+    document.getElementById('ao-icon').textContent  = '❌';
+    document.getElementById('ao-title').textContent = 'Failed';
+    document.getElementById('ao-msg').textContent   = err.message;
+    document.getElementById('ao-prog').style.display = 'none';
+  }
+}
+
+function pollStatus() {
+  const iv = setInterval(async () => {
+    try {
+      const d = await fetch(STATUS_URL).then(r => r.json());
+      if (d.status === 'done' && d.download_url) {
+        clearInterval(iv);
+        document.getElementById('ao-icon').textContent  = '✅';
+        document.getElementById('ao-title').textContent = 'Done!';
+        document.getElementById('ao-msg').textContent   = 'Your rotated PDF is ready.';
+        document.getElementById('ao-prog').style.display = 'none';
+        const dlBtn = document.getElementById('ao-dl');
+        dlBtn.href = d.download_url;
+        dlBtn.style.display = '';
+        // Auto-download
+        window.location.href = d.download_url;
+      } else if (d.status === 'failed') {
+        clearInterval(iv);
+        document.getElementById('ao-icon').textContent  = '❌';
+        document.getElementById('ao-title').textContent = 'Failed';
+        document.getElementById('ao-msg').textContent   = d.error_message || 'Unknown error';
+        document.getElementById('ao-prog').style.display = 'none';
+      }
+    } catch(e) {}
+  }, 1500);
+}
+</script>
+{% endblock %}

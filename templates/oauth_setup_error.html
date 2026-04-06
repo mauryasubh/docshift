@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}OAuth Setup Required — DocShift{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto px-5 py-16 text-center">
+  <div class="g-card rounded-2xl p-8">
+    <div class="text-5xl mb-4">⚙️</div>
+    <h1 class="logo-text text-xl text-gray-800 dark:text-[#e2f0ff] mb-2">{{ provider_title }} OAuth Not Configured</h1>
+    <p class="text-sm g-sub-text mb-6 leading-relaxed">
+      The {{ provider_title }} social login app isn't fully set up in the database yet.
+      Follow these steps to fix it:
+    </p>
+    <div class="text-left space-y-3 mb-6">
+      <div class="flex gap-3 p-3 rounded-xl bg-blue-50 dark:bg-[rgba(56,182,255,.07)] border border-blue-100 dark:border-[rgba(56,182,255,.15)]">
+        <span class="font-bold text-blue-600 dark:text-[#38b6ff] shrink-0">1.</span>
+        <span class="text-sm text-gray-700 dark:text-[#c8dff5]">
+          Go to <a href="/admin/sites/site/1/change/" class="text-blue-600 dark:text-[#38b6ff] font-semibold hover:underline">Admin → Sites → Site #1</a>
+          and set domain to <code class="bg-gray-100 dark:bg-[rgba(255,255,255,.08)] px-1.5 py-0.5 rounded text-xs font-mono">127.0.0.1:8000</code>
+        </span>
+      </div>
+      <div class="flex gap-3 p-3 rounded-xl bg-blue-50 dark:bg-[rgba(56,182,255,.07)] border border-blue-100 dark:border-[rgba(56,182,255,.15)]">
+        <span class="font-bold text-blue-600 dark:text-[#38b6ff] shrink-0">2.</span>
+        <span class="text-sm text-gray-700 dark:text-[#c8dff5]">
+          Go to <a href="/admin/socialaccount/socialapp/add/" class="text-blue-600 dark:text-[#38b6ff] font-semibold hover:underline">Admin → Social Applications → Add</a>
+        </span>
+      </div>
+      <div class="flex gap-3 p-3 rounded-xl bg-amber-50 dark:bg-[rgba(251,191,36,.07)] border border-amber-100 dark:border-[rgba(251,191,36,.2)]">
+        <span class="font-bold text-amber-600 dark:text-[#fbbf24] shrink-0">3.</span>
+        <span class="text-sm text-gray-700 dark:text-[#c8dff5]">
+          Set <strong>Provider</strong> = <code class="bg-gray-100 dark:bg-[rgba(255,255,255,.08)] px-1.5 py-0.5 rounded text-xs font-mono">{{ provider_title }}</code>,
+          <strong>Provider ID</strong> = <code class="bg-gray-100 dark:bg-[rgba(255,255,255,.08)] px-1.5 py-0.5 rounded text-xs font-mono">{{ provider }}</code> (lowercase!),
+          paste your Client ID and Secret, then move <code class="font-mono text-xs">127.0.0.1:8000</code> to Chosen Sites
+        </span>
+      </div>
+    </div>
+    <div class="flex gap-3 justify-center">
+      <a href="/auth/login/" class="g-btn-outline py-2 px-5 rounded-lg text-sm">← Back to login</a>
+      <a href="/admin/" class="g-btn py-2 px-5 rounded-lg text-sm">Open Admin</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+# ── Python ─────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ── Virtual Environment ───────────────────────────────────
+venv/
+env/
+.venv/
+
+# ── Django ─────────────────────────────────────────────────
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# ── Environment / Secrets ─────────────────────────────────
+.env
+.env.local
+.env.production
+start_script.txt
+
+# ── IDE ────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ─────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Build artifacts ────────────────────────────────────────
+*.egg-info/
+dist/
+build/
+
+# ── Celery ─────────────────────────────────────────────────
+celerybeat-schedule
+celerybeat.pid
+
+# ── code-review-graph (local only) ────────────────────────
+.code-review-graph/
+
+# ── Debug/temp scripts ────────────────────────────────────
+debug_*.py
+plan_for_later/inspect_graph.py
+plan_for_later/graph_review.txt

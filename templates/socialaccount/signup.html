@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load socialaccount %}
+{% block title %}Complete Sign Up — DocShift{% endblock %}
+{% block extra_head %}
+<style>
+  .auth-card{background:#fff;border:1px solid var(--g-border);border-radius:20px;padding:2.5rem;box-shadow:0 4px 24px rgba(0,0,0,.08);}
+  html.dark .auth-card{background:#0b1630;border-color:rgba(56,182,255,.15);box-shadow:0 8px 40px rgba(0,0,0,.4);}
+  .auth-logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#1a73e8,#4f46e5);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:800;color:#fff;font-size:1.1rem;margin:0 auto 1.25rem;box-shadow:0 4px 16px rgba(26,115,232,.35);}
+  html.dark .auth-logo{background:linear-gradient(135deg,#38b6ff,#818cf8);}
+</style>
+{% endblock %}
+{% block content %}
+<div class="max-w-[420px] mx-auto px-5 py-12">
+  <div class="auth-card">
+    <div class="text-center mb-6">
+      <div class="auth-logo">DS</div>
+      <h1 class="logo-text text-[1.4rem] text-gray-800 dark:text-[#e2f0ff] mb-1">One last step</h1>
+      <p class="text-sm g-sub-text">Pick a username to finish setting up your account</p>
+    </div>
+    <form method="post" action="{% url 'socialaccount_signup' %}">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="mb-4 p-3 rounded-lg bg-red-50 dark:bg-[rgba(248,113,113,.08)] border border-red-200 dark:border-[rgba(248,113,113,.25)] text-sm text-red-600 dark:text-[#f87171]">
+        {{ form.non_field_errors|join:", " }}
+      </div>
+      {% endif %}
+      <div class="mb-5">
+        <label class="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-[#a8c4d8]">Username</label>
+        <input type="text" name="username" class="g-input" value="{{ form.username.value|default:'' }}" placeholder="Choose a username">
+        {% if form.username.errors %}<p class="text-xs text-red-500 mt-1">{{ form.username.errors|join:", " }}</p>{% endif %}
+      </div>
+      <button type="submit" class="g-btn w-full py-3 rounded-xl">Finish creating account →</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

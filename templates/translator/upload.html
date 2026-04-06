@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Document Translator — DocShift{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-5 py-16 content-z">
+
+  <!-- Header -->
+  <div class="text-center mb-10">
+    <div class="inline-flex items-center gap-2 mb-4">
+      <span class="g-chip">Stage 3</span>
+      <span class="g-chip" style="background:rgba(52,211,153,.1);color:#34d399;border-color:rgba(52,211,153,.3);">Beta</span>
+    </div>
+    <h1 class="text-3xl font-black logo-text text-gray-900 dark:text-[#e2f0ff] mb-3">
+      Document <span class="hero-grad">Translator</span>
+    </h1>
+    <p class="g-sub-text text-sm">
+      Translate Word and PDF documents between languages — download the translated file instantly.
+    </p>
+  </div>
+
+  {% if error %}
+  <div class="msg-error mb-6">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="{% url 'translator_upload' %}" enctype="multipart/form-data" id="upload-form">
+    {% csrf_token %}
+
+    <!-- Language selector -->
+    <div class="g-card p-5 mb-4">
+      <p class="text-xs font-mono font-semibold g-sub-text mb-3" style="text-transform:uppercase;letter-spacing:.06em">Translation direction</p>
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="flex flex-col gap-1 flex-1" style="min-width:120px">
+          <label class="text-xs g-sub-text">From</label>
+          <select name="source_lang" id="source_lang"
+                  class="g-input" style="padding:.5rem .75rem;font-size:.85rem">
+            {% for code, label in lang_choices %}
+            <option value="{{ code }}" {% if code == 'fr' %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Swap button -->
+        <button type="button" onclick="swapLangs()"
+                class="toggle-pill mt-4" style="padding:6px 10px" title="Swap languages">
+          <svg style="width:14px;height:14px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+          </svg>
+        </button>
+
+        <div class="flex flex-col gap-1 flex-1" style="min-width:120px">
+          <label class="text-xs g-sub-text">To</label>
+          <select name="target_lang" id="target_lang"
+                  class="g-input" style="padding:.5rem .75rem;font-size:.85rem">
+            {% for code, label in lang_choices %}
+            {% if code != 'auto' %}
+            <option value="{{ code }}" {% if code == 'en' %}selected{% endif %}>{{ label }}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- File drop zone -->
+    <div class="g-drop g-card p-10 text-center cursor-pointer" id="drop-zone">
+      <input type="file" name="file" id="file-input" accept=".docx,.pdf" class="hidden">
+
+      <div id="drop-idle">
+        <div class="text-4xl mb-4">📄</div>
+        <p class="font-semibold text-gray-800 dark:text-[#e2f0ff] mb-1">Drop your document here</p>
+        <p class="text-sm g-sub-text mb-2">.docx or .pdf files — up to 50 MB</p>
+        <div class="inline-flex items-center gap-1.5 mb-5 px-3 py-1 rounded-full text-xs font-mono"
+             style="background:rgba(52,211,153,.1);color:#34d399;border:1px solid rgba(52,211,153,.3);">
+          ✓ Formatting preserved &nbsp;·&nbsp; ✓ Tables translated &nbsp;·&nbsp; ✓ Headings kept
+        </div>
+        <br>
+        <button type="button" onclick="document.getElementById('file-input').click()"
+                class="g-btn" style="padding:.55rem 1.6rem">
+          Choose file
+        </button>
+      </div>
+
+      <div id="drop-selected" class="hidden">
+        <div class="text-4xl mb-3">✅</div>
+        <p class="font-semibold text-gray-800 dark:text-[#e2f0ff] mb-1" id="file-name">—</p>
+        <p class="text-sm g-sub-text mb-5" id="file-size">—</p>
+        <button type="submit" class="g-btn" style="padding:.55rem 1.6rem" id="submit-btn">
+          Translate Document →
+        </button>
+        <button type="button" onclick="resetDrop()"
+                class="g-btn-outline ml-2" style="padding:.5rem 1rem">
+          Change
+        </button>
+      </div>
+    </div>
+
+  </form>
+
+  <!-- Feature cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10">
+    <div class="g-card p-4 text-center">
+      <div class="text-2xl mb-2">🔤</div>
+      <p class="text-sm font-semibold text-gray-800 dark:text-[#e2f0ff] mb-1">Preserves Formatting</p>
+      <p class="text-xs g-sub-text">Bold, italic, headings and font sizes are kept intact</p>
+    </div>
+    <div class="g-card p-4 text-center">
+      <div class="text-2xl mb-2">📊</div>
+      <p class="text-sm font-semibold text-gray-800 dark:text-[#e2f0ff] mb-1">Tables Supported</p>
+      <p class="text-xs g-sub-text">Every table cell is translated automatically</p>
+    </div>
+    <div class="g-card p-4 text-center">
+      <div class="text-2xl mb-2">🔒</div>
+      <p class="text-sm font-semibold text-gray-800 dark:text-[#e2f0ff] mb-1">Fully Offline</p>
+      <p class="text-xs g-sub-text">Translation runs privately on our secure servers — your data never leaves the platform</p>
+    </div>
+  </div>
+
+  <div class="mt-8 p-4 rounded-xl border"
+       style="background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.25);">
+    <p class="text-xs" style="color:#fbbf24;">
+      <strong>Note:</strong> PDF translation works best on text-based documents. 
+      Scanned (image-only) PDFs may require OCR—Stage 4 coming soon.
+    </p>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const dropZone  = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+function humanSize(b) {
+  return b < 1048576 ? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(1)+' MB';
+}
+function showFile(file) {
+  document.getElementById('file-name').textContent = file.name;
+  document.getElementById('file-size').textContent = humanSize(file.size);
+  document.getElementById('drop-idle').classList.add('hidden');
+  document.getElementById('drop-selected').classList.remove('hidden');
+}
+function resetDrop() {
+  fileInput.value = '';
+  document.getElementById('drop-idle').classList.remove('hidden');
+  document.getElementById('drop-selected').classList.add('hidden');
+}
+function swapLangs() {
+  const src = document.getElementById('source_lang');
+  const tgt = document.getElementById('target_lang');
+  const tmp = src.value;
+  // Don't swap 'auto'
+  if (tgt.value === 'auto') return;
+  src.value = tgt.value;
+  tgt.value = tmp === 'auto' ? 'en' : tmp;
+}
+
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) showFile(fileInput.files[0]); });
+dropZone.addEventListener('click',    e  => { if (e.target.tagName !== 'BUTTON') fileInput.click(); });
+dropZone.addEventListener('dragover', e  => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave',()  => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (file && ['docx','pdf'].includes(ext)) {
+    const dt = new DataTransfer(); dt.items.add(file); fileInput.files = dt.files; showFile(file);
+  } else {
+    alert('Only .docx and .pdf files are supported.');
+  }
+});
+
+// Disable submit during translation to prevent double-click
+document.getElementById('upload-form').addEventListener('submit', () => {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Translating…';
+});
+</script>
+{% endblock %}

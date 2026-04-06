@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}500 Server Error — DocShift{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-5 py-24 text-center pb-32">
+    <div class="text-[5rem] mb-4">😵‍💫</div>
+    <h1 class="text-4xl font-bold text-gray-900 dark:text-[#e2f0ff] mb-4">500 - Server Error</h1>
+    <p class="text-lg text-gray-600 dark:text-[#c8dff5] mb-8">
+        Well, this is embarrassing. Something caught fire on our end while processing your request. 
+        Please try again in a few minutes!
+    </p>
+    <a href="/" class="px-8 py-3 rounded-xl font-semibold bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-[#c8dff5] dark:hover:bg-gray-700 transition-all inline-block">
+        ← Return to Safety
+    </a>
+</div>
+{% endblock %}

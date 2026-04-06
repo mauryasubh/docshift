@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Sales — DocShift Corporate{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-5 py-20">
+    <div class="grid md:grid-cols-2 gap-16 items-start">
+        
+        <!-- Left: Marketing Copy -->
+        <div class="space-y-8">
+            <div>
+                <h1 class="text-4xl font-black text-gray-900 dark:text-white mb-4 leading-tight">
+                    Scale your document infrastructure
+                </h1>
+                <p class="text-lg text-gray-600 dark:text-gray-300">
+                    Trusted by developers and enterprises for high-volume, secure file processing. Let's talk about your specific needs.
+                </p>
+            </div>
+
+            <div class="space-y-6">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shrink-0">🚀</div>
+                    <div>
+                        <h4 class="font-bold text-gray-900 dark:text-white">Custom Quotas</h4>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Processing millions of files? We can build a custom tier for you.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold shrink-0">🛡️</div>
+                    <div>
+                        <h4 class="font-bold text-gray-900 dark:text-white">Enterprise Privacy</h4>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">SLA-backed uptime and dedicated processing queues.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: The Form -->
+        <div class="bg-white dark:bg-[#0b1630] rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-xl">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Inquire about Corporate</h3>
+            
+            <form method="post" action="{% url 'contact_sales' %}" class="space-y-5">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Full Name</label>
+                    <input type="text" name="name" required placeholder="John Doe" 
+                           class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Work Email</label>
+                    <input type="email" name="email" required placeholder="john@company.com" 
+                           class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Company Name (Optional)</label>
+                    <input type="text" name="company" placeholder="Acme Inc." 
+                           class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">How can we help?</label>
+                    <textarea name="message" required rows="4" placeholder="Tell us about your estimated volume and use case..." 
+                              class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"></textarea>
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all transform active:scale-[0.98]">
+                    Submit Inquiry
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}API Documentation — DocShift{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-5 py-10">
+    <h1 class="text-4xl font-black mb-4 dark:text-white">DocShift API Reference</h1>
+    <p class="text-lg text-gray-600 dark:text-gray-300 mb-8">
+        Integrate powerful document conversion and translation directly into your application using our REST API.
+    </p>
+
+    <!-- Authentication -->
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-gray-700">1. Authentication</h2>
+        <p class="text-gray-700 dark:text-gray-300 mb-4">
+            Authenticate your requests by sending your API Key in the <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">Authorization</code> header as a Bearer token.
+        </p>
+        <pre class="bg-gray-900 text-green-400 p-4 rounded-xl overflow-x-auto text-sm font-mono">Authorization: Bearer YOUR_API_KEY</pre>
+        <p class="mt-4 text-sm">
+            <a href="/dashboard/api/" class="text-blue-600 dark:text-[#38b6ff] hover:underline">Get your API key &rarr;</a>
+        </p>
+    </div>
+
+    <!-- Convert PDF -->
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-gray-700">2. Convert Documents</h2>
+        <p class="text-gray-700 dark:text-gray-300 mb-4">
+            Submit files for conversion using a <code>multipart/form-data</code> POST request.
+        </p>
+        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold mb-4">POST</span> 
+        <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded dark:text-white">/api/v1/convert/{tool_slug}/</code>
+
+        <h3 class="font-bold mt-4 mb-2 dark:text-white">Parameters</h3>
+        <ul class="list-disc list-inside text-gray-700 dark:text-gray-300 mb-6">
+            <li><code>tool_slug</code> (url): The tool you wish to run (e.g., <code>merge_pdf</code>, <code>word_to_pdf</code>)</li>
+            <li><code>file</code> (form-data): The file to convert. Max size: 50MB.</li>
+        </ul>
+
+        <h3 class="font-bold mb-2 dark:text-white">Example Request (cURL)</h3>
+        <pre class="bg-gray-900 text-gray-100 p-4 rounded-xl overflow-x-auto text-sm font-mono">curl -X POST https://yourdomain.com/api/v1/convert/pdf_to_images/ \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "file=@/path/to/document.pdf"</pre>
+    </div>
+
+    <!-- Translate Document -->
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-gray-700">3. Translate Documents</h2>
+        <p class="text-gray-700 dark:text-gray-300 mb-4">
+            Translate entire <code>.docx</code> files while preserving formatting.
+        </p>
+        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold mb-4">POST</span> 
+        <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded dark:text-white">/api/v1/translate/</code>
+
+        <h3 class="font-bold mt-4 mb-2 dark:text-white">Parameters</h3>
+        <ul class="list-disc list-inside text-gray-700 dark:text-gray-300 mb-6">
+            <li><code>file</code> (form-data): The .docx file to translate.</li>
+            <li><code>source_lang</code> (form-data, optional): Source language code. Defaults to `auto`.</li>
+            <li><code>target_lang</code> (form-data, optional): Target language code. Defaults to `en`.</li>
+        </ul>
+
+        <h3 class="font-bold mb-2 dark:text-white">Example Request (Python)</h3>
+        <pre class="bg-gray-900 text-gray-100 p-4 rounded-xl overflow-x-auto text-sm font-mono">import requests
+
+url = "https://yourdomain.com/api/v1/translate/"
+headers = {"Authorization": "Bearer YOUR_API_KEY"}
+files = {"file": open("report.docx", "rb")}
+data = {"target_lang": "es"}
+
+response = requests.post(url, headers=headers, files=files, data=data)
+print(response.json())</pre>
+    </div>
+
+    <!-- Webhooks -->
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-gray-700">4. Webhooks (Callbacks)</h2>
+        <p class="text-gray-700 dark:text-gray-300 mb-4">
+            Because document conversion and translation can take time, the API returns a <code>202 Accepted</code> status immediately. 
+            Configure a Webhook URL in your dashboard to have DocShift automatically <code>POST</code> the results to your server when finished.
+        </p>
+
+        <h3 class="font-bold mb-2 dark:text-white">Webhook Payload</h3>
+        <pre class="bg-gray-900 text-purple-300 p-4 rounded-xl overflow-x-auto text-sm font-mono">{
+  "job_id": "b32a9e22-8df3-4c55-b44c-1b77c8e9",
+  "status": "done",
+  "download_url": "/job/b32a9.../download/",
+  "error": null
+}</pre>
+    </div>
+</div>
+{% endblock %}

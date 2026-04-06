@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+{% block title %}{{ tool.name }} — DocShift{% endblock %}
+
+{% block extra_head %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/upload.css' %}">
+<style>
+  .sticky-info { position: sticky; top: 1.5rem; transition: top 0.3s; }
+  @media (min-width: 1024px) { .sticky-info { top: 6rem; } }
+</style>
+{% endblock %}
+
+{% block content %}
+{# Define the condition string for reuse #}
+{% if tool.tips or tool_slug == 'compress_pdf' or tool_slug == 'pdf_to_images' or tool_slug == 'png_to_jpg' or tool_slug == 'password_protect' or tool_slug == 'rotate_pdf' or tool_slug == 'watermark_pdf' or tool_slug == 'add_page_numbers' or tool_slug == 'split_pdf' or tool_slug == 'resize_image' or tool_slug == 'edit_metadata' or tool_slug == 'crop_pdf' or tool_slug == 'merge_pdf' %}
+  {# TOOL HAS SETTINGS #}
+<div class="max-w-5xl mx-auto px-5 py-8 lg:py-12">
+  <form method="post" action="/tool/{{ tool_slug }}/upload/" enctype="multipart/form-data" id="upload-form">
+    {% csrf_token %}
+    <div class="lg:grid lg:grid-cols-12 lg:gap-10 items-start">
+      
+      <!-- COLUMN 1: Info & Settings -->
+      <div class="lg:col-span-5 sticky-info space-y-6 mb-8 lg:mb-0">
+        <a href="/" class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider g-sub-text hover:text-blue-600 dark:hover:text-[#38b6ff] transition-colors group">
+          <svg class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          Back to all tools
+        </a>
+
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-sm
+                      {% if tool.category == 'pdf' %}bg-red-50 border border-red-100 dark:bg-[rgba(248,113,113,.1)] dark:border-[rgba(248,113,113,.2)]
+                      {% elif tool.category == 'image' %}bg-amber-50 border border-amber-100 dark:bg-[rgba(251,191,36,.1)] dark:border-[rgba(251,191,36,.2)]
+                      {% else %}bg-blue-50 border border-blue-100 dark:bg-[rgba(56,182,255,.1)] dark:border-[rgba(56,182,255,.2)]{% endif %}">
+            {{ tool.icon }}
+          </div>
+          <div>
+            <h1 class="font-bold text-[1.5rem] tracking-tight text-gray-800 dark:text-[#e2f0ff] leading-none mb-1.5 font-mono">{{ tool.name }}</h1>
+            <p class="text-sm g-sub-text leading-snug">{{ tool.description }}</p>
+          </div>
+        </div>
+
+        {% if tool.tips %}
+        <div class="p-4 rounded-2xl border bg-gradient-to-br from-blue-50/50 to-indigo-50/50 border-indigo-100 dark:from-[rgba(56,182,255,.03)] dark:to-[rgba(129,140,248,.03)] dark:border-[rgba(129,140,248,.2)] flex items-start gap-4 shadow-sm relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-16 h-16 bg-blue-500/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+          <div class="text-[1.35rem] mt-0.5 relative z-10">💡</div>
+          <div class="relative z-10">
+            <div class="text-[0.6rem] font-black text-indigo-600 dark:text-[#818cf8] uppercase tracking-widest mb-1 font-mono">Pro Tip</div>
+            <div class="text-[0.82rem] text-gray-700 dark:text-[#c8dff5] leading-relaxed font-medium">{{ tool.tips }}</div>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="space-y-4">
+          {% if tool_slug == 'compress_pdf' %}
+          <div class="tool-options !mb-0">
+            <div class="tool-options-title"><span>⚙️</span> Compression Level</div>
+            <div class="level-cards">
+              <label class="level-card" id="lc-extreme"><input type="radio" name="level" value="extreme"><div class="level-card-icon">💥</div><div class="level-card-name text-xs">Extreme</div></label>
+              <label class="level-card selected" id="lc-recommended"><input type="radio" name="level" value="recommended" checked><div class="level-card-icon">⚖️</div><div class="level-card-name text-xs">Recommended</div></label>
+              <label class="level-card" id="lc-less"><input type="radio" name="level" value="less"><div class="level-card-icon">🌿</div><div class="level-card-name text-xs">Less</div></label>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if tool_slug == 'pdf_to_images' %}
+          <div class="tool-options !mb-0">
+            <div class="tool-options-title"><span>🖼️</span> Output Options</div>
+            <div class="flex gap-3">
+               <div class="flex-1"><span class="opt-label !mb-1.5 text-[0.7rem]">DPI</span><div class="format-pills"><label class="format-pill px-2.5" id="dpi-72"><input type="radio" name="dpi" value="72">72</label><label class="format-pill selected px-2.5" id="dpi-150"><input type="radio" name="dpi" value="150" checked>150</label><label class="format-pill px-2.5" id="dpi-300"><input type="radio" name="dpi" value="300">300</label></div></div>
+               <div class="flex-1"><span class="opt-label !mb-1.5 text-[0.7rem]">Format</span><div class="format-pills"><label class="format-pill selected px-2.5" id="fmt-png"><input type="radio" name="img_format" value="png" checked>PNG</label><label class="format-pill px-2.5" id="fmt-jpeg"><input type="radio" name="img_format" value="jpeg">JPG</label></div></div>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if tool_slug == 'password_protect' %}
+          <div class="tool-options !mb-0">
+            <div class="tool-options-title"><span>🔒</span> Set Password</div>
+            <div class="space-y-3">
+              <input type="password" name="user_password" placeholder="Password" required class="g-input !text-xs !py-2">
+              <input type="password" name="confirm_password" placeholder="Confirm Password" required class="g-input !text-xs !py-2">
+            </div>
+          </div>
+          {% endif %}
+
+          {% if tool_slug == 'rotate_pdf' %}
+          <div class="tool-options !mb-0">
+            <div class="tool-options-title"><span>🔃</span> Rotation</div>
+            <div class="rot-cards flex gap-2">
+              <label class="rot-card selected py-2 flex-1" id="rot-90"><input type="radio" name="rotation" value="90" checked><span class="rot-card-icon text-lg">↻</span></label>
+              <label class="rot-card py-2 flex-1" id="rot-180"><input type="radio" name="rotation" value="180"><span class="rot-card-icon text-lg">⇅</span></label>
+              <label class="rot-card py-2 flex-1" id="rot-270"><input type="radio" name="rotation" value="270"><span class="rot-card-icon text-lg">↺</span></label>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if tool_slug == 'add_page_numbers' %}
+          <div class="tool-options !mb-0">
+            <div class="tool-options-title"><span>🔢</span> Page Numbers</div>
+            <div class="pos-grid grid grid-cols-3 gap-1.5">
+               <label class="pos-btn py-1 selected" id="pn-bot-center"><input type="radio" name="position" value="bottom-center" checked>Bottom</label>
+               <label class="pos-btn py-1" id="pn-top-center"><input type="radio" name="position" value="top-center">Top</label>
+               <label class="pos-btn py-1" id="pn-bot-right"><input type="radio" name="position" value="bottom-right">Corner</label>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if tool_slug == 'watermark_pdf' %}
+          <div class="tool-options !mb-0">
+            <div class="tool-options-title"><span>💧</span> Watermark</div>
+            <input type="text" name="watermark_text" value="CONFIDENTIAL" class="g-input !py-2 !text-xs mb-3">
+            <div class="flex justify-between items-center"><span class="opt-label !mb-0 text-[0.65rem]">Opacity</span><span class="font-mono text-[0.65rem] font-bold text-blue-600 dark:text-[#38b6ff]" id="opacity-display">30%</span></div>
+            <input type="range" name="opacity" min="5" max="80" step="5" value="30" oninput="document.getElementById('opacity-display').textContent=this.value+'%'">
+          </div>
+          {% endif %}
+
+          {% if tool_slug == 'split_pdf' %}
+          <div class="tool-options !mb-0">
+            <div class="tool-options-title"><span>✂️</span> Range</div>
+            <div class="flex gap-2">{{ form.start_page }}{{ form.end_page }}</div>
+          </div>
+          {% endif %}
+
+          {% if tool_slug == 'edit_metadata' %}
+          <div class="tool-options !mb-0">
+            <div class="tool-options-title"><span>🏷️</span> Basic Info</div>
+            <div class="space-y-2">{{ form.title }}{{ form.author }}</div>
+          </div>
+          {% endif %}
+
+          {% if tool_slug == 'crop_pdf' %}
+          <div class="tool-options !mb-0">
+            <div class="tool-options-title"><span>✂️</span> Margins</div>
+            <div class="grid grid-cols-2 gap-2">{{ form.margin_top }}{{ form.margin_bottom }}{{ form.margin_left }}{{ form.margin_right }}</div>
+          </div>
+          {% endif %}
+
+          {% if tool_slug == 'resize_image' %}
+          <div class="tool-options !mb-0">
+            <div class="tool-options-title"><span>📐</span> Dimensions</div>
+            <div class="flex gap-2">{{ form.width }}{{ form.height }}</div>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if errors %}
+        <div class="p-3 rounded-xl bg-red-500/5 border border-red-500/20">
+          {% for field, errs in errors.items %}{% for err in errs %}<div class="text-[0.75rem] text-red-600 dark:text-[#f87171] font-medium">⚠️ {{ err }}</div>{% endfor %}{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- COLUMN 2: Upload Area -->
+      <div class="lg:col-span-7 flex flex-col gap-5 w-full">
+        <div id="drop-zone" class="g-drop rounded-2xl p-6 lg:p-10 text-center cursor-pointer transition-all border-2 border-dashed bg-white dark:bg-[#0b1630] border-gray-200 dark:border-white/10 hover:border-blue-500/50 dark:hover:border-blue-400/50 flex flex-col items-center justify-center min-h-[160px] lg:min-h-[180px] shadow-sm" onclick="document.getElementById('file-input').click()">
+          <div id="drop-emoji" class="text-4xl mb-4 drop-pulse select-none">📂</div>
+          <h3 class="text-base font-bold text-gray-800 dark:text-[#e2f0ff] mb-1">Drop your files here</h3>
+          <p class="text-[0.75rem] text-gray-500 dark:text-gray-400 mb-6 max-w-sm">PDF, Word, Images, TXT — or <span class="text-blue-600 dark:text-[#38b6ff] underline decoration-2 underline-offset-4">browse files</span></p>
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 text-[0.65rem] font-bold text-gray-500"><span class="uppercase font-mono">{{ tool.accept }}</span><span class="opacity-20">|</span><span>UP TO 50 MB EACH</span></div>
+        </div>
+
+        {% if tool.multi %}<input type="file" name="file" id="file-input" class="hidden" accept="{{ tool.accept }}" multiple />{% else %}<input type="file" name="file" id="file-input" class="hidden" accept="{{ tool.accept }}" />{% endif %}
+
+        {% if tool_slug == 'merge_pdf' %}
+        <div class="tool-options !mt-0">
+          <div class="tool-options-title"><span>🔗</span> Reorder Files</div>
+          <div class="merge-list hidden" id="merge-list"></div>
+          <p class="text-[0.7rem] g-sub-text text-center py-4 italic" id="merge-hint-empty">Upload multiple files to merge.</p>
+        </div>
+        {% endif %}
+
+        <div id="file-card" class="hidden g-card rounded-2xl p-4 border border-blue-100 dark:border-blue-500/20 bg-blue-50/20 dark:bg-blue-500/5">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center text-xl shadow-sm" id="file-emoji">📄</div>
+            <div class="flex-1 min-w-0"><div class="font-bold text-[0.7rem] text-gray-800 dark:text-[#e2f0ff] truncate" id="fname">—</div><div class="text-[0.6rem] font-mono opacity-50 mt-0.5" id="fsize">—</div></div>
+            <button type="button" onclick="dsClear()" class="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+          </div>
+        </div>
+
+        <button type="submit" id="submit-btn" class="g-btn w-full py-3.5 text-sm font-black rounded-2xl shadow-xl active:scale-[0.98] transition-all disabled:opacity-30 disabled:grayscale" disabled><span id="btn-label" class="uppercase tracking-widest">SELECT A FILE TO START</span></button>
+      </div>
+    </div>
+  </form>
+</div>
+
+{% else %}
+  {# TOOL HAS NO SPECIAL SETTINGS - CENTERED LAYOUT #}
+<div class="max-w-xl mx-auto px-5 py-8 lg:py-12">
+  <form method="post" action="/tool/{{ tool_slug }}/upload/" enctype="multipart/form-data" id="upload-form">
+    {% csrf_token %}
+    <div class="flex flex-col items-start space-y-6">
+      <a href="/" class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider g-sub-text hover:text-blue-600 dark:hover:text-[#38b6ff] transition-colors group">
+        <svg class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+        Back to all tools
+      </a>
+
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-sm
+                    {% if tool.category == 'pdf' %}bg-red-50 border border-red-100 dark:bg-[rgba(248,113,113,.1)] dark:border-[rgba(248,113,113,.2)]
+                    {% elif tool.category == 'image' %}bg-amber-50 border border-amber-100 dark:bg-[rgba(251,191,36,.1)] dark:border-[rgba(251,191,36,.2)]
+                    {% else %}bg-blue-50 border border-blue-100 dark:bg-[rgba(56,182,255,.1)] dark:border-[rgba(56,182,255,.2)]{% endif %}">
+          {{ tool.icon }}
+        </div>
+        <div>
+          <h1 class="font-bold text-[1.5rem] tracking-tight text-gray-800 dark:text-[#e2f0ff] leading-none mb-1.5 font-mono">{{ tool.name }}</h1>
+          <p class="text-sm g-sub-text leading-snug">{{ tool.description }}</p>
+        </div>
+      </div>
+
+      <div id="drop-zone" class="g-drop w-full rounded-2xl p-6 lg:p-10 text-center cursor-pointer transition-all border-2 border-dashed bg-white dark:bg-[#0b1630] border-gray-200 dark:border-white/10 hover:border-blue-500/50 dark:hover:border-blue-400/50 flex flex-col items-center justify-center min-h-[160px] lg:min-h-[180px] shadow-sm" onclick="document.getElementById('file-input').click()">
+        <div id="drop-emoji" class="text-4xl mb-4 drop-pulse select-none">📂</div>
+        <h3 class="text-base font-bold text-gray-800 dark:text-[#e2f0ff] mb-1">Drop your files here</h3>
+        <p class="text-[0.75rem] text-gray-500 dark:text-gray-400 mb-6 max-w-sm">PDF, Word, Images, TXT — or <span class="text-blue-600 dark:text-[#38b6ff] underline decoration-2 underline-offset-4">browse files</span></p>
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 text-[0.65rem] font-bold text-gray-500"><span class="uppercase font-mono">{{ tool.accept }}</span><span class="opacity-20">|</span><span>UP TO 50 MB EACH</span></div>
+      </div>
+
+      {% if tool.multi %}<input type="file" name="file" id="file-input" class="hidden" accept="{{ tool.accept }}" multiple />{% else %}<input type="file" name="file" id="file-input" class="hidden" accept="{{ tool.accept }}" />{% endif %}
+
+      <div id="file-card" class="hidden g-card w-full rounded-2xl p-4 border border-blue-100 dark:border-blue-500/20 bg-blue-50/20 dark:bg-blue-500/5">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center text-xl shadow-sm" id="file-emoji">📄</div>
+          <div class="flex-1 min-w-0"><div class="font-bold text-[0.7rem] text-gray-800 dark:text-[#e2f0ff] truncate" id="fname">—</div><div class="text-[0.6rem] font-mono opacity-50 mt-0.5" id="fsize">—</div></div>
+          <button type="button" onclick="dsClear()" class="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+        </div>
+      </div>
+
+      <button type="submit" id="submit-btn" class="g-btn w-full py-3.5 text-sm font-black rounded-2xl shadow-xl active:scale-[0.98] transition-all disabled:opacity-30 disabled:grayscale" disabled><span id="btn-label" class="uppercase tracking-widest">SELECT A FILE TO START</span></button>
+    </div>
+  </form>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const TOOL_SLUG = "{{ tool_slug }}";
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const fileCard = document.getElementById('file-card');
+  const fname = document.getElementById('fname');
+  const fsize = document.getElementById('fsize');
+  const fileEmoji = document.getElementById('file-emoji');
+  const submitBtn = document.getElementById('submit-btn');
+  const btnLabel = document.getElementById('btn-label');
+  const dropEmoji = document.getElementById('drop-emoji');
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    fileInput.files = e.dataTransfer.files;
+    handleFileChange(fileInput.files);
+  });
+  fileInput.addEventListener('change', () => handleFileChange(fileInput.files));
+
+  function handleFileChange(files) {
+    if (TOOL_SLUG === 'merge_pdf' && typeof buildMergeList === 'function') buildMergeList(Array.from(files));
+    else showFiles(files);
+  }
+
+  function getEmoji(name) {
+    const e = name.split('.').pop().toLowerCase();
+    const map = { pdf:'📕', docx:'📘', doc:'📘', xlsx:'🟢', pptx:'📽️', txt:'📄', png:'🖼️', jpg:'🖼️', jpeg:'🖼️', zip:'🗜️' };
+    return map[e] || '📄';
+  }
+
+  function fmtSize(b) {
+    if (!b) return '0 B';
+    const u = ['B', 'KB', 'MB', 'GB']; let i=0, s=b;
+    while(s>=1024 && i<3){ s/=1024; i++; }
+    return `${s.toFixed(1)} ${u[i]}`;
+  }
+
+  function showFiles(files) {
+    if (!files || !files.length) return;
+    fileCard.classList.remove('hidden');
+    dropEmoji.textContent = '✅';
+    dropEmoji.classList.remove('drop-pulse');
+    if (files.length > 1) {
+      fname.textContent = `${files.length} files selected`;
+      fsize.textContent = `Total: ${fmtSize(Array.from(files).reduce((a,b)=>a+b.size,0))}`;
+      fileEmoji.textContent = '📚';
+    } else {
+      fname.textContent = files[0].name;
+      fsize.textContent = fmtSize(files[0].size);
+      fileEmoji.textContent = getEmoji(files[0].name);
+    }
+    submitBtn.disabled = false;
+    btnLabel.textContent = `⚡ PROCESS DOCUMENT NOW`;
+  }
+
+  function dsClear() {
+    fileInput.value = '';
+    fileCard.classList.add('hidden');
+    dropEmoji.textContent = '📂';
+    dropEmoji.classList.add('drop-pulse');
+    submitBtn.disabled = true;
+    btnLabel.textContent = 'SELECT A FILE TO START';
+    if(TOOL_SLUG === 'merge_pdf' && typeof clearMergeList === 'function') clearMergeList();
+  }
+
+  document.querySelectorAll('input[type=radio]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const p = radio.closest('.level-cards, .format-pills, .rot-cards, .pos-grid');
+      if(p) { p.querySelectorAll('.level-card, .format-pill, .rot-card, .pos-btn').forEach(el => el.classList.remove('selected')); radio.closest('.level-card, .format-pill, .rot-card, .pos-btn').classList.add('selected'); }
+    });
+  });
+
+  document.getElementById('upload-form').addEventListener('submit', () => {
+    submitBtn.disabled = true;
+    btnLabel.innerHTML = `⏳ UPLOADING & PROCESSING...`;
+  });
+</script>
+{% endblock %}

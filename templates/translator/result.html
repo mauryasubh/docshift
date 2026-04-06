@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Translation — {{ job.display_name }} — DocShift{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-5 py-12 content-z">
+
+  <!-- Back link -->
+  <a href="{% url 'translator_home' %}"
+     class="inline-flex items-center gap-2 text-sm g-sub-text hover:text-blue-600 dark:hover:text-[#38b6ff] mb-8 transition-colors">
+    <svg style="width:14px;height:14px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+    </svg>
+    Translate another document
+  </a>
+
+  <!-- Main card -->
+  <div class="g-card p-8">
+
+    <!-- Status area -->
+    <div id="status-area">
+
+      {% if job.status == 'pending' or job.status == 'processing' %}
+      <!-- Processing state -->
+      <div class="text-center py-4">
+        <div class="text-4xl mb-4">⚙️</div>
+        <p class="font-semibold text-gray-800 dark:text-[#e2f0ff] text-lg mb-2">Translating your document…</p>
+        <p class="text-sm g-sub-text mb-6">
+          {{ job.display_name }} &nbsp;·&nbsp; <span class="font-mono">{{ job.lang_pair }}</span>
+        </p>
+        <div class="g-progress-track h-2 w-full rounded-full mb-3">
+          <div class="g-progress-bar shimmer h-2 rounded-full" id="prog-bar" style="width:20%"></div>
+        </div>
+        <p class="text-xs font-mono g-sub-text" id="status-msg">Processing paragraphs…</p>
+      </div>
+
+      {% elif job.status == 'done' %}
+      <!-- Done state -->
+      <div class="text-center py-4" id="done-block">
+        <div class="text-4xl mb-4">✅</div>
+        <p class="font-semibold text-gray-800 dark:text-[#e2f0ff] text-lg mb-1">Translation complete!</p>
+        <p class="text-sm g-sub-text mb-6">{{ job.display_name }} · {{ job.lang_pair }}</p>
+        <a href="{% url 'translator_download' job.id %}"
+           class="g-btn inline-flex items-center gap-2" style="padding:.7rem 2rem;font-size:.95rem">
+          <svg style="width:16px;height:16px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Download Translated .docx
+        </a>
+      </div>
+
+      {% elif job.status == 'failed' %}
+      <!-- Failed state -->
+      <div class="text-center py-4">
+        <div class="text-4xl mb-4">❌</div>
+        <p class="font-semibold text-gray-800 dark:text-[#e2f0ff] text-lg mb-2">Translation failed</p>
+        <div class="msg-error text-left mb-6">{{ job.error_message }}</div>
+        {% if 'Cannot connect' in job.error_message|default:'' %}
+        <div class="p-4 rounded-xl border mb-6"
+             style="background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.25);text-align:left">
+          <p class="text-xs font-semibold mb-2" style="color:#fbbf24">Fix: Start LibreTranslate first</p>
+          <code class="text-xs block font-mono g-sub-text">pip install libretranslate</code>
+          <code class="text-xs block font-mono g-sub-text">libretranslate --load-only en,fr</code>
+        </div>
+        {% endif %}
+        <a href="{% url 'translator_home' %}" class="g-btn">Try again</a>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Job details -->
+    <div class="border-t g-divider mt-6 pt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div>
+        <p class="text-xs g-sub-text mb-1">File</p>
+        <p class="text-xs font-semibold text-gray-700 dark:text-[#c8dff5] truncate" title="{{ job.display_name }}">
+          {{ job.display_name }}
+        </p>
+      </div>
+      <div>
+        <p class="text-xs g-sub-text mb-1">Direction</p>
+        <p class="text-xs font-semibold font-mono text-gray-700 dark:text-[#c8dff5]">{{ job.lang_pair }}</p>
+      </div>
+      <div>
+        <p class="text-xs g-sub-text mb-1">Characters</p>
+        <p class="text-xs font-semibold font-mono text-gray-700 dark:text-[#c8dff5]" id="char-count">
+          {{ job.char_count|default:"—" }}
+        </p>
+      </div>
+      <div>
+        <p class="text-xs g-sub-text mb-1">Expires in</p>
+        <p class="text-xs font-semibold font-mono text-gray-700 dark:text-[#c8dff5]" id="expiry-label">—</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const JOB_STATUS  = "{{ job.status }}";
+const STATUS_URL  = "{% url 'translator_status_json' job.id %}";
+const DOWNLOAD_URL= "{% url 'translator_download' job.id %}";
+let expiry = {{ expiry_seconds }};
+
+// ── Expiry countdown ──────────────────────────────────────────
+function startExpiry() {
+  const el = document.getElementById('expiry-label');
+  if (!el) return;
+  const tick = () => {
+    if (expiry <= 0) { el.textContent = 'expired'; return; }
+    const h = Math.floor(expiry/3600), m = Math.floor((expiry%3600)/60), s = expiry%60;
+    el.textContent = h ? `${h}h ${m}m` : m ? `${m}m ${s}s` : `${s}s`;
+    expiry--;
+  };
+  tick(); setInterval(tick, 1000);
+}
+startExpiry();
+
+// ── Poll while processing ─────────────────────────────────────
+{% if job.status == 'pending' or job.status == 'processing' %}
+const poll = setInterval(async () => {
+  try {
+    const d = await fetch(STATUS_URL).then(r => r.json());
+
+    // Update progress bar
+    const bar = document.getElementById('prog-bar');
+    if (bar) bar.style.width = d.progress + '%';
+
+    const msg = document.getElementById('status-msg');
+    if (msg) {
+      if (d.char_count > 0) {
+        msg.textContent = `${d.char_count.toLocaleString()} characters translated so far…`;
+      }
+    }
+
+    if (d.status === 'done' && d.download_url) {
+      clearInterval(poll);
+      // Replace status area with done state
+      document.getElementById('status-area').innerHTML = `
+        <div class="text-center py-4">
+          <div class="text-4xl mb-4">✅</div>
+          <p class="font-semibold text-gray-800 dark:text-[#e2f0ff] text-lg mb-1">Translation complete!</p>
+          <p class="text-sm g-sub-text mb-6">{{ job.display_name }} · {{ job.lang_pair }}</p>
+          <a href="${d.download_url}"
+             class="g-btn inline-flex items-center gap-2" style="padding:.7rem 2rem;font-size:.95rem">
+            ⬇ Download Translated .docx
+          </a>
+        </div>`;
+      // Update char count
+      const cc = document.getElementById('char-count');
+      if (cc && d.char_count) cc.textContent = d.char_count.toLocaleString();
+      expiry = d.expiry_seconds;
+      // Auto-trigger download
+      setTimeout(() => { window.location.href = d.download_url; }, 800);
+
+    } else if (d.status === 'failed') {
+      clearInterval(poll);
+      document.getElementById('status-area').innerHTML = `
+        <div class="text-center py-4">
+          <div class="text-4xl mb-4">❌</div>
+          <p class="font-semibold text-lg mb-2">Translation failed</p>
+          <div class="msg-error text-left mb-4">${d.error_message || 'Unknown error'}</div>
+          <a href="/translator/" class="g-btn">Try again</a>
+        </div>`;
+    }
+  } catch(e) {
+    console.error('poll error', e);
+  }
+}, 2000);
+{% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,512 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Dashboard — DocShift{% endblock %}
+
+{% block extra_head %}
+<style>
+.preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;align-items:center;justify-content:center;padding:1.25rem;backdrop-filter:blur(3px);}
+.preview-overlay.open{display:flex;animation:overlayIn .18s ease;}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+.preview-modal{background:#fff;border-radius:12px;width:100%;max-width:960px;height:90vh;display:flex;flex-direction:column;box-shadow:0 40px 100px rgba(0,0,0,.5),0 0 0 1px rgba(0,0,0,.08);overflow:hidden;animation:modalIn .22s ease;}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.preview-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.1rem;border-bottom:1px solid #e8eaed;background:#fff;flex-shrink:0;}
+.preview-header-left{display:flex;align-items:center;gap:.65rem;min-width:0;flex:1;}
+.preview-file-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.preview-file-icon.pdf{background:#fef2f2;}.preview-file-icon.img{background:#fffbeb;}.preview-file-icon.txt{background:#f0fdf4;}.preview-file-icon.other{background:#f5f5f5;}
+.preview-title-text{font-size:.88rem;font-weight:600;color:#202124;min-width:0;}
+.preview-close{width:28px;height:28px;border-radius:50%;border:none;background:rgba(0,0,0,.07);cursor:pointer;font-size:1.1rem;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;color:#5f6368;}
+.preview-close:hover{background:rgba(0,0,0,.14);}
+.preview-body{flex:1;overflow:hidden;min-height:0;background:#f8f9fa;display:flex;flex-direction:column;}
+.preview-body iframe{width:100%;height:100%;border:none;display:block;flex:1;}
+.preview-footer{padding:.4rem 1rem;font-size:.72rem;color:#9aa0a6;background:#fff;border-top:1px solid #f1f3f4;flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+.txt-prev{width:100%;height:100%;padding:2rem;font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.7;overflow:auto;white-space:pre-wrap;color:#202124;background:#fff;}
+.stat-card{background:#fff;border-radius:12px;padding:1.1rem 1.3rem;border:1px solid var(--g-border);border-top-width:3px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+html.dark .stat-card{background:#0b1630;border-color:var(--d-border);box-shadow:none;}
+.stat-card.blue{border-top-color:#1a73e8;}.stat-card.green{border-top-color:#34a853;}.stat-card.red{border-top-color:#ea4335;}.stat-card.purple{border-top-color:#7c3aed;}
+html.dark .stat-card.blue{border-top-color:#38b6ff;}html.dark .stat-card.green{border-top-color:#34d399;}html.dark .stat-card.red{border-top-color:#f87171;}html.dark .stat-card.purple{border-top-color:#818cf8;}
+.dash-toolbar{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;padding:.75rem 1rem;background:#fff;border:1px solid var(--g-border);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+html.dark .dash-toolbar{background:#0b1630;border-color:var(--d-border);}
+.search-input{flex:1;min-width:160px;padding:.5rem .85rem;border:1.5px solid var(--g-border);border-radius:8px;font-size:.85rem;font-family:inherit;background:#f8f9fa;color:var(--g-text);transition:border-color .18s,box-shadow .18s;outline:none;}
+html.dark .search-input{background:rgba(255,255,255,.05);border-color:var(--d-border);color:var(--d-text);}
+.search-input:focus{border-color:var(--g-blue);box-shadow:0 0 0 3px rgba(26,115,232,.12);background:#fff;}
+html.dark .search-input:focus{border-color:var(--d-accent);box-shadow:0 0 0 3px rgba(56,182,255,.1);background:rgba(56,182,255,.04);}
+.filter-select{padding:.5rem .8rem;border:1.5px solid var(--g-border);border-radius:8px;font-size:.82rem;font-family:inherit;background:#f8f9fa;color:var(--g-text);cursor:pointer;outline:none;}
+html.dark .filter-select{background:rgba(255,255,255,.05);border-color:var(--d-border);color:var(--d-text);}
+.view-pill{display:flex;border:1px solid var(--g-border);border-radius:8px;overflow:hidden;}
+html.dark .view-pill{border-color:var(--d-border);}
+.vbtn{padding:.45rem .8rem;font-size:.78rem;font-weight:500;font-family:inherit;border:none;background:transparent;cursor:pointer;color:var(--g-sub);transition:all .15s;display:flex;align-items:center;gap:.3rem;}
+html.dark .vbtn{color:var(--d-sub);}
+.vbtn.active{background:var(--g-blue);color:#fff;}
+html.dark .vbtn.active{background:linear-gradient(135deg,#1e6fd9,#4f46e5);}
+.jobs-table{width:100%;border-collapse:collapse;font-size:.84rem;}
+.jobs-table th{padding:.65rem 1rem;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g-sub);border-bottom:2px solid var(--g-border);background:#fafbfc;}
+html.dark .jobs-table th{background:#081325;border-color:var(--d-border);}
+.jobs-table td{padding:.7rem 1rem;border-bottom:1px solid var(--g-border);vertical-align:middle;}
+html.dark .jobs-table td{border-color:rgba(255,255,255,.05);}
+.jobs-table tr{background:#fff;transition:background .12s;}
+html.dark .jobs-table tr{background:transparent;}
+.jobs-table tr:last-child td{border-bottom:none;}
+.jobs-table tbody tr:hover{background:#f8faff;}
+html.dark .jobs-table tbody tr:hover{background:rgba(56,182,255,.04);}
+.jobs-table-wrap{background:#fff;border:1px solid var(--g-border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+html.dark .jobs-table-wrap{background:#0b1630;border-color:var(--d-border);box-shadow:none;}
+.type-badge{display:inline-block;padding:2px 7px;border-radius:5px;font-size:.7rem;font-family:'JetBrains Mono',monospace;font-weight:600;background:#f0f4f9;color:#5f6368;border:1px solid #dadce0;}
+html.dark .type-badge{background:rgba(255,255,255,.07);color:var(--d-sub);border-color:rgba(255,255,255,.1);}
+.type-badge.pdf{background:#fef2f2;color:#dc2626;border-color:#fecaca;}
+.type-badge.docx,.type-badge.doc{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;}
+.type-badge.txt,.type-badge.xlsx{background:#f0fdf4;color:#166534;border-color:#bbf7d0;}
+.type-badge.pptx{background:#fff7ed;color:#c2410c;border-color:#fed7aa;}
+.type-badge.jpg,.type-badge.jpeg,.type-badge.png,.type-badge.webp,.type-badge.gif,.type-badge.bmp{background:#fffbeb;color:#92400e;border-color:#fde68a;}
+.type-badge.zip{background:#f5f3ff;color:#6d28d9;border-color:#ddd6fe;}
+.type-badge.html,.type-badge.htm{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;}
+html.dark .type-badge.pdf{background:rgba(239,68,68,.1);color:#f87171;border-color:rgba(239,68,68,.25);}
+html.dark .type-badge.docx,html.dark .type-badge.doc{background:rgba(56,182,255,.1);color:#38b6ff;border-color:rgba(56,182,255,.25);}
+html.dark .type-badge.txt,html.dark .type-badge.xlsx{background:rgba(52,211,153,.1);color:#34d399;border-color:rgba(52,211,153,.25);}
+html.dark .type-badge.pptx{background:rgba(251,146,60,.1);color:#fb923c;border-color:rgba(251,146,60,.25);}
+html.dark .type-badge.jpg,html.dark .type-badge.jpeg,html.dark .type-badge.png,html.dark .type-badge.webp,html.dark .type-badge.gif,html.dark .type-badge.bmp{background:rgba(251,191,36,.1);color:#fbbf24;border-color:rgba(251,191,36,.25);}
+html.dark .type-badge.zip{background:rgba(129,140,248,.1);color:#818cf8;border-color:rgba(129,140,248,.25);}
+html.dark .type-badge.html,html.dark .type-badge.htm{background:rgba(56,182,255,.1);color:#38b6ff;border-color:rgba(56,182,255,.25);}
+.sbadge{display:inline-flex;align-items:center;gap:.3rem;padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;}
+.sbadge.done{background:#dcfce7;color:#166534;}.sbadge.failed{background:#fee2e2;color:#991b1b;}.sbadge.pending,.sbadge.processing{background:#dbeafe;color:#1e40af;}
+html.dark .sbadge.done{background:rgba(52,211,153,.15);color:#34d399;}html.dark .sbadge.failed{background:rgba(248,113,113,.15);color:#f87171;}
+html.dark .sbadge.pending,html.dark .sbadge.processing{background:rgba(56,182,255,.15);color:#38b6ff;}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;}
+.dot.pulse{animation:dotPulse 1.5s ease infinite;}
+@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.act-btn{display:inline-flex;align-items:center;justify-content:center;gap:.25rem;padding:.3rem .65rem;border-radius:6px;font-size:.75rem;font-weight:600;text-decoration:none;cursor:pointer;transition:all .15s;border:1px solid transparent;font-family:inherit;white-space:nowrap;}
+.act-btn.preview{background:#f0f4f9;color:#3c4043;border-color:#dadce0;}
+html.dark .act-btn.preview{background:rgba(255,255,255,.07);color:var(--d-sub);border-color:rgba(255,255,255,.12);}
+.act-btn.preview:hover{background:#e8f0fe;color:#1a73e8;border-color:#c5d6fb;}
+html.dark .act-btn.preview:hover{background:rgba(56,182,255,.12);color:#38b6ff;border-color:rgba(56,182,255,.3);}
+.act-btn.download{background:#1a73e8;color:#fff;border-color:#1a73e8;}
+html.dark .act-btn.download{background:linear-gradient(135deg,#1e6fd9,#4f46e5);border-color:transparent;}
+.act-btn.download:hover{background:#1557b0;}
+.act-btn.delete{background:transparent;color:#ea4335;border-color:rgba(234,67,53,.2);}
+html.dark .act-btn.delete{color:#f87171;border-color:rgba(248,113,113,.2);}
+.act-btn.delete:hover{background:rgba(234,67,53,.06);}
+html.dark .act-btn.delete:hover{background:rgba(248,113,113,.08);}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.85rem;}
+.jcard{background:#fff;border:1px solid var(--g-border);border-radius:12px;padding:1rem 1.1rem;box-shadow:0 1px 4px rgba(0,0,0,.06);transition:all .2s;display:flex;flex-direction:column;gap:.6rem;}
+html.dark .jcard{background:#0b1630;border-color:var(--d-border);box-shadow:none;}
+.jcard:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.1);border-color:rgba(26,115,232,.3);}
+html.dark .jcard:hover{box-shadow:0 6px 24px rgba(56,182,255,.08);border-color:rgba(56,182,255,.3);}
+.jcard-bar{height:3px;border-radius:2px;background:#e8eaed;overflow:hidden;margin:2px 0;}
+html.dark .jcard-bar{background:rgba(255,255,255,.07);}
+.jcard-bar-fill{height:100%;border-radius:2px;transition:width .5s;}
+.jcard-bar-fill.pending{background:#fbbf24;width:5%;}.jcard-bar-fill.processing{background:linear-gradient(90deg,#1a73e8,#818cf8);background-size:200%;animation:g-shimmer 1.8s linear infinite;width:55%;}
+.jcard-bar-fill.done{background:#34a853;width:100%;}.jcard-bar-fill.failed{background:#ea4335;width:100%;}
+html.dark .jcard-bar-fill.done{background:#34d399;}
+.cchip{display:inline-flex;align-items:center;gap:.3rem;font-size:.68rem;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:5px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
+html.dark .cchip{background:rgba(251,191,36,.12);color:#fbbf24;border-color:rgba(251,191,36,.3);}
+.cchip.urgent{background:#fee2e2;color:#991b1b;border-color:#fca5a5;animation:pulse-urgent 1s ease infinite;}
+html.dark .cchip.urgent{background:rgba(248,113,113,.15);color:#f87171;border-color:rgba(248,113,113,.4);}
+@keyframes pulse-urgent{0%,100%{opacity:1}50%{opacity:.6}}
+.guest-banner{background:linear-gradient(135deg,#e8f0fe,#f0ebff);border:1px solid #c5d6fb;border-radius:10px;padding:.9rem 1.1rem;}
+html.dark .guest-banner{background:linear-gradient(135deg,rgba(56,182,255,.07),rgba(129,140,248,.05));border-color:rgba(56,182,255,.18);}
+.empty-box{text-align:center;padding:4rem 2rem;border:2px dashed var(--g-border);border-radius:14px;}
+html.dark .empty-box{border-color:rgba(56,182,255,.15);}
+.home-link{display:inline-flex;align-items:center;gap:.4rem;font-size:.83rem;color:var(--g-sub);text-decoration:none;transition:color .15s;}
+.home-link:hover{color:var(--g-blue);}
+html.dark .home-link:hover{color:var(--d-accent);}
+
+/* Tab Styles */
+.dash-tabs-nav{display:flex;border-bottom:1px solid var(--g-border);margin-bottom:1.5rem;gap:1.5rem;}
+html.dark .dash-tabs-nav{border-color:var(--d-border);}
+.dash-tab-btn{padding-bottom:.75rem;font-size:.88rem;font-weight:700;color:var(--g-sub);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:.4rem;}
+html.dark .dash-tab-btn{color:var(--d-sub);}
+.dash-tab-btn:hover{color:var(--g-text);}
+html.dark .dash-tab-btn:hover{color:var(--d-text);}
+.dash-tab-btn.active{color:var(--g-blue);border-bottom-color:var(--g-blue);}
+html.dark .dash-tab-btn.active{color:var(--d-accent);border-bottom-color:var(--d-accent);}
+.tab-content{display:none;}
+.tab-content.active{display:block;animation:tabFadeIn .2s ease;}
+@keyframes tabFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Preview modal -->
+<div class="preview-overlay" id="preview-overlay" onclick="closePreview(event)">
+  <div class="preview-modal">
+    <div class="preview-header">
+      <div class="preview-header-left">
+        <div class="preview-file-icon" id="preview-icon">📄</div>
+        <span class="preview-title-text truncate" id="preview-title">Preview</span>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <a id="preview-dl" href="#" 
+           style="display:inline-flex;align-items:center;gap:.4rem;padding:.4rem 1rem;background:#1a73e8;color:#fff;border-radius:7px;font-size:.82rem;font-weight:600;text-decoration:none;transition:background .15s;"
+           onmouseover="this.style.background='#1557b0'" onmouseout="this.style.background='#1a73e8'">
+          <svg style="width:13px;height:13px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Download
+        </a>
+        <button class="preview-close" onclick="closePreview()">×</button>
+      </div>
+    </div>
+    <div class="preview-body" id="preview-body"></div>
+    <div class="preview-footer" id="preview-footer" style="display:none">PDF Preview — rendered by your browser</div>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-5 py-8">
+
+  <!-- Page header -->
+  <div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <a href="/" class="home-link">
+          <svg style="width:14px;height:14px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          Home
+        </a>
+        <span class="text-xs g-sub-text">/</span>
+        <h1 class="logo-text text-[1.4rem] text-gray-800 dark:text-[#e2f0ff]">Dashboard</h1>
+      </div>
+      <p class="text-xs g-sub-text">
+        Files auto-delete after 
+        <strong class="font-semibold {% if user.is_authenticated %}text-green-600 dark:text-[#34d399]{% else %}text-amber-600 dark:text-[#fbbf24]{% endif %}">
+          {% if user.is_authenticated %}24 hours{% else %}{{ guest_expiry_min }} minutes{% endif %}
+        </strong>
+      </p>
+    </div>
+    <a href="/" class="g-btn py-2 px-4 rounded-lg text-sm flex items-center gap-1.5">
+      <svg style="width:13px;height:13px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+      New Conversion
+    </a>
+  </div>
+
+  {% if user.is_authenticated %}
+  <!-- Tab Navigation -->
+  <nav class="dash-tabs-nav">
+    <button onclick="switchTab('history')" id="tab-btn-history" class="dash-tab-btn active">
+      📂 File History
+    </button>
+    <button onclick="switchTab('api')" id="tab-btn-api" class="dash-tab-btn">
+      💎 API & Billing
+    </button>
+  </nav>
+  {% endif %}
+
+  <!-- TAB: History -->
+  <div id="tab-history" class="tab-content active">
+    {% if not user.is_authenticated %}
+    <div class="guest-banner mb-5 flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <p class="font-semibold text-[.87rem] text-blue-800 dark:text-[#38b6ff] mb-0.5">⏱ Guest files delete in {{ guest_expiry_min }} minutes</p>
+        <p class="text-sm text-blue-700 dark:text-[#7bbff5]">Sign up free to keep your files for 24 hours with full conversion history.</p>
+      </div>
+      <div class="flex gap-2">
+        <a href="/auth/signup/" class="g-btn py-1.5 px-4 rounded-lg text-sm">Sign up free</a>
+        <a href="/auth/login/" class="g-btn-outline py-1.5 px-4 rounded-lg text-sm">Sign in</a>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if jobs %}
+    <!-- Stat cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div class="stat-card blue">
+        <div class="logo-text text-3xl font-bold text-gray-800 dark:text-[#e2f0ff]">{{ total_jobs }}</div>
+        <div class="text-xs g-sub-text mt-0.5 uppercase tracking-wide font-semibold">Total Files</div>
+      </div>
+      <div class="stat-card green">
+        <div class="logo-text text-3xl font-bold text-green-600 dark:text-[#34d399]">{{ done_jobs }}</div>
+        <div class="text-xs g-sub-text mt-0.5 uppercase tracking-wide font-semibold">Completed</div>
+      </div>
+      <div class="stat-card red">
+        <div class="logo-text text-3xl font-bold text-red-500 dark:text-[#f87171]">{{ failed_jobs }}</div>
+        <div class="text-xs g-sub-text mt-0.5 uppercase tracking-wide font-semibold">Failed</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="logo-text text-base font-bold text-gray-700 dark:text-[#e2f0ff] leading-tight">
+          {{ total_in }} <span class="text-xs g-sub-text font-normal">→</span> {{ total_out }}
+        </div>
+        <div class="text-xs g-sub-text mt-0.5 uppercase tracking-wide font-semibold">Input → Output</div>
+      </div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- Storage usage bar -->
+    <div style="background:#fff;border:1px solid var(--g-border);border-radius:10px;padding:.75rem 1.1rem;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <svg style="width:15px;height:15px;flex-shrink:0;color:#5f6368" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+      <span style="font-size:.8rem;color:var(--g-sub);white-space:nowrap;">Storage used</span>
+      <div style="flex:1;min-width:120px;height:6px;background:#e8eaed;border-radius:3px;overflow:hidden;">
+        <div style="height:100%;border-radius:3px;background:linear-gradient(90deg,#1a73e8,#4f46e5);width:{% widthratio total_in_bytes 524288000 100 %}%;max-width:100%;transition:width .5s;"></div>
+      </div>
+      <span style="font-size:.8rem;font-family:'JetBrains Mono',monospace;color:var(--g-text);white-space:nowrap;">{{ total_size }}</span>
+      <span style="font-size:.72rem;color:var(--g-sub);white-space:nowrap;">of 500 MB</span>
+    </div>
+    {% endif %}
+
+    <!-- Toolbar -->
+    <div class="dash-toolbar mb-4">
+      <input type="text" id="search-input" class="search-input" placeholder="Search files…" oninput="filterJobs()">
+      <select id="status-filter" class="filter-select" onchange="filterJobs()">
+        <option value="">All status</option>
+        <option value="done">Done</option>
+        <option value="processing">Processing</option>
+        <option value="pending">Pending</option>
+        <option value="failed">Failed</option>
+      </select>
+      <div class="flex-1"></div>
+      {% if user.is_authenticated %}
+      <a href="/dashboard/export/csv/" 
+         style="display:inline-flex;align-items:center;gap:.35rem;padding:.43rem .85rem;border-radius:7px;font-size:.78rem;font-weight:600;text-decoration:none;color:#166534;background:#dcfce7;border:1px solid #bbf7d0;transition:all .15s;"
+         onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'"
+         title="Download CSV of your full history">
+        <svg style="width:12px;height:12px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Export CSV
+      </a>
+      {% endif %}
+      <div class="view-pill">
+        <button class="vbtn active" id="btn-table" onclick="setView('table')">
+          <svg style="width:13px;height:13px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 6h18M3 14h18M3 18h18"/></svg>
+          Table
+        </button>
+        <button class="vbtn" id="btn-cards" onclick="setView('cards')">
+          <svg style="width:13px;height:13px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+          Cards
+        </button>
+      </div>
+      <a href="/dashboard/clear/" onclick="return confirm('Delete all jobs and files?')"
+         class="text-xs g-sub-text hover:text-red-500 dark:hover:text-[#f87171] transition-colors whitespace-nowrap">
+        Clear all
+      </a>
+    </div>
+
+    <div id="view-table">
+      <div class="jobs-table-wrap">
+        <table class="jobs-table" id="jobs-table">
+            <thead>
+              <tr>
+                <th style="width:40%">File</th>
+                <th style="width:9%">Type</th>
+                <th style="width:10%">Status</th>
+                <th style="width:9%">Size</th>
+                <th style="width:13%">Created</th>
+                <th style="width:10%">Expires</th>
+                <th style="width:9%;text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              {% for job in jobs %}
+              <tr data-status="{{ job.status }}" data-name="{{ job.display_name|lower }}" id="trow-{{ job.id }}">
+                <td>
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-lg">
+                      {% if job.tool == 'pdf_to_excel' %}📊
+                      {% elif job.tool == 'excel_to_pdf' %}📈
+                      {% elif job.tool == 'pptx_to_pdf' %}📽️
+                      {% elif job.tool == 'pdf_to_pptx' %}📑
+                      {% elif job.tool == 'html_to_pdf' %}🌐
+                      {% elif job.tool == 'ocr_pdf' %}🔍
+                      {% elif job.tool == 'extract_text' %}📋
+                      {% elif job.tool == 'extract_images' %}🗂️
+                      {% elif job.tool == 'password_protect' %}🔒
+                      {% elif job.tool == 'unlock_pdf' %}🔓
+                      {% elif job.tool == 'rotate_pdf' %}🔃
+                      {% elif job.tool == 'watermark_pdf' %}💧
+                      {% elif job.tool == 'add_page_numbers' %}🔢
+                      {% elif 'word' in job.tool %}📘
+                      {% elif 'txt' in job.tool %}📄
+                      {% elif 'img' in job.tool or 'jpg' in job.tool or 'png' in job.tool %}🖼️
+                      {% elif 'pdf' in job.tool or job.tool == 'any_to_pdf' %}📕
+                      {% else %}🔄
+                      {% endif %}
+                    </span>
+                    <div class="min-w-0">
+                      <p class="font-medium text-[.84rem] text-gray-800 dark:text-[#e2f0ff] truncate max-w-[260px]">{{ job.display_name }}</p>
+                      <p class="text-[.7rem] g-sub-text">{{ job.tool_display }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="type-badge">{{ job.output_ext }}</span></td>
+                <td>
+                  <span class="sbadge {{ job.status }}" id="tbadge-{{ job.id }}">
+                    {% if job.status == 'processing' or job.status == 'pending' %}<span class="dot pulse"></span>{% endif %}
+                    {{ job.status }}
+                  </span>
+                </td>
+                <td class="text-[.82rem] g-sub-text font-mono">{{ job.input_size|filesizeformat }}</td>
+                <td class="text-[.78rem] g-sub-text">{{ job.created_at|date:"d M, H:i" }}</td>
+                <td class="text-[.76rem] font-mono" id="texp-{{ job.id }}">
+                  {% if job.is_guest %}<span class="cchip" data-seconds="{{ job.seconds_until_expiry }}">…</span>{% else %}<span class="g-sub-text">24h</span>{% endif %}
+                </td>
+                <td>
+                  <div class="flex items-center justify-end gap-1">
+                    {% if job.status == 'done' and job.output_file %}
+                      <a href="/job/{{ job.id }}/preview/" onclick="openPreview(event,'{{ job.id }}','{{ job.display_name }}','/job/{{ job.id }}/download/','{{ job.output_ext }}')" class="act-btn preview">View</a>
+                      <a href="/job/{{ job.id }}/download/" class="act-btn download">↓</a>
+                    {% endif %}
+                    <a href="/dashboard/delete/{{ job.id }}/" onclick="return confirm('Delete?')" class="act-btn delete">🗑️</a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="view-cards" class="cards-grid hidden">
+        {% for job in jobs %}
+        <div class="jcard" data-status="{{ job.status }}" data-name="{{ job.display_name|lower }}" id="gcard-{{ job.id }}">
+          <div class="flex justify-between items-start">
+            <p class="font-semibold text-sm truncate">{{ job.display_name }}</p>
+            <span class="sbadge {{ job.status }}">{{ job.status }}</span>
+          </div>
+          <div class="jcard-bar"><div class="jcard-bar-fill {{ job.status }}"></div></div>
+          <div class="flex gap-2 mt-2">
+            {% if job.status == 'done' and job.output_file %}
+                <a href="/job/{{ job.id }}/preview/" onclick="openPreview(event,'{{ job.id }}','{{ job.display_name }}','/job/{{ job.id }}/download/','{{ job.output_ext }}')" class="act-btn preview flex-1">View</a>
+                <a href="/job/{{ job.id }}/download/" class="act-btn download flex-1">Download</a>
+            {% endif %}
+            <a href="/dashboard/delete/{{ job.id }}/" onclick="return confirm('Delete?')" class="act-btn delete">🗑️</a>
+          </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-box">
+      <div class="text-5xl mb-4">📭</div>
+      <h3 class="font-bold text-[1.1rem] text-gray-700 dark:text-[#c8dff5] mb-2">No conversions yet</h3>
+      <p class="g-sub-text text-sm mb-5">Upload files from the home page — they'll appear here.</p>
+      <a href="/" class="g-btn py-2.5 px-6 rounded-xl">Convert a file now →</a>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if user.is_authenticated %}
+  <!-- TAB: API & Billing -->
+  <div id="tab-api" class="tab-content">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <div class="bg-white dark:bg-[var(--d-card)] rounded-2xl g-divider border p-6 flex flex-col items-center">
+                <div class="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-2xl font-bold mb-4">{{ user.username|first|upper }}</div>
+                <h3 class="font-bold text-gray-900 dark:text-[#e2f0ff] mb-1">{{ user.username }}</h3>
+                <p class="text-xs g-sub-text mb-4">{{ api_profile.plan_tier }} Plan</p>
+                
+                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden h-2 mb-2">
+                    {% widthratio api_profile.api_calls_used_this_month api_profile.get_monthly_quota 100 as qp %}
+                    <div class="bg-blue-500 h-full" style="width: {% if api_profile.get_monthly_quota > 0 %}{{ qp }}{% else %}0{% endif %}%"></div>
+                </div>
+                <div class="w-full flex justify-between text-xs g-sub-text font-mono">
+                    <span>Used: {{ api_profile.api_calls_used_this_month }}</span>
+                    <span>Limit: {{ api_profile.get_monthly_quota }}</span>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-[var(--d-card)] rounded-2xl g-divider border p-6">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 text-center">System Status</h4>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="g-sub-text">API Server</span>
+                    <span class="text-emerald-500 font-bold">● Online</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="md:col-span-2 space-y-6">
+            <!-- API Key -->
+            <div class="bg-white dark:bg-[var(--d-card)] rounded-2xl g-divider border p-6">
+                <h3 class="font-bold text-lg mb-4">🔑 Secret API Key</h3>
+                {% if api_profile.get_monthly_quota > 0 %}
+                    <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 flex justify-between items-center mb-4">
+                        <code class="text-sm font-mono" id="apiKeyBox">••••••••-••••-••••-••••-••••••••••••</code>
+                        <button class="text-xs font-semibold text-blue-600" onclick="document.getElementById('apiKeyBox').innerText='{{ api_profile.api_key }}';">Show</button>
+                    </div>
+                    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="regen_key"><button type="submit" class="g-btn px-4 py-2 rounded-lg text-sm border border-red-200 text-red-600 hover:bg-red-50">Rotate API Key</button></form>
+                {% else %}
+                    <div class="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-lg"><p class="text-amber-800 text-sm">Free Plan does not include API access.</p></div>
+                {% endif %}
+            </div>
+
+            <!-- Webhook -->
+            <div class="bg-white dark:bg-[var(--d-card)] rounded-2xl g-divider border p-6">
+                <h3 class="font-bold text-lg mb-4">🪝 Delivery Webhook</h3>
+                {% if api_profile.get_monthly_quota > 0 %}
+                    <form method="post" class="flex flex-col gap-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="save_webhook">
+                        <input type="url" name="webhook_url" value="{{ api_profile.webhook_url|default:'' }}" placeholder="https://..." class="bg-gray-50 dark:bg-gray-800 border p-2.5 rounded-xl outline-none text-sm font-mono">
+                        <button type="submit" class="g-btn px-5 py-2 rounded-lg font-semibold text-sm">Save Webhook</button>
+                    </form>
+                {% endif %}
+            </div>
+
+            <!-- Subscription -->
+            <div class="bg-white dark:bg-[var(--d-card)] rounded-2xl g-divider border p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-lg">💎 Subscription</h3>
+                    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase {% if api_profile.is_plan_active %}bg-emerald-100 text-emerald-700{% else %}bg-red-100 text-red-700{% endif %}">
+                        {% if api_profile.is_plan_active %}Active{% else %}Expired{% endif %}
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div><p class="text-xs uppercase text-gray-400 font-bold">Start Date</p><p class="font-semibold">{{ api_profile.plan_start_date|date:"M j, Y"|default:"N/A" }}</p></div>
+                    <div><p class="text-xs uppercase text-gray-400 font-bold">Next Renewal</p><p class="font-semibold">{% if api_profile.plan_tier == 'Free' %}Lifetime{% else %}{{ api_profile.plan_expiry_date|date:"M j, Y"|default:"N/A" }}{% endif %}</p></div>
+                </div>
+                <div class="flex gap-4">
+                  <a href="/pricing/" class="g-btn px-4 py-2 rounded-lg text-sm">Change Plan</a>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.dash-tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    document.getElementById('tab-btn-' + tabId).classList.add('active');
+    localStorage.setItem('ds_active_tab', tabId);
+}
+const savedTab = localStorage.getItem('ds_active_tab') || 'history';
+if (savedTab === 'api' && document.getElementById('tab-api')) switchTab('api');
+
+var currentView = localStorage.getItem('ds_dash_view') || 'table';
+function setView(v) {
+  currentView = v;
+  localStorage.setItem('ds_dash_view', v);
+  if(document.getElementById('view-table')) document.getElementById('view-table').style.display = v==='table' ? 'block' : 'none';
+  var cardsEl = document.getElementById('view-cards');
+  if (cardsEl) cardsEl.className = 'cards-grid' + (v==='cards' ? '' : ' hidden');
+  if(document.getElementById('btn-table')) document.getElementById('btn-table').className = 'vbtn' + (v==='table' ? ' active' : '');
+  if(document.getElementById('btn-cards')) document.getElementById('btn-cards').className = 'vbtn' + (v==='cards' ? ' active' : '');
+}
+setView(currentView);
+
+function filterJobs() {
+  var q = (document.getElementById('search-input').value || '').toLowerCase();
+  var status = document.getElementById('status-filter').value;
+  document.querySelectorAll('[data-name]').forEach(function(row) {
+    var nameMatch = !q || row.dataset.name.includes(q);
+    var statusMatch = !status || row.dataset.status === status;
+    row.style.display = (nameMatch && statusMatch) ? '' : 'none';
+  });
+}
+function openPreview(evt, jobId, filename, dlUrl, outExt) {
+  evt.preventDefault();
+  var overlay = document.getElementById('preview-overlay');
+  var body = document.getElementById('preview-body');
+  var title = document.getElementById('preview-title');
+  var dlBtn = document.getElementById('preview-dl');
+  title.textContent = filename;
+  dlBtn.href = dlUrl;
+  body.innerHTML = '<iframe src="/job/'+jobId+'/preview/" style="width:100%;height:100%;border:none;"></iframe>';
+  overlay.classList.add('open');
+}
+function closePreview() { document.getElementById('preview-overlay').classList.remove('open'); }
+</script>
+{% endblock %}

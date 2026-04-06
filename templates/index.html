@@ -1,0 +1,884 @@
+{% extends "base.html" %}
+{% load converter_extras %}
+{% block title %}DocShift — Convert Any Document to PDF{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── Hero split layout ── */
+  .hero-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    padding: 4rem 0 3rem;
+  }
+
+  @media(max-width:768px) {
+    .hero-section {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      padding: 2rem 0;
+    }
+  }
+
+  /* ── Upload zone ── */
+  .upload-zone {
+    border: 2px dashed;
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .25s;
+    border-color: #c5d6fb;
+    background: #f8fbff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  html.dark .upload-zone {
+    border-color: rgba(56, 182, 255, .25);
+    background: rgba(56, 182, 255, .03);
+  }
+
+  .upload-zone:hover,
+  .upload-zone.drag-active {
+    border-color: var(--g-blue, #1a73e8);
+    background: #eef4ff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px rgba(26, 115, 232, .12);
+  }
+
+  html.dark .upload-zone:hover,
+  html.dark .upload-zone.drag-active {
+    border-color: rgba(56, 182, 255, .6);
+    background: rgba(56, 182, 255, .06);
+    box-shadow: 0 8px 32px rgba(56, 182, 255, .12);
+  }
+
+  /* ── File pill list ── */
+  .file-pill {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .45rem .75rem;
+    border-radius: 8px;
+    font-size: .8rem;
+    background: #fff;
+    border: 1px solid #e2e6ea;
+    transition: all .15s;
+  }
+
+  html.dark .file-pill {
+    background: rgba(255, 255, 255, .05);
+    border-color: rgba(255, 255, 255, .1);
+  }
+
+  .file-pill:hover {
+    border-color: #1a73e8;
+  }
+
+  html.dark .file-pill:hover {
+    border-color: rgba(56, 182, 255, .5);
+  }
+
+  /* ── Tool grid ── */
+  .tool-section {
+    padding: 1rem 0 3rem;
+  }
+
+  .section-label {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: .25rem .75rem;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  .label-pdf {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .label-office {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .label-image {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  html.dark .label-pdf {
+    background: rgba(239, 68, 68, .12);
+    color: #f87171;
+  }
+
+  html.dark .label-office {
+    background: rgba(56, 182, 255, .12);
+    color: #38b6ff;
+  }
+
+  html.dark .label-image {
+    background: rgba(251, 191, 36, .12);
+    color: #fbbf24;
+  }
+
+  .tool-row-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: .75rem;
+    margin-top: .75rem;
+    margin-bottom: 2rem;
+  }
+
+  .tool-mini-card {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .85rem 1rem;
+    border-radius: 10px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all .2s;
+    background: #fff;
+    border: 1px solid #e8eaed;
+  }
+
+  html.dark .tool-mini-card {
+    background: var(--d-card, #0b1630);
+    border-color: rgba(56, 182, 255, .1);
+  }
+
+  .tool-mini-card:hover {
+    border-color: #1a73e8;
+    box-shadow: 0 3px 16px rgba(26, 115, 232, .1);
+    transform: translateY(-1px);
+  }
+
+  html.dark .tool-mini-card:hover {
+    border-color: rgba(56, 182, 255, .4);
+    box-shadow: 0 3px 16px rgba(56, 182, 255, .1);
+  }
+
+  .tool-mini-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .tool-mini-card .arrow {
+    margin-left: auto;
+    opacity: 0;
+    font-size: .85rem;
+    color: #1a73e8;
+    transition: opacity .2s, transform .2s;
+  }
+
+  html.dark .tool-mini-card .arrow {
+    color: #38b6ff;
+  }
+
+  .tool-mini-card:hover .arrow {
+    opacity: 1;
+    transform: translateX(2px);
+  }
+
+  /* ── Trust strip ── */
+  .trust-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem 1.4rem;
+    padding: .5rem 0 2rem;
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    font-size: .83rem;
+  }
+
+  .trust-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #34a853;
+    flex-shrink: 0;
+  }
+
+  html.dark .trust-dot {
+    background: #34d399;
+  }
+
+  /* Icon colour helpers */
+  .ic-pdf {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  .ic-doc {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .ic-img {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  .ic-conv {
+    background: #f3e8ff;
+    color: #7c3aed;
+  }
+
+  html.dark .ic-pdf {
+    background: rgba(239, 68, 68, .12);
+    color: #f87171;
+  }
+
+  html.dark .ic-doc {
+    background: rgba(56, 182, 255, .12);
+    color: #38b6ff;
+  }
+
+  html.dark .ic-img {
+    background: rgba(251, 191, 36, .12);
+    color: #fbbf24;
+  }
+
+  html.dark .ic-conv {
+    background: rgba(129, 140, 248, .12);
+    color: #818cf8;
+  }
+
+  /* Progress animation for upload */
+  @keyframes pulse-border {
+
+    0%,
+    100% {
+      border-color: #c5d6fb;
+    }
+
+    50% {
+      border-color: #1a73e8;
+    }
+  }
+
+  html.dark @keyframes pulse-border {
+
+    0%,
+    100% {
+      border-color: rgba(56, 182, 255, .25);
+    }
+
+    50% {
+      border-color: rgba(56, 182, 255, .6);
+    }
+  }
+
+  .upload-zone.has-files {
+    animation: pulse-border 2s ease infinite;
+  }
+
+  /* Hero gradient text */
+  .hero-grad {
+    background: linear-gradient(135deg, #1a73e8 0%, #4f46e5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  html.dark .hero-grad {
+    background: linear-gradient(135deg, #38b6ff 0%, #818cf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-5">
+
+  <!-- ═══════════════════════════════════════════════════
+       HERO — split: left=branding, right=upload zone
+       ═══════════════════════════════════════════════════ -->
+  <div class="hero-section">
+
+    <!-- LEFT: Branding + trust -->
+    <div>
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-5
+                  bg-blue-50 text-blue-700 border border-blue-200
+                  dark:bg-[rgba(56,182,255,.08)] dark:text-[#38b6ff] dark:border-[rgba(56,182,255,.2)]">
+        <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
+        30 tools &nbsp;·&nbsp; 100% free &nbsp;·&nbsp; no account needed
+      </div>
+
+      <h1 class="logo-text text-[3.2rem] sm:text-[4rem] leading-[1.05] mb-4">
+        Doc<span class="hero-grad">Shift</span>
+      </h1>
+
+      <p class="text-[1.05rem] g-sub-text leading-relaxed mb-6 max-w-md">
+        Convert, compress, merge and transform your documents in seconds.
+        Fast, private, and completely free.
+      </p>
+
+            <!-- Popular Tools Mini Grid -->
+      <div class="mt-4 mb-6">
+        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">🔥 Most Popular Tools</p>
+        <div class="grid grid-cols-2 gap-3 max-w-sm">
+          <a href="/tool/merge_pdf/" class="flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white dark:bg-[#0b1630] dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors group">
+            <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+              🔗
+            </div>
+            <span class="text-sm font-semibold text-gray-800 dark:text-[#c8dff5]">Merge PDF</span>
+          </a>
+          <a href="/tool/ocr_pdf/" class="flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white dark:bg-[#0b1630] dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors group">
+            <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+              🔍
+            </div>
+            <span class="text-sm font-semibold text-gray-800 dark:text-[#c8dff5]">OCR PDF</span>
+          </a>
+          <a href="/tool/pdf_to_word/" class="flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white dark:bg-[#0b1630] dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors group">
+            <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+              📝
+            </div>
+            <span class="text-sm font-semibold text-gray-800 dark:text-[#c8dff5]">PDF to Word</span>
+          </a>
+          <a href="/tool/compress_pdf/" class="flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 bg-white dark:bg-[#0b1630] dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors group">
+            <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+              🗜️
+            </div>
+            <span class="text-sm font-semibold text-gray-800 dark:text-[#c8dff5]">Compress</span>
+          </a>
+        </div>
+        <div class="mt-5">
+          <a href="#all-tools-header" onclick="document.getElementById('all-tools-header').scrollIntoView({behavior: 'smooth'})"
+             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-gray-100 text-gray-800 hover:bg-blue-50 hover:text-blue-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-blue-900/30 dark:hover:text-[#38b6ff] transition-all">
+            View all 30+ tools 
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Dashboard link if session has jobs -->
+      <a href="/dashboard/" class="inline-flex items-center gap-2 text-sm font-medium
+                                    text-blue-600 dark:text-[#38b6ff] hover:underline mt-1">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h8m-8 6h16" />
+        </svg>
+        View my conversions →
+      </a>
+    </div>
+
+    <!-- RIGHT: Multi-file upload zone -->
+    <div>
+      <form method="post" action="/convert/" enctype="multipart/form-data" id="hero-form">
+        {% csrf_token %}
+        <input type="file" name="files" id="hero-file-input" class="hidden" multiple
+          accept=".pdf,.docx,.doc,.txt,.jpg,.jpeg,.png,.bmp,.tiff,.webp,.gif,.xlsx,.xls,.pptx,.ppt,.html,.htm" />
+
+        <div id="upload-zone" class="upload-zone" onclick="document.getElementById('hero-file-input').click()">
+          <!-- Default state -->
+          <div id="uz-default">
+            <div class="text-5xl mb-3 select-none" id="uz-icon">📂</div>
+            <p class="font-semibold text-[1rem] text-gray-700 dark:text-[#c8dff5] mb-1">
+              Drop any files here to convert to PDF
+            </p>
+            <p class="text-xs g-sub-text mb-3">PDF, Word, Images, TXT — up to 50 MB each</p>
+            <span class="inline-block px-4 py-1.5 rounded-full text-xs font-semibold
+                         bg-blue-600 text-white dark:bg-[rgba(56,182,255,.15)] dark:text-[#38b6ff]
+                         dark:border dark:border-[rgba(56,182,255,.3)]">
+              Browse files
+            </span>
+          </div>
+
+          <!-- Files selected state -->
+          <div id="uz-files" class="hidden">
+            <div id="file-list" class="flex flex-col gap-2 mb-4 max-h-52 overflow-y-auto"></div>
+            <button type="button" onclick="event.stopPropagation(); uzAddMore()"
+              class="text-xs text-blue-600 dark:text-[#38b6ff] hover:underline mb-3 block w-full text-center">
+              + Add more files
+            </button>
+          </div>
+        </div>
+
+        <!-- Convert button — shown after file selection -->
+        <div id="uz-action" class="hidden mt-3">
+          <button type="submit" id="uz-submit" class="g-btn w-full py-3 rounded-xl text-base font-semibold">
+            ⚡ Convert <span id="uz-count">0</span> file(s) to PDF
+          </button>
+          <div class="flex items-center justify-between mt-2 px-1">
+            <span class="text-xs g-sub-text">Files processed securely, deleted in 1h</span>
+            <button type="button" onclick="uzReset()"
+              class="text-xs text-red-500 dark:text-[#f87171] hover:underline">Clear all</button>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- ── OR paste a URL ── -->
+      <div class="flex items-center gap-3 my-4">
+        <div class="flex-1 border-t g-divider"></div>
+        <span class="text-xs g-sub-text" style="white-space:nowrap">or paste a URL</span>
+        <div class="flex-1 border-t g-divider"></div>
+      </div>
+
+      <form method="post" action="/convert/url/" id="url-form">
+        {% csrf_token %}
+        <div class="flex gap-2 mb-2">
+          <div class="flex flex-1 items-center gap-2 g-input" style="padding:.5rem .85rem;cursor:text;"
+            onclick="document.getElementById('url-input').focus()">
+            <!-- link icon -->
+            <svg style="width:14px;height:14px;flex-shrink:0;color:var(--g-sub)" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101
+                   m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            <input type="url" name="url" id="url-input" required placeholder="https://example.com/document.pdf" style="border:none;outline:none;background:transparent;
+                          font-size:.82rem;width:100%;color:var(--g-text);font-family:inherit;"
+              class="dark:text-[#e2f0ff]">
+          </div>
+          <button type="submit" class="g-btn"
+            style="padding:.5rem 1.1rem;font-size:.82rem;border-radius:8px;white-space:nowrap;">
+            Convert
+          </button>
+        </div>
+        <p class="text-xs g-sub-text px-1">
+          Direct file links (PDF, images, Word) or any web page — web pages are saved as PDF
+        </p>
+      </form>
+
+      <!-- Example hint chips -->
+      <div class="flex flex-wrap gap-2 mt-3">
+        {% for hint in url_hints %}
+        <button type="button" onclick="document.getElementById('url-input').value='{{ hint.url }}'" class="text-xs g-sub-text hover:text-blue-600 dark:hover:text-[#38b6ff]
+                       transition-colors px-2.5 py-1 rounded-full border g-divider
+                       hover:border-blue-300 dark:hover:border-[rgba(56,182,255,.4)]">
+          {{ hint.label }}
+        </button>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       TOOLS SECTION
+       ═══════════════════════════════════════════════════ -->
+  <div class="tool-section">
+
+    {% if recent_tools %}
+    <!-- Recently used Tools -->
+    <div class="mb-2 flex items-center gap-3">
+      <span class="section-label bg-gray-100 text-gray-700 dark:bg-[#1e293b] dark:text-gray-300">Recently Used</span>
+    </div>
+    <div class="tool-row-grid">
+      {% for slug, tool in recent_tools %}
+      <a href="/tool/{{ slug }}/" class="tool-mini-card group">
+        <div class="tool-mini-icon {% if tool.category == 'pdf' %}ic-pdf{% elif tool.category == 'office' %}ic-doc{% else %}ic-img{% endif %}">{{ tool.icon }}</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-[.85rem] text-gray-800 dark:text-[#e2f0ff] truncate">{{ tool.name }}</div>
+          <div class="text-[.72rem] g-sub-text truncate">{{ tool.description|truncatechars:45 }}</div>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6" id="all-tools-header">
+      <div class="flex items-center gap-3">
+        <h2 class="logo-text text-[1.5rem] text-gray-800 dark:text-[#e2f0ff]">All Tools</h2>
+        <span class="text-xs g-sub-text font-mono">30 tools</span>
+      </div>
+      <div class="relative w-full sm:max-w-xs">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: .9rem">🔍</span>
+        <input type="text" id="tool-search" placeholder="Search tools..." 
+               class="g-input w-full pl-9 pr-4 py-2 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/50"
+               onkeyup="filterTools()">
+      </div>
+    </div>
+
+    <!-- PDF Tools -->
+    <div class="mb-2 flex items-center gap-3">
+      <span class="section-label label-pdf">PDF Tools</span>
+    </div>
+    <div class="tool-row-grid">
+      {% for slug, tool in tools %}{% if tool.category == 'pdf' %}
+      <a href="/tool/{{ slug }}/" class="tool-mini-card group">
+        <div class="tool-mini-icon ic-pdf">{{ tool.icon }}</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-[.85rem] text-gray-800 dark:text-[#e2f0ff] truncate">{{ tool.name }}</div>
+          <div class="text-[.72rem] g-sub-text truncate">{{ tool.description|truncatechars:45 }}</div>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      {% endif %}{% endfor %}
+    </div>
+
+    <!-- Office Tools -->
+    <div class="mb-2 flex items-center gap-3">
+      <span class="section-label label-office">Office & Text</span>
+    </div>
+    <div class="tool-row-grid">
+      {% for slug, tool in tools %}{% if tool.category == 'office' %}
+      <a href="/tool/{{ slug }}/" class="tool-mini-card group">
+        <div class="tool-mini-icon ic-doc">{{ tool.icon }}</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-[.85rem] text-gray-800 dark:text-[#e2f0ff] truncate">{{ tool.name }}</div>
+          <div class="text-[.72rem] g-sub-text truncate">{{ tool.description|truncatechars:45 }}</div>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      {% endif %}{% endfor %}
+    </div>
+
+    <!-- Image Tools -->
+    <div class="mb-2 flex items-center gap-3">
+      <span class="section-label label-image">Image Tools</span>
+    </div>
+    <div class="tool-row-grid">
+      {% for slug, tool in tools %}{% if tool.category == 'image' %}
+      <a href="/tool/{{ slug }}/" class="tool-mini-card group">
+        <div class="tool-mini-icon ic-img">{{ tool.icon }}</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-[.85rem] text-gray-800 dark:text-[#e2f0ff] truncate">{{ tool.name }}</div>
+          <div class="text-[.72rem] g-sub-text truncate">{{ tool.description|truncatechars:45 }}</div>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      {% endif %}{% endfor %}
+    </div>
+
+    <!-- Dashboard Showcase -->
+    <div class="mt-20 mb-16 flex flex-col md:flex-row items-center gap-12 py-12 px-10 rounded-3xl bg-white dark:bg-[#0b1630] border g-divider shadow-sm overflow-hidden relative">
+      <!-- Left Side: Content -->
+      <div class="flex-1 text-left z-10">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-widest bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 mb-6">
+          Member Exclusive
+        </div>
+        <h3 class="logo-text text-3xl sm:text-4xl text-gray-900 dark:text-white mb-5 leading-tight">
+          Your Personal <br><span class="hero-grad text-4xl sm:text-5xl">Command Center</span>
+        </h3>
+        <p class="text-base g-sub-text mb-10 max-w-sm leading-relaxed">
+          Unlock a dedicated space to track your files, manage history, and access pro features in one click.
+        </p>
+
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
+          <li class="flex items-start gap-3">
+            <span class="w-7 h-7 flex items-center justify-center bg-green-100 text-green-600 dark:bg-green-500/10 dark:text-green-400 rounded-xl text-sm">✓</span>
+            <div>
+              <p class="text-sm font-bold text-gray-800 dark:text-[#e2f0ff]">Smart History</p>
+              <p class="text-xs g-sub-text mt-0.5">Track every convert & tool used.</p>
+            </div>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="w-7 h-7 flex items-center justify-center bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 rounded-xl text-sm">✓</span>
+            <div>
+              <p class="text-sm font-bold text-gray-800 dark:text-[#e2f0ff]">24h Management</p>
+              <p class="text-xs g-sub-text mt-0.5">Keep and manage files longer.</p>
+            </div>
+          </li>
+        </ul>
+
+        <a href="/auth/signup/" class="g-btn px-10 py-4 rounded-xl text-base shadow-lg hover:shadow-blue-500/30 transition-all inline-block">
+          Get Free Dashboard →
+        </a>
+      </div>
+
+      <!-- Right Side: Stylized Browser Mockup -->
+      <div class="flex-1 w-full max-w-md md:max-w-none relative group">
+        <!-- The Browser Window -->
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-2xl border-4 border-gray-100 dark:border-gray-800 shadow-2xl relative overflow-hidden transition-all duration-500 group-hover:-translate-y-2">
+          
+          <!-- Browser Header / URL Bar -->
+          <div class="bg-white dark:bg-[#0f1e3d] px-4 py-3 border-b g-divider flex items-center gap-4">
+            <div class="flex items-center gap-1.5">
+              <div class="w-2.5 h-2.5 rounded-full bg-[#ff5f56]"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-[#27c93f]"></div>
+            </div>
+            <div class="flex-1 bg-gray-100 dark:bg-black/20 rounded-lg px-3 py-1.5 flex items-center gap-2">
+              <span class="text-[0.6rem] text-gray-400">🔒</span>
+              <div class="h-2 w-32 bg-gray-200 dark:bg-gray-700/50 rounded-full"></div>
+            </div>
+            <div class="flex gap-1.5 opacity-20">
+              <div class="w-3 h-3 border-2 border-current rounded-sm"></div>
+              <div class="w-3 h-3 border-2 border-current rounded-sm"></div>
+            </div>
+          </div>
+          
+          <!-- Browser Content (Real Dashboard Preview) -->
+          <div class="bg-white dark:bg-[#0b1630] p-4 sm:p-6 space-y-6">
+            <!-- Header Row -->
+            <div class="flex items-center justify-between pb-2">
+              <div class="flex items-center gap-2 text-[0.65rem] font-medium text-gray-400">
+                <span>🏠 Home</span>
+                <span>/</span>
+                <span class="text-gray-800 dark:text-gray-200">Dashboard</span>
+              </div>
+              <div class="h-6 px-3 rounded-lg bg-blue-600 text-white text-[0.6rem] font-bold flex items-center shadow-lg shadow-blue-500/20">+ New</div>
+            </div>
+
+            <!-- Stats Row (4 Cards) -->
+            <div class="grid grid-cols-4 gap-2 sm:gap-3">
+              <div class="p-2.5 rounded-xl border g-divider bg-gray-50/50 dark:bg-white/5">
+                <div class="text-[0.55rem] uppercase tracking-tighter text-gray-400 font-bold">Total</div>
+                <div class="text-xs font-black text-gray-800 dark:text-white mt-0.5">24</div>
+                <div class="w-full h-1 bg-blue-500/20 rounded-full mt-2 overflow-hidden"><div class="w-full h-full bg-blue-500"></div></div>
+              </div>
+              <div class="p-2.5 rounded-xl border g-divider bg-gray-50/50 dark:bg-white/5">
+                <div class="text-[0.55rem] uppercase tracking-tighter text-gray-400 font-bold">Done</div>
+                <div class="text-xs font-black text-green-500 mt-0.5">18</div>
+                <div class="w-full h-1 bg-green-500/20 rounded-full mt-2 overflow-hidden"><div class="w-2/3 h-full bg-green-500"></div></div>
+              </div>
+              <div class="p-2.5 rounded-xl border g-divider bg-gray-50/50 dark:bg-white/5">
+                <div class="text-[0.55rem] uppercase tracking-tighter text-gray-400 font-bold">Failed</div>
+                <div class="text-xs font-black text-red-500 mt-0.5">2</div>
+                <div class="w-full h-1 bg-red-500/20 rounded-full mt-2 overflow-hidden"><div class="w-1/4 h-full bg-red-500"></div></div>
+              </div>
+              <div class="p-2.5 rounded-xl border g-divider bg-gray-50/50 dark:bg-white/5 text-right">
+                <div class="text-[0.55rem] uppercase tracking-tighter text-gray-400 font-bold">Storage</div>
+                <div class="text-xs font-black text-gray-800 dark:text-white mt-0.5">1GB</div>
+                <div class="w-full h-1 bg-purple-500/20 rounded-full mt-2 overflow-hidden"><div class="w-1/3 h-full bg-purple-500"></div></div>
+              </div>
+            </div>
+
+            <!-- File Grid (2x2) -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3 rounded-xl border g-divider bg-white dark:bg-white/5 shadow-sm space-y-2">
+                <div class="flex justify-between items-start">
+                  <span class="text-lg">📕</span>
+                  <span class="text-[0.55rem] bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 px-1.5 py-0.5 rounded font-bold">DONE</span>
+                </div>
+                <div class="h-1.5 w-20 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                <div class="h-1 w-10 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
+              </div>
+              <div class="p-3 rounded-xl border g-divider bg-white dark:bg-white/5 shadow-sm space-y-2">
+                <div class="flex justify-between items-start">
+                  <span class="text-lg">📑</span>
+                  <span class="text-[0.55rem] bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">READY</span>
+                </div>
+                <div class="h-1.5 w-24 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                <div class="h-1 w-14 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
+              </div>
+              <div class="p-3 rounded-xl border g-divider bg-white dark:bg-white/5 shadow-sm space-y-2 opacity-60">
+                <div class="flex justify-between items-start">
+                  <span class="text-lg">🖼️</span>
+                  <span class="text-[0.55rem] bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-gray-400 px-1.5 py-0.5 rounded font-bold">SAVED</span>
+                </div>
+                <div class="h-1.5 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                <div class="h-1 w-8 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
+              </div>
+              <div class="p-3 rounded-xl border g-divider bg-white dark:bg-white/5 shadow-sm space-y-2 opacity-60">
+                <div class="flex justify-between items-start">
+                  <span class="text-lg">📊</span>
+                  <span class="text-[0.55rem] bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-gray-400 px-1.5 py-0.5 rounded font-bold">SAVED</span>
+                </div>
+                <div class="h-1.5 w-18 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                <div class="h-1 w-12 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Decorative Glow Backgrounds -->
+        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-blue-500/10 dark:bg-blue-400/5 rounded-full blur-[90px]"></div>
+        <div class="absolute -left-10 -top-10 w-40 h-40 bg-purple-500/5 dark:bg-purple-400/5 rounded-full blur-[60px]"></div>
+      </div>
+    </div>
+
+    <!-- Why DocShift -->
+    <div class="mt-6 rounded-2xl p-8 border g-divider
+                bg-gradient-to-br from-blue-50 to-indigo-50
+                dark:from-[rgba(56,182,255,.04)] dark:to-[rgba(129,140,248,.04)]">
+      <h3 class="logo-text text-[1.2rem] text-gray-800 dark:text-[#e2f0ff] mb-5">Why DocShift?</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="flex gap-3">
+          <div class="text-2xl mt-0.5">🔒</div>
+          <div>
+            <div class="font-semibold text-[.9rem] text-gray-800 dark:text-[#e2f0ff] mb-1">100% Private</div>
+            <div class="text-[.8rem] g-sub-text leading-relaxed">
+              Your files are processed on our secure servers and never shared with third parties. We don't read your
+              documents.
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <div class="text-2xl mt-0.5">⚡</div>
+          <div>
+            <div class="font-semibold text-[.9rem] text-gray-800 dark:text-[#e2f0ff] mb-1">Async & Fast</div>
+            <div class="text-[.8rem] g-sub-text leading-relaxed">
+              Powered by Celery workers. Your file is processed in the background — convert multiple files at once
+              without waiting.
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <div class="text-2xl mt-0.5">🗑️</div>
+          <div>
+            <div class="font-semibold text-[.9rem] text-gray-800 dark:text-[#e2f0ff] mb-1">Auto-Deleted</div>
+            <div class="text-[.8rem] g-sub-text leading-relaxed">
+              All uploaded files and converted outputs are automatically deleted from our servers after 1 hour. Always.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  var selectedFiles = new DataTransfer();
+
+  var zone = document.getElementById('upload-zone');
+  var input = document.getElementById('hero-file-input');
+  var defState = document.getElementById('uz-default');
+  var fileState = document.getElementById('uz-files');
+  var fileList = document.getElementById('file-list');
+  var action = document.getElementById('uz-action');
+  var countEl = document.getElementById('uz-count');
+  var uzIcon = document.getElementById('uz-icon');
+
+  // Drag events
+  zone.addEventListener('dragover', function (e) {
+    e.preventDefault(); zone.classList.add('drag-active');
+  });
+  zone.addEventListener('dragleave', function () {
+    zone.classList.remove('drag-active');
+  });
+  zone.addEventListener('drop', function (e) {
+    e.preventDefault(); zone.classList.remove('drag-active');
+    addFiles(e.dataTransfer.files);
+  });
+
+  input.addEventListener('change', function () {
+    addFiles(input.files);
+    input.value = '';   // reset so same file can be re-added
+  });
+
+  function addFiles(files) {
+    for (var i = 0; i < files.length; i++) {
+      // Avoid duplicates by name+size
+      var dup = false;
+      for (var j = 0; j < selectedFiles.files.length; j++) {
+        if (selectedFiles.files[j].name === files[i].name && selectedFiles.files[j].size === files[i].size) {
+          dup = true; break;
+        }
+      }
+      if (!dup) selectedFiles.items.add(files[i]);
+    }
+    renderFileList();
+  }
+
+  function renderFileList() {
+    var files = selectedFiles.files;
+    if (files.length === 0) { uzReset(); return; }
+
+    defState.classList.add('hidden');
+    fileState.classList.remove('hidden');
+    action.classList.remove('hidden');
+    zone.classList.add('has-files');
+    countEl.textContent = files.length;
+    uzIcon.textContent = '✅';
+
+    fileList.innerHTML = '';
+    for (var i = 0; i < files.length; i++) {
+      (function (idx) {
+        var f = files[idx];
+        var div = document.createElement('div');
+        div.className = 'file-pill';
+        div.innerHTML =
+          '<span>' + getEmoji(f.name) + '</span>' +
+          '<span class="flex-1 truncate text-left text-gray-700 dark:text-[#c8dff5] font-mono" style="font-size:.75rem">' + escHtml(f.name) + '</span>' +
+          '<span class="g-sub-text" style="font-size:.7rem;white-space:nowrap">' + fmtSize(f.size) + '</span>' +
+          '<button type="button" onclick="removeFile(' + idx + ')" ' +
+          '        style="margin-left:.25rem;color:#9aa0a6;font-size:1rem;line-height:1;background:none;border:none;cursor:pointer">×</button>';
+        fileList.appendChild(div);
+      })(i);
+    }
+  }
+
+  function removeFile(idx) {
+    var newDT = new DataTransfer();
+    var files = selectedFiles.files;
+    for (var i = 0; i < files.length; i++) {
+      if (i !== idx) newDT.items.add(files[i]);
+    }
+    selectedFiles = newDT;
+    renderFileList();
+  }
+
+  function uzReset() {
+    selectedFiles = new DataTransfer();
+    defState.classList.remove('hidden');
+    fileState.classList.add('hidden');
+    action.classList.add('hidden');
+    zone.classList.remove('has-files');
+    uzIcon.textContent = '📂';
+    fileList.innerHTML = '';
+    countEl.textContent = '0';
+  }
+
+  function uzAddMore() {
+    input.click();
+  }
+
+  // On submit, sync DataTransfer to a real file input
+  document.getElementById('hero-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var realInput = document.createElement('input');
+    realInput.type = 'file'; realInput.name = 'files'; realInput.multiple = true;
+    realInput.style.display = 'none';
+    realInput.files = selectedFiles.files;
+    // Build a FormData manually and POST
+    var fd = new FormData();
+    fd.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    var files = selectedFiles.files;
+    for (var i = 0; i < files.length; i++) fd.append('files', files[i]);
+    var btn = document.getElementById('uz-submit');
+    btn.disabled = true;
+    btn.textContent = '⏳ Uploading…';
+    fetch('/convert/', { method: 'POST', body: fd })
+      .then(function (r) { window.location.href = r.url; })
+      .catch(function () { window.location.href = '/convert/'; });
+  });
+
+  function getEmoji(name) {
+    var e = name.split('.').pop().toLowerCase();
+    return { pdf: '📕', docx: '📘', doc: '📘', txt: '📄', png: '🖼️', jpg: '🖼️', jpeg: '🖼️', bmp: '🖼️', tiff: '🖼️', webp: '🖼️', gif: '🖼️', xlsx: '📊', xls: '📊', pptx: '📑', ppt: '📑', html: '🌐', htm: '🌐' }[e] || '📄';
+  }
+  function fmtSize(b) {
+    if (!b) return '0 B'; var u = ['B', 'KB', 'MB', 'GB'], i = 0, s = b;
+    while (s >= 1024 && i < 3) { s /= 1024; i++; } return s.toFixed(1) + ' ' + u[i];
+  }
+  function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  // Search filtering
+  function filterTools() {
+    var query = document.getElementById('tool-search').value.toLowerCase();
+    var cards = document.querySelectorAll('.tool-mini-card');
+    cards.forEach(function(card) {
+      if(card.textContent.toLowerCase().indexOf(query) > -1) {
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+</script>
+{% endblock %}

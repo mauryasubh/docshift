@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}PDF Editor — DocShift{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-5 py-16 content-z">
+  <div class="text-center mb-10">
+    <div class="inline-flex items-center gap-2 mb-4">
+      <span class="g-chip">Stage 2</span>
+      <span class="g-chip" style="background:rgba(52,211,153,.1);color:#34d399;border-color:rgba(52,211,153,.3);">Beta</span>
+    </div>
+    <h1 class="text-3xl font-black logo-text text-gray-900 dark:text-[#e2f0ff] mb-3">
+      PDF <span class="hero-grad">Editor</span>
+    </h1>
+    <p class="g-sub-text text-sm">Edit text, replace images, and annotate — works on generated and scanned PDFs.</p>
+  </div>
+
+  {% if error %}
+  <div class="msg-error mb-6">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="{% url 'editor_upload' %}" enctype="multipart/form-data" id="upload-form">
+    {% csrf_token %}
+    <div class="g-drop g-card p-10 text-center cursor-pointer" id="drop-zone">
+      <input type="file" name="file" id="file-input" accept=".pdf" class="hidden">
+
+      <div id="drop-idle">
+        <div class="text-4xl mb-4">📄</div>
+        <p class="font-semibold text-gray-800 dark:text-[#e2f0ff] mb-1">Drop your PDF here</p>
+        <p class="text-sm g-sub-text mb-5">or click to browse — up to 50 MB</p>
+        <button type="button" onclick="document.getElementById('file-input').click()" class="g-btn" style="padding:.55rem 1.6rem">Choose PDF</button>
+      </div>
+
+      <div id="drop-selected" class="hidden">
+        <div class="text-4xl mb-3">✅</div>
+        <p class="font-semibold text-gray-800 dark:text-[#e2f0ff] mb-1" id="file-name">—</p>
+        <p class="text-sm g-sub-text mb-5" id="file-size">—</p>
+        <button type="submit" class="g-btn" style="padding:.55rem 1.6rem">Open in Editor →</button>
+        <button type="button" onclick="resetDrop()" class="g-btn-outline ml-2" style="padding:.5rem 1rem">Change</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10">
+    <div class="g-card p-4 text-center">
+      <div class="text-2xl mb-2">✏️</div>
+      <p class="text-sm font-semibold text-gray-800 dark:text-[#e2f0ff] mb-1">Edit Text</p>
+      <p class="text-xs g-sub-text">Click any text block to edit in-place</p>
+    </div>
+    <div class="g-card p-4 text-center">
+      <div class="text-2xl mb-2">🖼️</div>
+      <p class="text-sm font-semibold text-gray-800 dark:text-[#e2f0ff] mb-1">Manage Images</p>
+      <p class="text-xs g-sub-text">Replace or remove images with one click</p>
+    </div>
+    <div class="g-card p-4 text-center">
+      <div class="text-2xl mb-2">🖊️</div>
+      <p class="text-sm font-semibold text-gray-800 dark:text-[#e2f0ff] mb-1">Annotate</p>
+      <p class="text-xs g-sub-text">Highlight text, add notes and text boxes</p>
+    </div>
+  </div>
+
+  <div class="mt-8 p-4 rounded-xl border" style="background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.25);">
+    <p class="text-xs" style="color:#fbbf24;">
+      <strong>Note:</strong> Scanned PDFs are supported via OCR — accuracy depends on scan quality.
+      Password-protected PDFs are not supported.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const dropZone  = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+function humanSize(b){ return b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB'; }
+
+function showFile(file){
+  document.getElementById('file-name').textContent = file.name;
+  document.getElementById('file-size').textContent = humanSize(file.size);
+  document.getElementById('drop-idle').classList.add('hidden');
+  document.getElementById('drop-selected').classList.remove('hidden');
+}
+function resetDrop(){
+  fileInput.value='';
+  document.getElementById('drop-idle').classList.remove('hidden');
+  document.getElementById('drop-selected').classList.add('hidden');
+}
+
+fileInput.addEventListener('change', () => { if(fileInput.files[0]) showFile(fileInput.files[0]); });
+dropZone.addEventListener('click', (e) => { if(e.target.tagName!=='BUTTON') fileInput.click(); });
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if(file && file.name.toLowerCase().endsWith('.pdf')){
+    const dt = new DataTransfer(); dt.items.add(file); fileInput.files = dt.files; showFile(file);
+  }
+});
+</script>
+{% endblock %}

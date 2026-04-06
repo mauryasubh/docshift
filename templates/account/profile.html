@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}My Account — DocShift{% endblock %}
+
+{% block extra_head %}
+<style>
+  .section-card{background:#fff;border:1px solid var(--g-border);border-radius:14px;padding:1.5rem;box-shadow:var(--g-shadow);margin-bottom:1.25rem;}
+  html.dark .section-card{background:var(--d-card);border-color:var(--d-border);box-shadow:none;}
+  .stat-big{font-size:2rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;}
+  .provider-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .85rem;border-radius:6px;font-size:.78rem;font-weight:600;border:1px solid var(--g-border);background:#f8f9fa;}
+  html.dark .provider-badge{background:rgba(255,255,255,.05);border-color:var(--d-border);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-5 py-10">
+
+  <!-- Header -->
+  <div class="flex items-center gap-2 mb-7">
+    <a href="/dashboard/" class="g-sub-text hover:text-blue-600 dark:hover:text-[#38b6ff] text-sm transition-colors">← Dashboard</a>
+    <span class="g-sub-text">/</span>
+    <h1 class="logo-text text-[1.4rem] text-gray-800 dark:text-[#e2f0ff]">My Account</h1>
+  </div>
+
+  <!-- Profile card -->
+  <div class="section-card">
+    <div class="flex items-center gap-4 mb-5">
+      {% if profile.avatar_url %}
+        <img src="{{ profile.avatar_url }}" class="w-16 h-16 rounded-full object-cover border-2 border-blue-200 dark:border-[rgba(56,182,255,.3)]" alt="">
+      {% else %}
+        <div class="avatar-circle w-16 h-16 text-xl flex items-center justify-center">{{ profile.initials }}</div>
+      {% endif %}
+      <div>
+        <h2 class="font-bold text-lg text-gray-800 dark:text-[#e2f0ff]">{{ profile.display_name }}</h2>
+        <p class="text-sm g-sub-text">{{ request.user.email }}</p>
+        <p class="text-xs g-sub-text mt-0.5">Member since {{ request.user.date_joined|date:"N Y" }}</p>
+      </div>
+    </div>
+
+    <!-- Social providers -->
+    {% with request.user.socialaccount_set.all as socials %}
+    {% if socials %}
+    <div class="flex gap-2 flex-wrap mb-4">
+      {% for s in socials %}
+      <span class="provider-badge">
+        {% if s.provider == 'google' %}
+        <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Google
+        {% elif s.provider == 'github' %}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+        {% else %}{{ s.provider|title }}{% endif %}
+      </span>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Bio edit -->
+    <form method="post" action="/account/">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_profile">
+      <div class="mb-3">
+        <label class="block text-sm font-medium text-gray-700 dark:text-[#c8dff5] mb-1.5">Bio <span class="g-sub-text font-normal">(optional)</span></label>
+        <input type="text" name="bio" class="g-input" value="{{ profile.bio }}" placeholder="Tell us a bit about yourself…" maxlength="200">
+      </div>
+      <button type="submit" class="g-btn py-2 px-5 rounded-lg text-sm">Save changes</button>
+    </form>
+  </div>
+
+  <!-- Stats card -->
+  <div class="section-card">
+    <h3 class="font-semibold text-[.9rem] text-gray-700 dark:text-[#c8dff5] mb-4">Usage Statistics</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+      <div>
+        <div class="stat-big text-gray-800 dark:text-[#e2f0ff]">{{ total_jobs }}</div>
+        <div class="text-xs g-sub-text mt-1">Total jobs</div>
+      </div>
+      <div>
+        <div class="stat-big text-green-600 dark:text-[#34d399]">{{ done_jobs }}</div>
+        <div class="text-xs g-sub-text mt-1">Completed</div>
+      </div>
+      <div>
+        <div class="stat-big text-[1.3rem] text-gray-800 dark:text-[#e2f0ff]">{{ total_in }}</div>
+        <div class="text-xs g-sub-text mt-1">Data in</div>
+      </div>
+      <div>
+        <div class="stat-big text-[1.3rem] text-blue-600 dark:text-[#38b6ff]">{{ total_out }}</div>
+        <div class="text-xs g-sub-text mt-1">Data out</div>
+      </div>
+    </div>
+
+    {% if top_tools %}
+    <!-- Top tools -->
+    <div class="mb-5">
+      <p class="text-xs font-semibold uppercase tracking-wide g-sub-text mb-2">Top Tools</p>
+      <div style="display:flex;flex-direction:column;gap:.45rem;">
+        {% for t in top_tools %}
+        <div style="display:flex;align-items:center;gap:.65rem;">
+          <span style="font-size:.78rem;color:var(--g-sub);width:1.1rem;text-align:right;">{{ forloop.counter }}</span>
+          <div style="flex:1;height:8px;background:#e8eaed;border-radius:4px;overflow:hidden;">
+            <div style="height:100%;border-radius:4px;background:linear-gradient(90deg,#1a73e8,#4f46e5);width:{{ t.count|floatformat:0 }}px;" id="tbar-{{ forloop.counter }}"></div>
+          </div>
+          <span style="font-size:.78rem;color:var(--g-text);min-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ t.name }}</span>
+          <span style="font-size:.75rem;font-family:'JetBrains Mono',monospace;color:var(--g-sub);width:2rem;text-align:right;">{{ t.count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- 14-day activity chart -->
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wide g-sub-text mb-3">Last 14 Days</p>
+      <div id="activity-chart" style="display:flex;align-items:flex-end;gap:3px;height:60px;"></div>
+      <div id="activity-labels" style="display:flex;gap:3px;margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <!-- Security card -->
+  <div class="section-card">
+    <h3 class="font-semibold text-[.9rem] text-gray-700 dark:text-[#c8dff5] mb-4">Security</h3>
+    <div class="flex flex-col sm:flex-row gap-3">
+      <a href="/auth/password/change/" class="g-btn-outline py-2 px-4 rounded-lg text-sm text-center">Change password</a>
+      <a href="/auth/email/" class="g-btn-outline py-2 px-4 rounded-lg text-sm text-center">Manage emails</a>
+    </div>
+  </div>
+
+  <!-- Danger zone -->
+  <div class="section-card border-red-200 dark:border-[rgba(248,113,113,.2)]">
+    <h3 class="font-semibold text-[.9rem] text-red-600 dark:text-[#f87171] mb-2">Danger Zone</h3>
+    <p class="text-sm g-sub-text mb-4">Permanently delete your account and all associated files. This cannot be undone.</p>
+    <form method="post" action="/account/" onsubmit="return confirm('Are you absolutely sure? This will permanently delete your account and all your files.')">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete_account">
+      <button type="submit" class="py-2 px-5 rounded-lg text-sm font-semibold border border-red-300 dark:border-[rgba(248,113,113,.35)] text-red-600 dark:text-[#f87171] hover:bg-red-50 dark:hover:bg-[rgba(248,113,113,.07)] transition-colors" style="background:transparent;cursor:pointer;font-family:inherit;">
+        Delete my account
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  // ── 14-day activity chart ─────────────────────────────────
+  var labels = {{ day_labels|safe }};
+  var counts = {{ day_counts|safe }};
+  var maxCount = Math.max.apply(null, counts) || 1;
+  var chartEl  = document.getElementById('activity-chart');
+  var labelsEl = document.getElementById('activity-labels');
+  if (!chartEl) return;
+
+  var isDark = document.documentElement.classList.contains('dark');
+  var barColor = isDark ? '#38b6ff' : '#1a73e8';
+  var emptyColor = isDark ? 'rgba(255,255,255,.07)' : '#e8eaed';
+  var labelColor = isDark ? '#6b89a0' : '#9aa0a6';
+
+  counts.forEach(function(c, i) {
+    var pct = Math.max(c > 0 ? 8 : 0, Math.round((c / maxCount) * 100));
+    var bar = document.createElement('div');
+    bar.style.cssText = [
+      'flex:1', 'border-radius:3px 3px 0 0',
+      'background:' + (c > 0 ? barColor : emptyColor),
+      'height:' + pct + '%',
+      'transition:height .4s ease',
+      'cursor:default',
+      'position:relative',
+    ].join(';');
+    bar.title = labels[i] + ': ' + c + ' job' + (c !== 1 ? 's' : '');
+    chartEl.appendChild(bar);
+
+    // Label (show only every 3rd to avoid crowding)
+    var lbl = document.createElement('div');
+    lbl.style.cssText = 'flex:1;font-size:.58rem;text-align:center;color:' + labelColor + ';white-space:nowrap;overflow:hidden;';
+    lbl.textContent = (i % 3 === 0) ? labels[i].split(' ')[0] : '';
+    labelsEl.appendChild(lbl);
+  });
+
+  // ── Top tools bar widths ──────────────────────────────────
+  // Bars use % of the container, scaled to the top item
+  var topBars  = document.querySelectorAll('[id^="tbar-"]');
+  var topCounts = {{ day_counts|safe }};  // reuse counts array (not tool counts — fix below)
+
+  // Top-tool counts are embedded straight in the bar element width already
+  // via Django widthratio — but using px instead of %. Convert to % of container.
+  topBars.forEach(function(bar) {
+    var rawPx = parseInt(bar.style.width) || 0;
+    // Scale: treat raw count as a ratio against max (first bar)
+    var firstPx = topBars.length ? (parseInt(topBars[0].style.width) || 1) : 1;
+    var pct = Math.round((rawPx / firstPx) * 100);
+    bar.style.width = pct + '%';
+    bar.style.transition = 'width .5s ease';
+  });
+})();
+</script>
+{% endblock %}

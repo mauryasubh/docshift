@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+{% block title %}Create Account — DocShift{% endblock %}
+
+{% block extra_head %}
+<style>
+  .auth-page {
+    min-height: calc(100vh - 62px);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .auth-page {
+      grid-template-columns: 1fr;
+    }
+
+    .auth-left {
+      display: none;
+    }
+  }
+
+  .auth-left {
+    background: linear-gradient(145deg, #059669 0%, #1a73e8 50%, #4f46e5 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  html.dark .auth-left {
+    background: linear-gradient(145deg, #0a1f14 0%, #0d1b36 50%, #0f0f23 100%);
+    border-right: 1px solid rgba(56, 182, 255, .15);
+  }
+
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: .22;
+    pointer-events: none;
+    animation: blobFloat 8s ease-in-out infinite;
+  }
+
+  .blob-1 {
+    width: 280px;
+    height: 280px;
+    background: #34d399;
+    top: -60px;
+    right: -60px;
+    animation-delay: 0s;
+  }
+
+  .blob-2 {
+    width: 220px;
+    height: 220px;
+    background: #38b6ff;
+    bottom: 80px;
+    left: -50px;
+    animation-delay: -4s;
+  }
+
+  .blob-3 {
+    width: 160px;
+    height: 160px;
+    background: #818cf8;
+    bottom: -30px;
+    right: 60px;
+    animation-delay: -6s;
+  }
+
+  @keyframes blobFloat {
+
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+
+    33% {
+      transform: translate(-18px, 18px) scale(1.04);
+    }
+
+    66% {
+      transform: translate(12px, -12px) scale(.97);
+    }
+  }
+
+  html.dark .blob {
+    opacity: .15;
+  }
+
+  .auth-left-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    color: #fff;
+    max-width: 340px;
+  }
+
+  .auth-left-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    margin: 0 auto 1.5rem;
+    background: rgba(255, 255, 255, .15);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid rgba(255, 255, 255, .25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: #fff;
+  }
+
+  html.dark .auth-left-logo {
+    background: rgba(52, 211, 153, .15);
+    border-color: rgba(52, 211, 153, .3);
+    color: #34d399;
+  }
+
+  .auth-left-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 2rem;
+    letter-spacing: -.04em;
+    line-height: 1.1;
+    margin-bottom: .75rem;
+  }
+
+  html.dark .auth-left-title {
+    color: #e2f0ff;
+  }
+
+  .auth-left-sub {
+    font-size: .9rem;
+    opacity: .85;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+
+  html.dark .auth-left-sub {
+    color: #7a9cc4;
+    opacity: 1;
+  }
+
+  .perk-list {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    text-align: left;
+  }
+
+  .perk-item {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    font-size: .82rem;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .18);
+    padding: .5rem .8rem;
+    border-radius: 10px;
+    backdrop-filter: blur(4px);
+  }
+
+  html.dark .perk-item {
+    background: rgba(52, 211, 153, .07);
+    border-color: rgba(52, 211, 153, .18);
+    color: #c8dff5;
+  }
+
+  .perk-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fff;
+    flex-shrink: 0;
+  }
+
+  html.dark .perk-dot {
+    background: #34d399;
+  }
+
+  /* Right panel */
+  .auth-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: var(--g-bg);
+    overflow-y: auto;
+  }
+
+  html.dark .auth-right {
+    background: var(--d-bg);
+  }
+
+  .auth-form-box {
+    width: 100%;
+    max-width: 400px;
+    animation: slideUp .4s ease both;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px)
+    }
+
+    to {
+      opacity: 1;
+      transform: none
+    }
+  }
+
+  .auth-heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 1.55rem;
+    letter-spacing: -.04em;
+    color: #202124;
+    margin-bottom: .3rem;
+  }
+
+  html.dark .auth-heading {
+    color: #e2f0ff;
+  }
+
+  .soc-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .6rem;
+    flex: 1;
+    padding: .65rem .8rem;
+    border-radius: 10px;
+    border: 1.5px solid var(--g-border);
+    background: #fff;
+    font-size: .84rem;
+    font-weight: 500;
+    color: #3c4043;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .18s;
+    font-family: inherit;
+  }
+
+  html.dark .soc-btn {
+    background: rgba(255, 255, 255, .05);
+    border-color: rgba(255, 255, 255, .1);
+    color: #c8dff5;
+  }
+
+  .soc-btn:hover {
+    border-color: #1a73e8;
+    background: #f0f6ff;
+    box-shadow: 0 2px 10px rgba(26, 115, 232, .12);
+  }
+
+  html.dark .soc-btn:hover {
+    border-color: rgba(56, 182, 255, .5);
+    background: rgba(56, 182, 255, .07);
+  }
+
+  .or-line {
+    position: relative;
+    text-align: center;
+    margin: .8rem 0;
+  }
+
+  .or-line::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--g-border);
+  }
+
+  html.dark .or-line::before {
+    background: rgba(255, 255, 255, .08);
+  }
+
+  .or-line span {
+    position: relative;
+    background: var(--g-bg);
+    padding: 0 .65rem;
+    font-size: .72rem;
+    color: var(--g-sub);
+  }
+
+  html.dark .or-line span {
+    background: var(--d-bg);
+    color: var(--d-sub);
+  }
+
+  .f-label {
+    display: block;
+    font-size: .77rem;
+    font-weight: 600;
+    margin-bottom: .3rem;
+    color: #374151;
+  }
+
+  html.dark .f-label {
+    color: #a8c4d8;
+  }
+
+  .f-err {
+    font-size: .71rem;
+    color: #ea4335;
+    margin-top: .2rem;
+  }
+
+  html.dark .f-err {
+    color: var(--d-red);
+  }
+
+  /* Compact two-column fields */
+  .fields-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .65rem;
+    margin-bottom: .65rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+
+  <!-- LEFT: Branding -->
+  <div class="auth-left">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="auth-left-content">
+      <div class="auth-left-logo">DS</div>
+      <h2 class="auth-left-title">Join DocShift</h2>
+      <p class="auth-left-sub">Free forever. No credit card. Start converting in 30 seconds.</p>
+      <div class="perk-list">
+        <div class="perk-item">
+          <div class="perk-dot"></div> Files kept for <strong>24 hours</strong> (5 min as guest)
+        </div>
+        <div class="perk-item">
+          <div class="perk-dot"></div> Full dashboard with conversion history
+        </div>
+        <div class="perk-item">
+          <div class="perk-dot"></div> Delete your files anytime
+        </div>
+        <div class="perk-item">
+          <div class="perk-dot"></div> 30 document tools, zero ads
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Form -->
+  <div class="auth-right">
+    <div class="auth-form-box">
+
+      <h1 class="auth-heading">Create account</h1>
+      <p class="text-sm g-sub-text mb-4">Free forever · No credit card needed</p>
+
+      <!-- Social signup -->
+      <div class="flex gap-2.5 mb-1">
+        <a href="/auth/google/login/" class="soc-btn">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              fill="#4285F4" />
+            <path
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              fill="#34A853" />
+            <path
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              fill="#FBBC05" />
+            <path
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              fill="#EA4335" />
+          </svg>
+          Google
+        </a>
+        <a href="/auth/github/login/" class="soc-btn">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          GitHub
+        </a>
+      </div>
+
+      <div class="or-line"><span>or use email</span></div>
+
+      {% if form.non_field_errors %}
+      <div class="mb-3 p-2.5 rounded-lg text-sm bg-red-50 border border-red-200 text-red-700
+                  dark:bg-[rgba(248,113,113,.08)] dark:border-[rgba(248,113,113,.2)] dark:text-[#f87171]">
+        {{ form.non_field_errors|join:", " }}
+      </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        {% if redirect_field_value %}<input type="hidden" name="{{ redirect_field_name }}"
+          value="{{ redirect_field_value }}">{% endif %}
+
+        <!-- Username + Email side by side -->
+        <div class="fields-2col">
+          <div>
+            <label class="f-label">Username</label>
+            <input type="text" name="username" class="g-input" style="padding:.55rem .75rem;font-size:.85rem"
+              placeholder="cooluser" value="{{ form.username.value|default:'' }}" autocomplete="username">
+            {% if form.username.errors %}<p class="f-err">{{ form.username.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label class="f-label">Email</label>
+            <input type="email" name="email" class="g-input" style="padding:.55rem .75rem;font-size:.85rem"
+              placeholder="you@example.com" value="{{ form.email.value|default:'' }}" autocomplete="email">
+            {% if form.email.errors %}<p class="f-err">{{ form.email.errors.0 }}</p>{% endif %}
+          </div>
+        </div>
+
+        <!-- Password + Confirm side by side -->
+        <div class="fields-2col" style="margin-bottom:.9rem">
+          <div>
+            <label class="f-label">Password</label>
+            <input type="password" name="password1" class="g-input" style="padding:.55rem .75rem;font-size:.85rem"
+              placeholder="Min. 8 chars" autocomplete="new-password">
+            {% if form.password1.errors %}<p class="f-err">{{ form.password1.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label class="f-label">Confirm</label>
+            <input type="password" name="password2" class="g-input" style="padding:.55rem .75rem;font-size:.85rem"
+              placeholder="Same again" autocomplete="new-password">
+            {% if form.password2.errors %}<p class="f-err">{{ form.password2.errors.0 }}</p>{% endif %}
+          </div>
+        </div>
+
+        <button type="submit" class="g-btn w-full py-2.5 rounded-xl" style="font-size:.9rem;">
+          Create free account →
+        </button>
+      </form>
+
+      <div class="mt-4 pt-3.5 border-t g-divider text-center">
+        <p class="text-sm g-sub-text">
+          Already have an account?
+          <a href="/auth/login/" class="text-blue-600 dark:text-[#38b6ff] font-semibold hover:underline ml-1">Sign
+            in</a>
+        </p>
+        <a href="/"
+          class="text-xs g-sub-text hover:text-blue-600 dark:hover:text-[#38b6ff] transition-colors mt-1 inline-block">
+          ← Continue as guest
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

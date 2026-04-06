@@ -1,0 +1,43 @@
+# ── Core Django ────────────────────────────────────────────────
+Django>=4.2,<5.0
+whitenoise>=6.0
+psycopg2-binary>=2.9.11
+gunicorn>=21.0               # Production WSGI server (used by Render)
+dj-database-url>=2.1         # Parse DATABASE_URL from Render/Railway
+
+# ── Authentication ─────────────────────────────────────────────
+django-allauth>=0.61
+cryptography>=41.0        # Required by allauth for Google/GitHub OAuth JWT
+
+# ── Celery + Redis ─────────────────────────────────────────────
+celery>=5.3
+redis>=5.0
+django-celery-beat>=2.5
+
+# ── PDF processing (Stage 1 + Stage 2) ────────────────────────
+PyMuPDF>=1.23             # fitz — PDF render, edit, redact, annotate
+reportlab>=4.0            # PDF generation (txt→pdf, docx→pdf)
+python-docx>=1.0          # DOCX read/write (Stage 1 + Stage 3)
+pdfplumber>=0.9           # PDF table/text extraction (Round 2 — PDF to Excel)
+
+# ── Office formats (Round 2) ───────────────────────────────────
+openpyxl>=3.1             # Excel .xlsx read/write
+python-pptx>=0.6          # PowerPoint .pptx read/write
+
+# ── HTML to PDF (Round 2) ──────────────────────────────────────
+xhtml2pdf>=0.2            # Pure-Python HTML→PDF (no GTK/system deps needed)
+
+# ── Image processing ───────────────────────────────────────────
+Pillow>=10.0
+
+# ── File type detection ────────────────────────────────────────
+filetype>=1.2
+
+# ── Translation (Stage 3) ──────────────────────────────────────
+argostranslate>=1.9.0     # Offline translation engine (no internet needed)
+requests>=2.28.0          # HTTP client (used by argostranslate internally)
+
+# ── OCR — Stage 2 + Round 2 searchable PDF ────────────────────
+pytesseract>=0.3.10       # OCR wrapper — requires Tesseract exe installed:
+                          # https://github.com/UB-Mannheim/tesseract/wiki
+                          # Already installed on your machine for Stage 2

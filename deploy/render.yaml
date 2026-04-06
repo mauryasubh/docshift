@@ -1,0 +1,81 @@
+# render.yaml — Render Blueprint (Infrastructure as Code)
+# This file lets you deploy ALL services with one click via:
+# https://render.com/deploy?repo=https://github.com/YOUR_USERNAME/docshift
+
+databases:
+  - name: docshift-db
+    plan: free
+    databaseName: docshift
+    user: docshift_user
+
+services:
+  # ── Redis ──────────────────────────────────────────────
+  - type: redis
+    name: docshift-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+  # ── Django Web Service ─────────────────────────────────
+  - type: web
+    name: docshift-web
+    runtime: python
+    plan: free
+    buildCommand: "./deploy/build.sh"
+    startCommand: "gunicorn docshift.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_ALLOWED_HOSTS
+        value: "docshift-web.onrender.com"
+      - key: USE_POSTGRES
+        value: "True"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: docshift-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: docshift-redis
+          type: redis
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: TESSERACT_CMD
+        value: "tesseract"
+      - key: STRIPE_PUBLIC_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+  # ── Celery Worker ──────────────────────────────────────
+  - type: worker
+    name: docshift-worker
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "celery -A docshift worker --loglevel=info --concurrency=2"
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: USE_POSTGRES
+        value: "True"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: docshift-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: docshift-redis
+          type: redis
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: TESSERACT_CMD
+        value: "tesseract"
