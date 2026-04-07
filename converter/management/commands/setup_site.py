@@ -19,8 +19,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         domain = options['domain']
         name   = options['name']
+        
+        from django.conf import settings
+        
         site, created = Site.objects.update_or_create(
-            id=1,
+            id=settings.SITE_ID,
             defaults={'domain': domain, 'name': name},
         )
         action = 'Created' if created else 'Updated'

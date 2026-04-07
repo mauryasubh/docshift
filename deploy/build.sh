@@ -20,4 +20,8 @@ python manage.py migrate --noinput
 echo "=== Creating Superuser (if not exists) ==="
 python manage.py createsuperuser --noinput || echo "Superuser already exists or variables missing."
 
+echo "=== Setting up Django Site ==="
+python manage.py setup_site --domain ${DJANGO_ALLOWED_HOSTS:-docshift-web.onrender.com}
+
 echo "=== Build complete ==="
+
