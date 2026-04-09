@@ -842,11 +842,23 @@ def job_download(request, uuid):
  
     if job.status != 'done' or not job.output_file:
         raise Http404("File not ready")
-    file_path = job.output_file.path
-    if not os.path.exists(file_path):
-        raise Http404("File not found on disk")
-    filename = Path(file_path).name
-    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=filename)
+        
+    try:
+        # Remote Storage (S3 / Cloudflare R2) => Native direct download link
+        if hasattr(job.output_file.storage, 'bucket_name'):
+            from django.shortcuts import redirect
+            return redirect(job.output_file.url)
+            
+        # Local fallback
+        file_path = job.output_file.path
+        if not os.path.exists(file_path):
+            raise Http404("File not found on disk")
+        filename = Path(file_path).name
+        return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=filename)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise Http404("Issue generating download URL")
 
 
 # ── FIX 2: job_preview — add ownership check ──────────────────────────────
@@ -868,27 +880,38 @@ def job_preview(request, uuid):
  
     if not job.output_file:
         raise Http404("No output file")
-    file_path = job.output_file.path
-    if not os.path.exists(file_path):
-        raise Http404("File not found")
-    ext = Path(file_path).suffix.lower()
-    mime_map = {
-        '.pdf':  'application/pdf',
-        '.png':  'image/png',
-        '.jpg':  'image/jpeg',
-        '.jpeg': 'image/jpeg',
-        '.webp': 'image/webp',
-        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        '.txt':  'text/plain',
-        '.zip':  'application/zip',
-    }
-    content_type = mime_map.get(ext, 'application/octet-stream')
-    response = FileResponse(open(file_path, 'rb'), content_type=content_type)
-    response['X-Frame-Options'] = 'SAMEORIGIN'
-    response['Content-Disposition'] = f'inline; filename="{Path(file_path).name}"'
-    return response
+        
+    try:
+        # Remote Storage (S3 / Cloudflare R2) => Native direct link
+        if hasattr(job.output_file.storage, 'bucket_name'):
+            from django.shortcuts import redirect
+            return redirect(job.output_file.url)
+            
+        file_path = job.output_file.path
+        if not os.path.exists(file_path):
+            raise Http404("File not found")
+        ext = Path(file_path).suffix.lower()
+        mime_map = {
+            '.pdf':  'application/pdf',
+            '.png':  'image/png',
+            '.jpg':  'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.webp': 'image/webp',
+            '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            '.txt':  'text/plain',
+            '.zip':  'application/zip',
+        }
+        content_type = mime_map.get(ext, 'application/octet-stream')
+        response = FileResponse(open(file_path, 'rb'), content_type=content_type)
+        response['X-Frame-Options'] = 'SAMEORIGIN'
+        response['Content-Disposition'] = f'inline; filename="{Path(file_path).name}"'
+        return response
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise Http404("Issue generating preview URL")
 
 def batch_status(request, batch_id):
     """Live batch status page — shows all jobs from a multi-file upload."""

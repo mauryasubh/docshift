@@ -119,7 +119,19 @@ def translator_download(request, job_id):
     job = get_object_or_404(TranslationJob, id=job_id)
     if job.status != 'done' or not job.result_file:
         raise Http404("File not ready.")
-    path = job.result_file.path
-    if not os.path.exists(path):
-        raise Http404("File not found on disk.")
-    return FileResponse(open(path, 'rb'), as_attachment=True, filename=Path(path).name)
+        
+    try:
+        # Remote Storage (S3 / Cloudflare R2) => Native direct download link
+        if hasattr(job.result_file.storage, 'bucket_name'):
+            from django.shortcuts import redirect
+            return redirect(job.result_file.url)
+            
+        # Local fallback
+        path = job.result_file.path
+        if not os.path.exists(path):
+            raise Http404("File not found on disk.")
+        return FileResponse(open(path, 'rb'), as_attachment=True, filename=Path(path).name)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise Http404("Issue generating download URL")
