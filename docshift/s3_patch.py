@@ -58,10 +58,12 @@ def apply_s3_patches():
                 except Exception:
                     pass
 
-    @receiver(pre_save, sender=ConversionJob)
     def pre_save_conversion_job(sender, instance, **kwargs):
         handle_s3_upload(instance, 'output_file')
 
-    @receiver(pre_save, sender=TranslationJob)
     def pre_save_translation_job(sender, instance, **kwargs):
         handle_s3_upload(instance, 'result_file')
+
+    # Note: signals must be strongly referenced if connected inside a function
+    pre_save.connect(pre_save_conversion_job, sender=ConversionJob, weak=False)
+    pre_save.connect(pre_save_translation_job, sender=TranslationJob, weak=False)
