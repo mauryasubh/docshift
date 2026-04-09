@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'editor',
     'translator',
     'api',
+    'storages',
 ]
 
 SITE_ID = 3
@@ -150,6 +151,33 @@ STATIC_URL    = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT   = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ── Storage Configuration (Cloudflare R2 / AWS S3) ─────────
+import os
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
+    # Use Cloudflare R2 / AWS S3
+    AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', 'docshift-media')
+    AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL')
+    AWS_S3_REGION_NAME = 'auto'  # Cloudflare R2 requirement
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_S3_FILE_OVERWRITE = False
+    
+    # Optional: Force unique paths by removing the ability to overwrite,
+    # or using UUID filenames directly. Currently django-storages handles uniqueness.
+    
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    
+    # Note: If public, you can use AWS_S3_CUSTOM_DOMAIN. 
+    # For now, we will use default pre-signed URLs provided by boto3.
+    AWS_QUERYSTRING_AUTH = True
+    AWS_QUERYSTRING_EXPIRE = 3600 # 1 hour link expiry
+
+else:
+    # Use Local Storage (only for local testing without .env)
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
