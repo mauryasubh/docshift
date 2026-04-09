@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["cairo", "pkg-config", "tesseract", "gobject-introspection"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[start]
+cmd = "celery -A docshift worker --loglevel=info --concurrency=1"
