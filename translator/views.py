@@ -124,7 +124,12 @@ def translator_download(request, job_id):
         # Remote Storage (S3 / Cloudflare R2) => Native direct download link
         if hasattr(job.result_file.storage, 'bucket_name'):
             from django.shortcuts import redirect
-            return redirect(job.result_file.url)
+            filename = Path(job.result_file.name).name
+            presigned_url = job.result_file.storage.url(
+                job.result_file.name,
+                parameters={'ResponseContentDisposition': f'attachment; filename="{filename}"'}
+            )
+            return redirect(presigned_url)
             
         # Local fallback
         path = job.result_file.path

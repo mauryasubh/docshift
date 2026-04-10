@@ -847,7 +847,12 @@ def job_download(request, uuid):
         # Remote Storage (S3 / Cloudflare R2) => Native direct download link
         if hasattr(job.output_file.storage, 'bucket_name'):
             from django.shortcuts import redirect
-            return redirect(job.output_file.url)
+            filename = Path(job.output_file.name).name
+            presigned_url = job.output_file.storage.url(
+                job.output_file.name,
+                parameters={'ResponseContentDisposition': f'attachment; filename="{filename}"'}
+            )
+            return redirect(presigned_url)
             
         # Local fallback
         file_path = job.output_file.path
