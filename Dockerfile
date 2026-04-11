@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
+ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
+
 WORKDIR /app
 
 # IMPORTANT: Install CPU-only PyTorch first!

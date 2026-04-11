@@ -82,6 +82,14 @@
           </div>
           {% endif %}
 
+          {% if tool_slug == 'unlock_pdf' %}
+          <div class="tool-options !mb-0">
+            <div class="tool-options-title"><span>🔓</span> Unlock PDF</div>
+            <input type="password" name="password" placeholder="Enter password to unlock" required class="g-input !text-xs !py-2 w-full mb-2">
+            <div class="text-[0.65rem] text-gray-500 font-mono">Note: We cannot bypass AES-256 encryption. You must provide the original password.</div>
+          </div>
+          {% endif %}
+
           {% if tool_slug == 'rotate_pdf' %}
           <div class="tool-options !mb-0">
             <div class="tool-options-title"><span>🔃</span> Rotation</div>

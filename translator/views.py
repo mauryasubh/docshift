@@ -44,28 +44,32 @@ def translator_upload(request):
     if uploaded.size > MAX_SIZE:
         return _err(f'File too large. Max {MAX_SIZE // (1024*1024)} MB.')
 
-    source_lang = request.POST.get('source_lang', 'auto')
-    target_lang = request.POST.get('target_lang', 'en')
+    try:
+        source_lang = request.POST.get('source_lang', 'auto')
+        target_lang = request.POST.get('target_lang', 'en')
 
-    if source_lang == target_lang and source_lang != 'auto':
-        return _err('Source and target language cannot be the same.')
+        if source_lang == target_lang and source_lang != 'auto':
+            return _err('Source and target language cannot be the same.')
 
-    from .utils import check_language_pair
-    ok, msg = check_language_pair(source_lang, target_lang)
-    if not ok:
-        return _err(msg)
+        from .utils import check_language_pair
+        ok, msg = check_language_pair(source_lang, target_lang)
+        if not ok:
+            return _err(msg)
 
-    is_guest = not request.user.is_authenticated
-    job = TranslationJob(
-        user          = request.user if not is_guest else None,
-        is_guest      = is_guest,
-        original_file = uploaded,
-        original_name = uploaded.name,
-        original_size = uploaded.size,
-        source_lang   = source_lang,
-        target_lang   = target_lang,
-    )
-    job.save()
+        is_guest = not request.user.is_authenticated
+        job = TranslationJob(
+            user          = request.user if not is_guest else None,
+            is_guest      = is_guest,
+            original_file = uploaded,
+            original_name = uploaded.name,
+            original_size = uploaded.size,
+            source_lang   = source_lang,
+            target_lang   = target_lang,
+        )
+        job.save()
+
+    except Exception as exc:
+        return JsonResponse({'error_details': str(exc)}, status=500)
 
     if is_guest:
         ids = request.session.get('translation_jobs', [])

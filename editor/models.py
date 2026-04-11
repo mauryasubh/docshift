@@ -81,7 +81,9 @@ class EditorSession(models.Model):
         return f"{settings.MEDIA_URL}editor/pages/{self.id}/"
 
     def page_image_url(self, page_number):
-        return f"{self.pages_url_prefix}page_{page_number}.png"
+        from django.core.files.storage import default_storage
+        path = f"editor_pages/{self.id}/page_{page_number}.png"
+        return default_storage.url(path)
 
     def seconds_until_expiry(self):
         if not self.expires_at:
