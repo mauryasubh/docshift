@@ -66,6 +66,7 @@ class ConversionJob(models.Model):
     STATUS_CHOICES = [
         ('pending',    'Pending'),
         ('processing', 'Processing'),
+        ('analysing',  'Analysing'),
         ('done',       'Done'),
         ('failed',     'Failed'),
     ]

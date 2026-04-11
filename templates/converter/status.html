@@ -247,9 +247,17 @@
     var msg = document.getElementById('status-msg');
     if (status === 'pending') {
       msg.innerHTML = '<span class="text-yellow-500">⏳</span><span class="g-sub-text">Queued — waiting for worker…</span>';
+    } else if (status === 'analysing') {
+      msg.innerHTML = '<span class="text-purple-500">🔍</span><span class="g-sub-text">Analysing file & preparing previews…</span>';
     } else if (status === 'processing') {
       msg.innerHTML = '<span class="text-blue-500">⚙</span><span class="g-sub-text">Processing your file…</span>';
     } else if (status === 'done') {
+      // Specialized redirect for Rotate PDF — go straight to editor once previews are ready
+      if (data.tool_id === 'rotate_pdf') {
+        msg.innerHTML = '<span class="text-green-600">✓</span><span class="font-medium text-green-700">Redirecting to preview…</span>';
+        window.location.href = '/tool/rotate_pdf/preview/{{ job.id }}/';
+        return;
+      }
       msg.innerHTML = '<span class="text-green-600 dark:text-[#34d399]">✓</span><span class="font-medium text-green-700 dark:text-[#34d399]">Conversion complete!</span>';
     } else if (status === 'failed') {
       msg.innerHTML = '<span class="text-red-500">✗</span><span class="font-medium text-red-600 dark:text-[#f87171]">Conversion failed.</span>';

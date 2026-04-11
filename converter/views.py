@@ -305,11 +305,30 @@ def upload_file(request, tool_slug):
     extra_kwargs = {}
  
     if tool_slug == 'merge_pdf':
-        job = _make_job(request, tool_slug, uploaded_file)
-        # Save extra files to disk, collect paths, pass as task kwargs
-        # (previously stored in error_message field — that was a bug)
+        all_files = request.FILES.getlist('file')
+        order_str = request.POST.get('file_order')
+        if order_str:
+            try:
+                indices = [int(i.strip()) for i in order_str.split(',') if i.strip()]
+                sorted_files = []
+                for idx in indices:
+                    if idx < len(all_files):
+                        sorted_files.append(all_files[idx])
+                # Append any files that weren't in the order string just in case
+                seen_indices = set(indices)
+                for i, f in enumerate(all_files):
+                    if i not in seen_indices:
+                        sorted_files.append(f)
+                all_files = sorted_files
+            except Exception:
+                pass
+
+        if not all_files:
+            return _err('No files selected.')
+
+        job = _make_job(request, tool_slug, all_files[0])
         extra_paths = []
-        for f in request.FILES.getlist('file')[1:]:
+        for f in all_files[1:]:
             extra_job = ConversionJob(tool='merge_pdf', input_file=f,
                                       input_size=f.size, is_guest=True)
             extra_job.save()
@@ -363,18 +382,20 @@ def upload_file(request, tool_slug):
  
     elif tool_slug == 'rotate_pdf':
         job = _make_job(request, tool_slug, uploaded_file)
+        # Dispatch background thumbnail rendering instead of running synchronously
+        from .tasks import render_rotate_thumbnails_task
         try:
-            page_count = _render_rotate_thumbnails(job)
-            job.error_message = f'PAGES:{page_count}'
-            job.save(update_fields=['error_message'])
+            render_rotate_thumbnails_task.apply_async(args=[str(job.id)])
         except Exception as e:
             job.status = 'failed'
-            job.error_message = str(e)
+            job.error_message = f"Service unavailable: {str(e)}"
             job.save(update_fields=['status', 'error_message'])
             return redirect('job_status', uuid=job.id)
+            
         if not request.user.is_authenticated:
             _track_session(request, job.id)
-        return redirect('rotate_preview', job_id=job.id)
+        # Redirect to status page instead of preview page; status page will send them to preview once done
+        return redirect('job_status', uuid=job.id)
  
     elif tool_slug == 'watermark_pdf':
         job = _make_job(request, tool_slug, uploaded_file)
@@ -797,10 +818,21 @@ def job_status(request, uuid):
 
 def job_status_json(request, uuid):
     job = get_object_or_404(ConversionJob, id=uuid)
-    progress = {'pending': 5, 'processing': 55, 'done': 100, 'failed': 100}.get(job.status, 0)
+    
+    # Map progress values
+    progress_map = {
+        'pending':    5,
+        'analysing':  25,
+        'processing': 55,
+        'done':       100,
+        'failed':     100
+    }
+    progress = progress_map.get(job.status, 0)
+    
     return JsonResponse({
         'status':            job.status,
         'progress':          progress,
+        'tool_id':           job.tool,
         'input_size':        job.input_size,
         'output_size':       job.output_size,
         'input_size_human':  human_readable_size(job.input_size),

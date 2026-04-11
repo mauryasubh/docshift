@@ -176,6 +176,7 @@
         </div>
 
         {% if tool.multi %}<input type="file" name="file" id="file-input" class="hidden" accept="{{ tool.accept }}" multiple />{% else %}<input type="file" name="file" id="file-input" class="hidden" accept="{{ tool.accept }}" />{% endif %}
+        <input type="hidden" name="file_order" id="file-order-input" value="">
 
         {% if tool_slug == 'merge_pdf' %}
         <div class="tool-options !mt-0">
@@ -313,30 +314,23 @@
     submitBtn.disabled = false;
     btnLabel.textContent = `⚡ MERGE ${currentMergeList.length} FILES NOW`;
     
+    // Initial order tracking
+    const updateOrder = () => {
+        const orderArr = Array.from(mergeList.children).map(c => c.getAttribute("data-index"));
+        const input = document.getElementById('file-order-input');
+        if(input) input.value = orderArr.join(',');
+    };
+    updateOrder();
+
     if(!sortableInstance && window.Sortable) {
       sortableInstance = new Sortable(mergeList, {
         animation: 150,
         ghostClass: 'bg-blue-50',
         onEnd: function(evt) {
-          const newFiles = [];
-          Array.from(mergeList.children).forEach(child => {
-            const oldIndex = parseInt(child.getAttribute("data-index"));
-            newFiles.push(currentMergeList[oldIndex]);
-          });
-          currentMergeList = newFiles;
-          Array.from(mergeList.children).forEach((child, idx) => child.setAttribute("data-index", idx));
-          
-          const dt = new DataTransfer();
-          currentMergeList.forEach(f => dt.items.add(f));
-          fileInput.files = dt.files;
+          updateOrder();
         }
       });
     }
-    
-    // Initial sync
-    const dt0 = new DataTransfer();
-    currentMergeList.forEach(f => dt0.items.add(f));
-    fileInput.files = dt0.files;
   }
 
   function clearMergeList() {

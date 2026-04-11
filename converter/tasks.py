@@ -1587,3 +1587,35 @@ def crop_pdf_task(self, job_id, margin_top=0, margin_bottom=0, margin_left=0, ma
         raise
 
 
+@shared_task(bind=True)
+def render_rotate_thumbnails_task(self, job_id):
+    from converter.models import ConversionJob
+    from django.core.files.storage import default_storage
+    from django.core.files.base import ContentFile
+    import fitz
+    job = ConversionJob.objects.get(id=job_id)
+    try:
+        job.status = 'analysing'
+        job.save(update_fields=['status'])
+        
+        # doc.path will trigger S3 download via s3_patch.py on the WORKER (Railway)
+        # This is fine on Railway, as it has more memory and no gunicorn timeout.
+        doc = fitz.open(job.input_file.path)
+        mat = fitz.Matrix(96 / 72, 96 / 72)
+        for i, page in enumerate(doc):
+            pix = page.get_pixmap(matrix=mat, alpha=False)
+            path = f"rotate_previews/{job.id}/page_{i}.jpg"
+            default_storage.save(path, ContentFile(pix.tobytes("jpeg")))
+            
+        page_count = len(doc)
+        doc.close()
+        
+        # Mark as done so the UI knows to redirect
+        job.status = 'done' 
+        job.error_message = f'PAGES:{page_count}'
+        job.save(update_fields=['status', 'error_message'])
+    except Exception as e:
+        job.status = 'failed'
+        job.error_message = str(e)
+        job.save(update_fields=['status', 'error_message'])
+        raise
