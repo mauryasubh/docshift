@@ -78,17 +78,10 @@ def translator_upload(request):
         else:
             from .tasks import translate_pdf_task
             translate_pdf_task.apply_async(args=[str(job.id)])
-    except Exception:
-        try:
-            if ext == '.docx':
-                translate_docx_task(str(job.id))
-            else:
-                from .tasks import translate_pdf_task
-                translate_pdf_task(str(job.id))
-        except Exception as e:
-            job.status = 'failed'
-            job.error_message = str(e)
-            job.save(update_fields=['status', 'error_message'])
+    except Exception as e:
+        job.status = 'failed'
+        job.error_message = f'Service unavailable: {str(e)}. Please check background worker connection.'
+        job.save(update_fields=['status', 'error_message'])
 
     return redirect('translator_result', job_id=job.id)
 

@@ -66,7 +66,7 @@ TOOL_CONFIG = {
                          'tips': 'Make sure you remember the password! The encryption is AES-256 and we cannot recover it for you.'},
     'unlock_pdf':       {'name': 'Unlock PDF',          'icon': '🔓',  'category': 'pdf',
                          'description': 'Remove password and encryption from a protected PDF.',
-                         'accept': '.pdf', 'form': UploadForm, 'multi': False},
+                         'accept': '.pdf', 'form': UnlockPDFForm, 'multi': False},
     'rotate_pdf':       {'name': 'Rotate PDF',          'icon': '🔃',  'category': 'pdf',
                          'description': 'Rotate any page individually with a live preview.',
                          'accept': '.pdf', 'form': UploadForm, 'multi': False},
@@ -176,11 +176,11 @@ def _dispatch_task(tool_slug, job, extra_kwargs=None):
         kwargs.update(extra_kwargs)
     try:
         fn.apply_async(kwargs=kwargs)
-    except Exception:
-        try:
-            fn(**kwargs)
-        except Exception:
-            job.refresh_from_db()
+    except Exception as e:
+        job.refresh_from_db()
+        job.status = 'failed'
+        job.error_message = f'Service unavailable: {str(e)}. Please check background worker connection.'
+        job.save(update_fields=['status', 'error_message'])
 
 
 def _track_session(request, job_id):
@@ -211,13 +211,14 @@ def _make_job(request, tool_slug, uploaded_file, extra_save_kwargs=None):
 def _render_rotate_thumbnails(job):
     """Render low-res page JPEGs for the rotate live-preview UI."""
     import fitz
-    out_dir = Path(settings.MEDIA_ROOT) / 'rotate_previews' / str(job.id)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    from django.core.files.storage import default_storage
+    from django.core.files.base import ContentFile
     doc = fitz.open(job.input_file.path)
     mat = fitz.Matrix(96 / 72, 96 / 72)
     for i, page in enumerate(doc):
         pix = page.get_pixmap(matrix=mat, alpha=False)
-        pix.save(str(out_dir / f'page_{i}.jpg'))
+        path = f"rotate_previews/{job.id}/page_{i}.jpg"
+        default_storage.save(path, ContentFile(pix.tobytes("jpeg")))
     page_count = len(doc)
     doc.close()
     return page_count
@@ -477,8 +478,9 @@ def rotate_preview(request, job_id):
             page_count = int(job.error_message.split(':', 1)[1])
         except ValueError:
             pass
+    from django.core.files.storage import default_storage
     thumb_urls = [
-        f"{settings.MEDIA_URL}rotate_previews/{job.id}/page_{i}.jpg"
+        default_storage.url(f"rotate_previews/{job.id}/page_{i}.jpg")
         for i in range(page_count)
     ]
     return render(request, 'converter/rotate_preview.html', {

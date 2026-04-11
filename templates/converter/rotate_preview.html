@@ -311,12 +311,13 @@ html.dark .rp-no-changes {
 {% endblock %}
 
 {% block extra_js %}
+<div class="hidden">{% csrf_token %}</div>
 <script>
 const JOB_ID    = "{{ job_id }}";
 const PAGE_COUNT = {{ page_count }};
 const APPLY_URL  = "/tool/rotate_pdf/apply/{{ job_id }}/";
 const STATUS_URL = "/job/{{ job_id }}/status/json/";
-const CSRF       = "{{ csrf_token }}";
+const CSRF       = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
 // State: rotations[i] = cumulative degrees added to page i (0 = no change)
 const rotations = new Array(PAGE_COUNT).fill(0);

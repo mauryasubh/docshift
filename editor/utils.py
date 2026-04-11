@@ -93,14 +93,15 @@ def extract_images(doc):
     return images
 
 
-def render_page_images(doc, output_dir, dpi=150):
+def render_page_images(doc, session_id, dpi=150):
     import fitz
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    from django.core.files.storage import default_storage
+    from django.core.files.base import ContentFile
     mat = fitz.Matrix(dpi / 72, dpi / 72)
     for i, page in enumerate(doc):
         pix = page.get_pixmap(matrix=mat, alpha=False)
-        pix.save(str(output_dir / f"page_{i + 1}.png"))
+        path = f"editor_pages/{session_id}/page_{i+1}.png"
+        default_storage.save(path, ContentFile(pix.tobytes("png")))
     return len(doc)
 
 

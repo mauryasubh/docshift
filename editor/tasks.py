@@ -39,7 +39,7 @@ def analyse_pdf_task(self, session_id):
                     except Exception as e:
                         session.error_message = (session.error_message or '') + f"\nOCR p{page.number+1}: {e}"
         images = extract_images(doc)
-        render_page_images(doc, session.pages_dir, dpi=150)
+        render_page_images(doc, str(session.id), dpi=150)
         dims   = page_dimensions(doc)
         doc.close()
         session.blocks_json = [{"type": "meta", "page_dimensions": dims}] + all_blocks

@@ -49,3 +49,10 @@ celerybeat.pid
 debug_*.py
 plan_for_later/inspect_graph.py
 plan_for_later/graph_review.txt
+
+# ── Internal AI Agents & Env Data ────────────────────────
+.env_data/
+CLAUDE.md
+GEMINI.md
+AGENTS.md
+.claude/

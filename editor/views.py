@@ -85,14 +85,10 @@ def editor_upload(request):
     # Dispatch Celery analysis task
     try:
         analyse_pdf_task.apply_async(args=[str(session.id)])
-    except Exception:
-        # Celery not available → run synchronously
-        try:
-            analyse_pdf_task(str(session.id))
-        except Exception as e:
-            session.status = 'failed'
-            session.error_message = str(e)
-            session.save(update_fields=['status', 'error_message'])
+    except Exception as e:
+        session.status = 'failed'
+        session.error_message = f'Service unavailable: {str(e)}. Please check background worker connection.'
+        session.save(update_fields=['status', 'error_message'])
 
     return redirect('editor_session', session_id=session.id)
 
@@ -211,11 +207,8 @@ def editor_save(request, session_id):
 
     try:
         save_edits_task.apply_async(args=[str(session_id), payload])
-    except Exception:
-        try:
-            save_edits_task(str(session_id), payload)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+    except Exception as e:
+        return JsonResponse({'error': f'Service unavailable: {str(e)}. Please check background worker connection.'}, status=503)
 
     return JsonResponse({'status': 'saving', 'message': 'Save started.'})
 
@@ -249,9 +242,11 @@ def editor_page_image(request, session_id, page_number):
     page_number is 1-indexed.
     """
     session = get_object_or_404(EditorSession, id=session_id)
-
-    img_path = session.pages_dir / f"page_{page_number}.png"
-    if not img_path.exists():
-        raise Http404("Page image not found.")
-
-    return FileResponse(open(str(img_path), 'rb'), content_type='image/png')
+    from django.core.files.storage import default_storage
+    from django.shortcuts import redirect
+    
+    path = f"editor_pages/{session.id}/page_{page_number}.png"
+    try:
+        return redirect(default_storage.url(path))
+    except Exception:
+        raise Http404("Page image not accessible")
