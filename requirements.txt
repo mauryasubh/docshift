@@ -35,8 +35,7 @@ Pillow>=10.0
 # File Type Detection
 filetype>=1.2
 
-# AI Translation
-argostranslate>=1.9.0
+# Web requests (Webhooks, APIs)
 requests>=2.28.0
 
 # OCR
