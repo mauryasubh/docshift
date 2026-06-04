@@ -40,4 +40,4 @@ argostranslate>=1.9.0
 requests>=2.28.0
 
 # OCR
-pytesseract>=0.3.10
+pytesseract>=0.3.10 
