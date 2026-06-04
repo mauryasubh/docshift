@@ -63,3 +63,6 @@ plan_for_later/
 .windsurfrules
 Cleaning up navbar design - Claude.html
 nixpacks.toml
+
+docker-compose.yml
+hosting/aws_setup_guide.md
