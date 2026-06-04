@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-eng \
     gcc \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
@@ -25,5 +26,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Default command
-CMD ["celery", "-A", "docshift", "worker", "--loglevel=info", "--concurrency=1"]
+# Default command (Start Web Server)
+CMD ["gunicorn", "docshift.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
