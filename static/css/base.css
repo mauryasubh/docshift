@@ -487,39 +487,6 @@ html.dark .editor-pill:hover {
   box-shadow: 0 2px 12px rgba(124, 58, 237, 0.25);
 }
 
-/* ── Translator pill ── */
-.translator-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.75rem;
-  font-family: "JetBrains Mono", monospace;
-  border: 1.5px solid #0891b2;
-  background: #0891b2;
-  color: #fff;
-  transition: all 0.2s;
-  user-select: none;
-  text-decoration: none;
-  font-weight: 600;
-}
-.translator-pill:hover {
-  background: #0e7490;
-  border-color: #0e7490;
-  box-shadow: 0 2px 12px rgba(8, 145, 178, 0.35);
-}
-html.dark .translator-pill {
-  background: rgba(8, 145, 178, 0.2);
-  border-color: rgba(34, 211, 238, 0.5);
-  color: #67e8f9;
-}
-html.dark .translator-pill:hover {
-  background: rgba(8, 145, 178, 0.35);
-  border-color: #22d3ee;
-  box-shadow: 0 2px 12px rgba(8, 145, 178, 0.25);
-}
 
 /* ── Avatar ── */
 .avatar-circle {

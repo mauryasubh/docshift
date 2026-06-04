@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'converter',
     'editor',
-    'translator',
     'api',
     'storages',
 ]
@@ -205,10 +204,7 @@ CELERY_BEAT_SCHEDULE = {
         'task':     'converter.tasks.cleanup_expired_jobs',
         'schedule': timedelta(minutes=5),
     },
-    'cleanup-expired-translation-jobs': {
-        'task':     'translator.tasks.cleanup_translation_jobs',
-        'schedule': timedelta(minutes=10),
-    },
+
     # ── Fixed: editor cleanup was missing from Beat schedule ──
     'cleanup-expired-editor-sessions': {
         'task':     'editor.tasks.cleanup_editor_sessions',

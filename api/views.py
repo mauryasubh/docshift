@@ -63,75 +63,8 @@ def api_convert(request, tool_slug):
         'message': 'File queued successfully. Poll the status_url or wait for your webhook.'
     }, status=202)
 
-@csrf_exempt
-@rate_limit_api(requests_per_minute=20)
-def api_translate(request):
-    """
-    Standardize document translation via an API endpoint.
-    Expects method: POST
-    Expects header: Authorization: Bearer <API_KEY>
-    Expects form-data: file=<file> (optional: source_lang, target_lang)
-    """
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed. Use POST.'}, status=405)
-        
-    if 'file' not in request.FILES:
-        return JsonResponse({'error': "Missing 'file' field in multipart form-data."}, status=400)
-        
-    uploaded_file = request.FILES['file']
-    import pathlib
-    if pathlib.Path(uploaded_file.name).suffix.lower() != '.docx':
-        return JsonResponse({'error': 'Only .docx (Word) files are supported in this beta.'}, status=400)
-    
-    # Optional params
-    source_lang = request.POST.get('source_lang', 'auto')
-    target_lang = request.POST.get('target_lang', 'en')
-    
-    from translator.utils import check_language_pair
-    ok, msg = check_language_pair(source_lang, target_lang)
-    if not ok:
-        return JsonResponse({'error': msg}, status=400)
-        
-    from django.conf import settings
-    MAX_SIZE = getattr(settings, 'MAX_UPLOAD_SIZE', 50 * 1024 * 1024)
-    if uploaded_file.size > MAX_SIZE:
-        return JsonResponse({'error': f"File is too large. Max size is {MAX_SIZE // (1024*1024)}MB."}, status=413)
 
-    from translator.models import TranslationJob
-    job = TranslationJob(
-        user=request.api_profile.user,
-        is_guest=False,
-        original_file=uploaded_file,
-        original_name=uploaded_file.name,
-        original_size=uploaded_file.size,
-        source_lang=source_lang,
-        target_lang=target_lang,
-    )
-    job.save()
-    
-    from translator.tasks import translate_docx_task
-    try:
-        translate_docx_task.apply_async(args=[str(job.id)])
-    except Exception:
-        try:
-            translate_docx_task(str(job.id))
-        except Exception as e:
-            job.status = 'failed'
-            job.error_message = str(e)
-            job.save(update_fields=['status', 'error_message'])
 
-    # Increment quota usage since job was successfully dispatched
-    request.api_profile.api_calls_used_this_month += 1
-    request.api_profile.save()
-    
-    status_url = request.build_absolute_uri(f"/translator/job/{job.id}/status/")
-    
-    return JsonResponse({
-        'status': 'processing',
-        'job_id': str(job.id),
-        'status_url': status_url,
-        'message': 'Translation queued successfully. Poll the status_url or wait for your webhook.'
-    }, status=202)
 
 # ── Subscription & Payments ──────────────────────────────────
 import stripe
