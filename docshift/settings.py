@@ -254,6 +254,7 @@ TESSERACT_CMD = os.environ.get(
     r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 )
 
+
 # ── Email ──────────────────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 

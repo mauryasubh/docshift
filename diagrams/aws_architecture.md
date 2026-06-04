@@ -1,6 +1,6 @@
 # DocShift Multi-Cloud Architecture (AWS + Cloudflare)
 
-This diagram visualizes how DocShift utilizes AWS for compute and Cloudflare for edge routing and zero-egress file storage.
+This diagram visualizes how DocShift utilizes AWS ECS (Fargate) for compute, Cloudflare for edge routing and zero-egress file storage, and Serverless databases.
 
 ```mermaid
 graph TD
@@ -21,15 +21,18 @@ graph TD
 
     subgraph AWS Cloud
         ALB[⚖️ Application Load Balancer]:::aws
+        ECR[📦 AWS ECR<br/>Docker Registry]:::aws
         
-        subgraph Elastic Beanstalk / ECS
-            Web[🖥️ Django Web Server<br/>Gunicorn]:::compute
-            Worker[⚙️ Celery Worker<br/>PDF Processing]:::compute
-            Beat[⏱️ Celery Beat<br/>Job Cleanup]:::compute
+        subgraph AWS ECS Fargate
+            Web[🖥️ Django Web Server<br/>Docker Container]:::compute
+            Worker[⚙️ Celery Worker<br/>Docker Container]:::compute
+            Beat[⏱️ Celery Beat<br/>Docker Container]:::compute
         end
-        
-        RDS[(🐘 Amazon RDS<br/>PostgreSQL)]:::db
-        Redis[(🔴 ElastiCache<br/>Redis Broker)]:::db
+    end
+
+    subgraph Multi-Cloud Data
+        DB[(🐘 Database<br/>Neon Postgres / RDS)]:::db
+        Redis[(🔴 Upstash Serverless<br/>Redis Broker)]:::db
     end
 
     %% External Flow
@@ -40,14 +43,16 @@ graph TD
     
     %% Compute Layer
     ALB -->|Forwards HTTP Requests| Web
+    ECR -.->|Pulls Docker Images| Web
+    ECR -.->|Pulls Docker Images| Worker
     
     %% Internal Connections
-    Web -->|Read/Write Data| RDS
+    Web -->|Read/Write Data| DB
     Web -->|Enqueues Job| Redis
     Web -->|Uploads PDF via S3 API| R2
     
     Worker -->|Pulls Job| Redis
-    Worker -->|Updates Status| RDS
+    Worker -->|Updates Status| DB
     Worker -->|Downloads & Uploads PDF via S3 API| R2
     
     Beat -->|Schedules Expiry Tasks| Redis
@@ -55,7 +60,7 @@ graph TD
 
 ### 🧩 Why this Architecture is Perfect
 
-1. **Massive Cost Savings**: By keeping your storage out of AWS, you avoid AWS's notorious `$0.09/GB` data transfer fees. Cloudflare R2 does not charge for egress bandwidth when users download converted PDFs.
-2. **Seamless Integration**: Because your code (`settings.py`) sets `AWS_S3_REGION_NAME = 'auto'`, the `django-storages` library talks to Cloudflare R2 exactly as if it were AWS S3. No code changes required!
-3. **AWS Compute Power**: You still get the reliability and auto-scaling power of AWS Elastic Beanstalk / ECS for running the CPU-heavy PDF processing tasks. 
-4. **Global Edge Network**: Cloudflare caches your static files globally, taking the load off your web server.
+1. **Massive Cost Savings**: By keeping your storage out of AWS (Cloudflare R2) and your queue Serverless (Upstash), you avoid AWS's notorious egress fees and idle server costs.
+2. **Containerized Compute (ECS Fargate)**: You aren't paying for idle EC2 servers. Fargate spins up isolated containers for your Web app and Celery workers, scaling based on PDF processing demand.
+3. **Seamless Integration**: Your code talks to Cloudflare R2 exactly as if it were AWS S3. No code changes required!
+4. **Global Edge Network**: Cloudflare caches your static files globally and blocks bad traffic before it reaches AWS, keeping your compute costs minimal.

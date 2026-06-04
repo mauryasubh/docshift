@@ -11,13 +11,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
-
 WORKDIR /app
-
-# IMPORTANT: Install CPU-only PyTorch first!
-# This prevents pip from downloading 2.5GB+ of NVIDIA CUDA GPU drivers
-# which causes the Railway build to time out.
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 
 # Install the rest of the Python dependencies
 COPY requirements.txt .

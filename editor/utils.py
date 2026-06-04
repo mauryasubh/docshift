@@ -10,7 +10,6 @@ from django.conf import settings as django_settings
 if hasattr(django_settings, 'TESSERACT_CMD'):
     pytesseract.pytesseract.tesseract_cmd = django_settings.TESSERACT_CMD
 
-
 def detect_pdf_type(doc):
     pages_with_text = 0
     pages_without_text = 0
@@ -148,7 +147,6 @@ def run_ocr_on_page(page, dpi=150):
         })
         block_index += 1
     return blocks
-
 
 def page_dimensions(doc):
     return [{"width": round(p.rect.width, 2), "height": round(p.rect.height, 2)} for p in doc]

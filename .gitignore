@@ -17,6 +17,7 @@ staticfiles/
 
 # ── Environment / Secrets ─────────────────────────────────
 .env
+.env_aws
 .env.local
 .env.production
 start_script.txt

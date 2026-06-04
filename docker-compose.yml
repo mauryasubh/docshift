@@ -1,25 +1,7 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: docshift_db
-    environment:
-      POSTGRES_DB: docshift
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234567890
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
 
-  redis:
-    image: redis:7-alpine
-    container_name: docshift_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
 
   web:
     build: .
@@ -32,11 +14,13 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=db
-      - CELERY_BROKER_URL=redis://redis:6379/0
-    depends_on:
-      - db
-      - redis
+      - "DATABASE_URL=postgresql://neondb_owner:npg_Qlx7Gundf4ts@ep-fragrant-wildflower-aqadibfz-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+      - "CELERY_BROKER_URL=rediss://default:gQAAAAAAAV5FAAIgcDFkMmE3NTdhNzI3YTM0YjY3YTljODFkMzg0NjIxMzRiMg@settling-ibex-89669.upstash.io:6379"
+      - AWS_ACCESS_KEY_ID=af6f322cc6b2b8f7cd83fbdbef6bbf87
+      - AWS_SECRET_ACCESS_KEY=0fb6d522b181ad3ec81c7c972012b36e3803f4e9ae284e3af3bba3408e509caa
+      - AWS_S3_ENDPOINT_URL=https://48b3eb40d3306eb33951b45ca2af515e.r2.cloudflarestorage.com
+      - AWS_STORAGE_BUCKET_NAME=docshift-storage
+
 
   worker:
     build: .
@@ -47,11 +31,13 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=db
-      - CELERY_BROKER_URL=redis://redis:6379/0
-    depends_on:
-      - db
-      - redis
+      - "DATABASE_URL=postgresql://neondb_owner:npg_Qlx7Gundf4ts@ep-fragrant-wildflower-aqadibfz-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+      - "CELERY_BROKER_URL=rediss://default:gQAAAAAAAV5FAAIgcDFkMmE3NTdhNzI3YTM0YjY3YTljODFkMzg0NjIxMzRiMg@settling-ibex-89669.upstash.io:6379"
+      - AWS_ACCESS_KEY_ID=af6f322cc6b2b8f7cd83fbdbef6bbf87
+      - AWS_SECRET_ACCESS_KEY=0fb6d522b181ad3ec81c7c972012b36e3803f4e9ae284e3af3bba3408e509caa
+      - AWS_S3_ENDPOINT_URL=https://48b3eb40d3306eb33951b45ca2af515e.r2.cloudflarestorage.com
+      - AWS_STORAGE_BUCKET_NAME=docshift-storage
+
 
   beat:
     build: .
@@ -62,12 +48,11 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=db
-      - CELERY_BROKER_URL=redis://redis:6379/0
-    depends_on:
-      - db
-      - redis
+      - "DATABASE_URL=postgresql://neondb_owner:npg_Qlx7Gundf4ts@ep-fragrant-wildflower-aqadibfz-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+      - "CELERY_BROKER_URL=rediss://default:gQAAAAAAAV5FAAIgcDFkMmE3NTdhNzI3YTM0YjY3YTljODFkMzg0NjIxMzRiMg@settling-ibex-89669.upstash.io:6379"
+      - AWS_ACCESS_KEY_ID=af6f322cc6b2b8f7cd83fbdbef6bbf87
+      - AWS_SECRET_ACCESS_KEY=0fb6d522b181ad3ec81c7c972012b36e3803f4e9ae284e3af3bba3408e509caa
+      - AWS_S3_ENDPOINT_URL=https://48b3eb40d3306eb33951b45ca2af515e.r2.cloudflarestorage.com
+      - AWS_STORAGE_BUCKET_NAME=docshift-storage
 
-volumes:
-  postgres_data:
-  redis_data:
+
