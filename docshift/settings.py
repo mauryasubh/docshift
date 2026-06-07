@@ -61,7 +61,7 @@ INSTALLED_APPS = [
     'storages',
 ]
 
-SITE_ID = 3
+SITE_ID = int(os.environ.get('SITE_ID', 1))
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
