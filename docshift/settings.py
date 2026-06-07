@@ -199,6 +199,13 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE          = 'UTC'
 CELERY_WORKER_POOL       = 'solo' if os.name == 'nt' else 'prefork'
 
+# SSL settings for Upstash Redis (rediss:// protocol)
+if CELERY_BROKER_URL.startswith('rediss://'):
+    import ssl
+    CELERY_BROKER_USE_SSL = {'ssl_cert_reqs': ssl.CERT_REQUIRED}
+    CELERY_REDIS_BACKEND_USE_SSL = {'ssl_cert_reqs': ssl.CERT_REQUIRED}
+
+
 CELERY_BEAT_SCHEDULE = {
     'cleanup-expired-converter-jobs': {
         'task':     'converter.tasks.cleanup_expired_jobs',
