@@ -242,16 +242,35 @@ SOCIALACCOUNT_AUTO_SIGNUP   = True
 SOCIALACCOUNT_EMAIL_REQUIRED = False
 SOCIALACCOUNT_LOGIN_ON_GET  = True
 
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID')
+GITHUB_CLIENT_SECRET = os.environ.get('GITHUB_CLIENT_SECRET')
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
-        'OAUTH_PKCE_ENABLED': True,   # fixed: was False
+        'OAUTH_PKCE_ENABLED': True,
     },
     'github': {
         'SCOPE': ['user:email'],
     },
 }
+
+if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
+    SOCIALACCOUNT_PROVIDERS['google']['APP'] = {
+        'client_id': GOOGLE_CLIENT_ID,
+        'secret': GOOGLE_CLIENT_SECRET,
+        'key': ''
+    }
+
+if GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET:
+    SOCIALACCOUNT_PROVIDERS['github']['APP'] = {
+        'client_id': GITHUB_CLIENT_ID,
+        'secret': GITHUB_CLIENT_SECRET,
+        'key': ''
+    }
 
 # ── Tesseract OCR ──────────────────────────────────────────
 # Read from environment so this works on Linux servers too.
@@ -272,11 +291,13 @@ STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', 'whsec_placehold
 
 # ── Production security ────────────────────────────────────
 if not DEBUG:
+    # Always trust the X-Forwarded-Proto header from the reverse proxy/load balancer
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
     # Allow disabling SSL redirect for testing/initial IP access
     SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'True').lower() == 'true'
     
     if SECURE_SSL_REDIRECT:
-        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
         SESSION_COOKIE_SECURE = True
         CSRF_COOKIE_SECURE = True
         CSRF_TRUSTED_ORIGINS = [
