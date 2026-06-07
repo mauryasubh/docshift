@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}DocShift — Document Converter{% endblock %}</title>
+  <title>{% block title %}ShiftDocs — Document Converter{% endblock %}</title>
   <script>(function () { var t = localStorage.getItem('ds_theme'); if (t === 'light') document.documentElement.classList.remove('dark'); else document.documentElement.classList.add('dark'); })();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,9 +30,9 @@
         <a href="/" class="flex items-center gap-2.5 group no-underline mr-4">
           <div class="w-8 h-8 rounded-lg flex items-center justify-center font-mono font-black text-sm
                     bg-blue-600 dark:bg-transparent dark:border dark:border-[rgba(56,182,255,.35)]
-                    text-white dark:text-[#38b6ff] group-hover:scale-105 transition-transform">DS</div>
+                    text-white dark:text-[#38b6ff] group-hover:scale-105 transition-transform">SD</div>
           <span class="logo-text text-[1.1rem] text-gray-800 dark:text-[#e2f0ff]
-                     group-hover:text-blue-600 dark:group-hover:text-[#38b6ff] transition-colors">DocShift</span>
+                     group-hover:text-blue-600 dark:group-hover:text-[#38b6ff] transition-colors">ShiftDocs</span>
         </a>
 
         <!-- Tools Link (Visual Nav) -->
@@ -174,8 +174,8 @@
       <!-- Drawer header -->
       <div class="mob-drawer-header">
         <a href="/" class="mob-drawer-logo" onclick="mobDrawerClose()">
-          <div class="mob-drawer-logo-box">DS</div>
-          <span class="mob-drawer-logo-text">DocShift</span>
+          <div class="mob-drawer-logo-box">SD</div>
+          <span class="mob-drawer-logo-text">ShiftDocs</span>
         </a>
         <button class="mob-close-btn" onclick="mobDrawerClose()" aria-label="Close menu">
           <svg style="width:14px;height:14px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -352,7 +352,7 @@
     <footer class="border-t g-divider py-5 px-6 mt-8">
       <div
         class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-        <span class="font-mono text-xs g-sub-text">&copy; {% now "Y" %} DocShift. Designed & Built by Subhash
+        <span class="font-mono text-xs g-sub-text">&copy; {% now "Y" %} ShiftDocs. Designed & Built by Subhash
           Maurya.</span>
         <span class="font-mono text-xs g-sub-text">
           <a href="/terms/" class="hover:underline">Terms</a> &middot;

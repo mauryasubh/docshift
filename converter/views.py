@@ -1092,7 +1092,7 @@ def url_upload(request):
         # HEAD request first to check content type and size cheaply
         try:
             head = req_lib.head(url, timeout=8, allow_redirects=True,
-                                headers={'User-Agent': 'DocShift/1.0'})
+                                headers={'User-Agent': 'ShiftDocs/1.0'})
             content_type   = head.headers.get('Content-Type', '').lower()
             content_length = int(head.headers.get('Content-Length', 0))
         except Exception:
@@ -1104,7 +1104,7 @@ def url_upload(request):
  
         # Fetch the actual content
         resp = req_lib.get(url, timeout=TIMEOUT, stream=True,
-                           headers={'User-Agent': 'DocShift/1.0'})
+                           headers={'User-Agent': 'ShiftDocs/1.0'})
         resp.raise_for_status()
  
         # Read up to MAX_SIZE

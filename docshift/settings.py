@@ -272,10 +272,21 @@ STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', 'whsec_placehold
 
 # ── Production security ────────────────────────────────────
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    CSRF_TRUSTED_ORIGINS = [
-        f'https://{h}' for h in ALLOWED_HOSTS if h != '*'
-    ]
+    # Allow disabling SSL redirect for testing/initial IP access
+    SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'True').lower() == 'true'
+    
+    if SECURE_SSL_REDIRECT:
+        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+        SESSION_COOKIE_SECURE = True
+        CSRF_COOKIE_SECURE = True
+        CSRF_TRUSTED_ORIGINS = [
+            f'https://{h}' for h in ALLOWED_HOSTS if h != '*'
+        ]
+    else:
+        SESSION_COOKIE_SECURE = False
+        CSRF_COOKIE_SECURE = False
+        CSRF_TRUSTED_ORIGINS = [
+            f'http://{h}' for h in ALLOWED_HOSTS if h != '*'
+        ] + [
+            f'https://{h}' for h in ALLOWED_HOSTS if h != '*'
+        ]

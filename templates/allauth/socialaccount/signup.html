@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load allauth socialaccount %}
-{% block title %}Complete Sign Up — DocShift{% endblock %}
+{% block title %}Complete Sign Up — ShiftDocs{% endblock %}
 {% block content %}
 <div class="max-w-md mx-auto px-5 py-12">
   <div class="g-card rounded-2xl p-8">
     <div class="text-center mb-6">
       <div class="text-3xl mb-2">🔗</div>
       <h1 class="logo-text text-xl text-gray-800 dark:text-[#e2f0ff] mb-1">Almost there!</h1>
-      <p class="text-sm g-sub-text">Pick a username to complete your DocShift account</p>
+      <p class="text-sm g-sub-text">Pick a username to complete your ShiftDocs account</p>
     </div>
     <form method="post" action="{% url 'socialaccount_signup' %}">
       {% csrf_token %}

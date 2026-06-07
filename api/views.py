@@ -101,7 +101,7 @@ def checkout_developer(request):
                     'price_data': {
                         'currency': 'usd',
                         'product_data': {
-                            'name': 'DocShift Developer Plan',
+                            'name': 'ShiftDocs Developer Plan',
                             'description': '5,000 API calls/month + Webhooks',
                         },
                         'unit_amount': 1900, # $19.00

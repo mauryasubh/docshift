@@ -13,8 +13,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--domain', default='127.0.0.1:8000',
                             help='Domain to set (default: 127.0.0.1:8000)')
-        parser.add_argument('--name', default='DocShift',
-                            help='Display name (default: DocShift)')
+        parser.add_argument('--name', default='ShiftDocs',
+                            help='Display name (default: ShiftDocs)')
 
     def handle(self, *args, **options):
         domain = options['domain']
