@@ -36,7 +36,6 @@ def apply_s3_patches():
 
     # 2. Hook into models to detect local files assigned to S3-backed FileFields
     from converter.models import ConversionJob
-    from translator.models import TranslationJob
 
     def handle_s3_upload(instance, field_name):
         field = getattr(instance, field_name)
@@ -61,9 +60,6 @@ def apply_s3_patches():
     def pre_save_conversion_job(sender, instance, **kwargs):
         handle_s3_upload(instance, 'output_file')
 
-    def pre_save_translation_job(sender, instance, **kwargs):
-        handle_s3_upload(instance, 'result_file')
-
     # Note: signals must be strongly referenced if connected inside a function
     pre_save.connect(pre_save_conversion_job, sender=ConversionJob, weak=False)
-    pre_save.connect(pre_save_translation_job, sender=TranslationJob, weak=False)
+
