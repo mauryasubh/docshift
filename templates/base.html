@@ -387,7 +387,7 @@
   <script>
     /* ── Cookie Consent ── */
     function checkCookieConsent() {
-      if (!localStorage.getItem('docshift_cookie_consent')) {
+      if (!localStorage.getItem('shiftdocs_cookie_consent')) {
         setTimeout(function () {
           var banner = document.getElementById('cookie-banner');
           if (banner) banner.classList.remove('translate-y-full');
@@ -395,7 +395,7 @@
       }
     }
     function acceptCookies() {
-      localStorage.setItem('docshift_cookie_consent', 'true');
+      localStorage.setItem('shiftdocs_cookie_consent', 'true');
       var banner = document.getElementById('cookie-banner');
       if (banner) banner.classList.add('translate-y-full');
     }

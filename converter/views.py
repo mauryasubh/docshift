@@ -732,7 +732,7 @@ def export_csv(request):
             ]) + '\r\n'
 
     response = StreamingHttpResponse(rows(), content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="docshift_history.csv"'
+    response['Content-Disposition'] = 'attachment; filename="shiftdocs_history.csv"'
     return response
 
 
@@ -1068,7 +1068,7 @@ def batch_download_zip(request, batch_id):
  
     buf.seek(0)
     response = FileResponse(buf, content_type='application/zip')
-    response['Content-Disposition'] = f'attachment; filename="docshift_batch_{batch_id[:8]}.zip"'
+    response['Content-Disposition'] = f'attachment; filename="shiftdocs_batch_{batch_id[:8]}.zip"'
     return response
 
 @require_http_methods(["POST"])
