@@ -12,6 +12,20 @@ from datetime import timedelta
 from celery.schedules import crontab
 import os
 from dotenv import load_dotenv
+import sys
+import copy
+
+# Monkey-patch Django Context copy for Python 3.14+ compatibility (Ticket #35844)
+try:
+    from django.template.context import BaseContext
+    def patched_copy(self):
+        duplicate = object.__new__(self.__class__)
+        duplicate.__dict__ = copy.copy(self.__dict__)
+        duplicate.dicts = self.dicts[:]
+        return duplicate
+    BaseContext.__copy__ = patched_copy
+except ImportError:
+    pass
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
