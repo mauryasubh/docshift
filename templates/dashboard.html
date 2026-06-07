@@ -508,5 +508,30 @@ function openPreview(evt, jobId, filename, dlUrl, outExt) {
   overlay.classList.add('open');
 }
 function closePreview() { document.getElementById('preview-overlay').classList.remove('open'); }
+
+// ── Expiry countdown for guest files ──────────────────────────────────
+function startExpiryCountdowns() {
+  const chips = document.querySelectorAll('.cchip[data-seconds]');
+  chips.forEach(chip => {
+    let seconds = parseInt(chip.getAttribute('data-seconds'), 10) || 0;
+    const update = () => {
+      if (seconds <= 0) {
+        chip.textContent = 'Expired';
+        chip.classList.add('urgent');
+        return;
+      }
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      chip.textContent = `${m}m ${s}s`;
+      if (m < 2) {
+        chip.classList.add('urgent');
+      }
+      seconds--;
+    };
+    update();
+    setInterval(update, 1000);
+  });
+}
+startExpiryCountdowns();
 </script>
 {% endblock %}
