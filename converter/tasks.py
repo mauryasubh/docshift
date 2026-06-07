@@ -376,12 +376,8 @@ def cleanup_expired_jobs():
     expired = ConversionJob.objects.filter(expires_at__lt=timezone.now())
     count = 0
     for job in expired:
-        for f in [job.input_file, job.output_file]:
-            if f:
-                try:
-                    if os.path.exists(f.path): os.remove(f.path)
-                except: pass
-        job.delete(); count += 1
+        job.delete()
+        count += 1
     return f"Cleaned {count} expired jobs"
 
 

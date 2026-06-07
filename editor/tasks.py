@@ -227,19 +227,9 @@ def save_edits_task(self, session_id, edits_payload):
 @shared_task
 def cleanup_editor_sessions():
     from editor.models import EditorSession
-    import shutil
     expired = EditorSession.objects.filter(expires_at__lt=timezone.now())
     count = 0
     for session in expired:
-        try:
-            if session.pages_dir.exists():
-                shutil.rmtree(str(session.pages_dir))
-        except: pass
-        for f in [session.original_file, session.result_file]:
-            if f:
-                try:
-                    if os.path.exists(f.path): os.remove(f.path)
-                except: pass
         session.delete()
         count += 1
     return f"Cleaned {count} expired editor sessions"

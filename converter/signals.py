@@ -73,3 +73,55 @@ def pull_social_avatar(sender, request, user, **kwargs):
             profile.save(update_fields=['avatar_url'])
     except Exception:
         pass
+
+# ── Clean up files from storage (Local / AWS S3 / Cloudflare R2) when models are deleted ──
+from django.db.models.signals import pre_delete
+from django.core.files.storage import default_storage
+
+@receiver(pre_delete, sender='converter.ConversionJob')
+def cleanup_conversion_job_files(sender, instance, **kwargs):
+    # 1. Delete uploaded and converted files from storage
+    for f in [instance.input_file, instance.output_file]:
+        if f:
+            try:
+                f.delete(save=False)
+            except Exception:
+                pass
+                
+    # 2. Delete rotate previews thumbnails from storage
+    try:
+        for i in range(1000):
+            path = f"rotate_previews/{instance.id}/page_{i}.jpg"
+            if default_storage.exists(path):
+                default_storage.delete(path)
+            else:
+                break
+    except Exception:
+        pass
+
+@receiver(pre_delete, sender='editor.EditorSession')
+def cleanup_editor_session_files(sender, instance, **kwargs):
+    # 1. Delete original and result files from storage
+    for f in [instance.original_file, instance.result_file]:
+        if f:
+            try:
+                f.delete(save=False)
+            except Exception:
+                pass
+                
+    # 2. Delete rendered page images from storage
+    try:
+        for i in range(1, instance.page_count + 1):
+            path = f"editor_pages/{instance.id}/page_{i}.png"
+            if default_storage.exists(path):
+                default_storage.delete(path)
+    except Exception:
+        pass
+        
+    # 3. Clean up local directories if they exist (dev mode fallback)
+    try:
+        import shutil
+        if instance.pages_dir.exists():
+            shutil.rmtree(str(instance.pages_dir))
+    except Exception:
+        pass
