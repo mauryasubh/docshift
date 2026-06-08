@@ -1190,12 +1190,17 @@ def ocr_pdf_task(self, job_id):
             pytesseract.pytesseract.tesseract_cmd = django_settings.TESSERACT_CMD
 
         # Set TESSDATA_PREFIX to the folder containing the .traineddata files
-        # This fixes "Error opening data file eng.traineddata" on Windows
-        tesseract_dir = os.path.dirname(
-            getattr(django_settings, 'TESSERACT_CMD',
-                    r'C:\Program Files\Tesseract-OCR\tesseract.exe')
-        )
-        os.environ['TESSDATA_PREFIX'] = os.path.join(tesseract_dir, 'tessdata')
+        # This fixes "Error opening data file eng.traineddata" on Windows.
+        # Avoid overriding TESSDATA_PREFIX on non-Windows (Linux) systems where
+        # Tesseract handles it natively or Dockerfile specifies it.
+        if os.name == 'nt':
+            tesseract_dir = os.path.dirname(
+                getattr(django_settings, 'TESSERACT_CMD',
+                        r'C:\Program Files\Tesseract-OCR\tesseract.exe')
+            )
+            tessdata_path = os.path.join(tesseract_dir, 'tessdata')
+            if os.path.isdir(tessdata_path):
+                os.environ['TESSDATA_PREFIX'] = tessdata_path
         # ────────────────────────────────────────────────────────────────
 
         abs_path, rel_path = get_output_path(job.input_file.name, '.pdf')

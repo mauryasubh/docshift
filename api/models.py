@@ -18,6 +18,10 @@ class Profile(models.Model):
     plan_tier = models.CharField(max_length=20, choices=PLAN_CHOICES, default='Free')
     stripe_customer_id = models.CharField(max_length=255, blank=True, null=True)
     stripe_subscription_id = models.CharField(max_length=255, blank=True, null=True)
+    razorpay_customer_id = models.CharField(max_length=255, blank=True, null=True)
+    razorpay_subscription_id = models.CharField(max_length=255, blank=True, null=True)
+    razorpay_order_id = models.CharField(max_length=255, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=255, blank=True, null=True)
     api_calls_used_this_month = models.IntegerField(default=0)
     
     plan_start_date = models.DateTimeField(null=True, blank=True)

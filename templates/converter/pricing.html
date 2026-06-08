@@ -79,12 +79,12 @@
                 <p class="text-blue-100 text-sm mt-2">For indie hackers and startups integrating file conversion.</p>
             </div>
             <div class="mb-6">
-                <span class="text-4xl font-black text-white">$19</span>
-                <span class="text-blue-200">/month</span>
+                <span class="text-4xl font-black text-white">₹1,499</span>
+                <span class="text-blue-200">/ 30 Days</span>
             </div>
             <ul class="space-y-4 mb-8 flex-1">
                 <li class="flex items-start text-sm text-white">
-                    <span class="text-blue-300 mr-2">✓</span> <strong class="mr-1">5,000</strong> API Calls / month
+                    <span class="text-blue-300 mr-2">✓</span> <strong class="mr-1">5,000</strong> API Calls / 30 Days
                 </li>
                 <li class="flex items-start text-sm text-white">
                     <span class="text-blue-300 mr-2">✓</span> 50MB Max File Size
@@ -98,12 +98,12 @@
             </ul>
             
             {% if user.is_authenticated %}
-                {% if user.api_profile.plan_tier == 'Developer' %}
+                {% if user.api_profile.plan_tier == 'Developer' and user.api_profile.is_plan_active %}
                 <button disabled class="w-full py-3 px-4 rounded-xl bg-emerald-700 text-emerald-100 font-bold cursor-not-allowed">
                     Current Plan
                 </button>
                 {% else %}
-                <button onclick="window.location.href='{% url 'checkout_developer' %}';" class="w-full py-3 px-4 rounded-xl bg-white text-blue-600 font-bold hover:bg-gray-50 transition-colors">
+                <button onclick="startRazorpayPayment();" id="rzp-button" class="w-full py-3 px-4 rounded-xl bg-white text-blue-600 font-bold hover:bg-gray-50 transition-colors">
                     Upgrade to Developer
                 </button>
                 {% endif %}
@@ -153,6 +153,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -167,5 +168,96 @@
             }
         }
     });
+
+    function startRazorpayPayment() {
+        const btn = document.getElementById('rzp-button');
+        if (!btn) return;
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = 'Initializing...';
+        
+        fetch('/api/subscription/razorpay/create-order/')
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                    return;
+                }
+                
+                const options = {
+                    "key": data.key_id,
+                    "amount": data.amount,
+                    "currency": data.currency,
+                    "name": data.name,
+                    "description": data.description,
+                    "order_id": data.order_id,
+                    "prefill": data.prefill,
+                    "handler": function (response) {
+                        btn.innerText = 'Verifying Payment...';
+                        fetch('/api/subscription/razorpay/verify/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        })
+                        .then(verifyRes => verifyRes.json())
+                        .then(verifyData => {
+                            if (verifyData.status === 'success') {
+                                window.location.href = '/dashboard/?subscription=success';
+                            } else {
+                                alert('Payment verification failed: ' + (verifyData.error || 'Unknown error'));
+                                btn.disabled = false;
+                                btn.innerText = originalText;
+                            }
+                        })
+                        .catch(err => {
+                            alert('Network error verifying payment.');
+                            btn.disabled = false;
+                            btn.innerText = originalText;
+                        });
+                    },
+                    "modal": {
+                       "ondismiss": function() {
+                           btn.disabled = false;
+                           btn.innerText = originalText;
+                       }
+                    },
+                    "theme": {
+                        "color": "#2563eb"
+                    }
+                };
+                
+                const rzp = new Razorpay(options);
+                rzp.open();
+            })
+            .catch(err => {
+                alert('Error initiating checkout. Please try again.');
+                btn.disabled = false;
+                btn.innerText = originalText;
+            });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 </script>
 {% endblock %}

@@ -291,7 +291,7 @@ if GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET:
 # Windows default kept as fallback for your dev machine.
 TESSERACT_CMD = os.environ.get(
     'TESSERACT_CMD',
-    r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    r'C:\Program Files\Tesseract-OCR\tesseract.exe' if os.name == 'nt' else 'tesseract'
 )
 
 
@@ -302,6 +302,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_placeholder')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_placeholder')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', 'whsec_placeholder')
+
+# ── Razorpay ────────────────────────────────────────────────
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_placeholder')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'rzp_test_secret_placeholder')
+RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', 'rzp_webhook_secret_placeholder')
 
 # ── Production security ────────────────────────────────────
 if not DEBUG:
