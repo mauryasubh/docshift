@@ -193,8 +193,8 @@ def razorpay_create_order(request):
 
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
         
-        # ₹1,499 in paisa
-        amount_in_paisa = 149900 
+        # Compute dynamic amount in paisa from settings
+        amount_in_paisa = settings.RAZORPAY_PLAN_PRICE_INR * 100
         
         data = {
             "amount": amount_in_paisa,

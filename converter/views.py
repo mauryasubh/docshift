@@ -255,10 +255,13 @@ def index(request):
 
 
 def terms_view(request):
-    return render(request, 'converter/terms.html')
+    return render(request, 'pages/terms.html')
 
 def pricing_view(request):
-    return render(request, 'converter/pricing.html')
+    price_inr = getattr(settings, 'RAZORPAY_PLAN_PRICE_INR', 1499)
+    return render(request, 'converter/pricing.html', {
+        'plan_price_inr': f"{price_inr:,}"
+    })
 
 
 def privacy_view(request):

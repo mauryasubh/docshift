@@ -307,6 +307,7 @@ STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', 'whsec_placehold
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_placeholder')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'rzp_test_secret_placeholder')
 RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', 'rzp_webhook_secret_placeholder')
+RAZORPAY_PLAN_PRICE_INR = int(os.environ.get('RAZORPAY_PLAN_PRICE_INR', 1499))
 
 # ── Production security ────────────────────────────────────
 if not DEBUG:
