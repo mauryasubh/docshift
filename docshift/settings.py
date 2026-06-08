@@ -310,6 +310,8 @@ RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', 'rzp_webhook
 RAZORPAY_PLAN_PRICE_INR = int(os.environ.get('RAZORPAY_PLAN_PRICE_INR', 1499))
 
 # ── Production security ────────────────────────────────────
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+
 if not DEBUG:
     # Always trust the X-Forwarded-Proto header from the reverse proxy/load balancer
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
