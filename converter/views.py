@@ -267,6 +267,9 @@ def pricing_view(request):
 def privacy_view(request):
     return render(request, 'pages/privacy.html')
 
+def faq_view(request):
+    return render(request, 'pages/faq.html')
+
 
 def upload_form(request, tool_slug):
     if tool_slug not in TOOL_CONFIG:

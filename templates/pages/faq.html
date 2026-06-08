@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Frequently Asked Questions — ShiftDocs{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-5 py-16">
+    <!-- Header -->
+    <div class="text-center max-w-2xl mx-auto mb-16 space-y-4">
+        <div class="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full">
+            🙋 FAQ Help Center
+        </div>
+        <h1 class="text-4xl md:text-5xl font-black text-gray-900 dark:text-white leading-tight">
+            Frequently Asked Questions
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300">
+            Got questions about file security, size limits, subscriptions, or API usage? We have got you covered.
+        </p>
+    </div>
+
+    <!-- Accordion Wrapper -->
+    <div class="space-y-4">
+        
+        <!-- Q1 -->
+        <div class="bg-white dark:bg-[#0b1630] border border-gray-200/60 dark:border-gray-800/60 rounded-2xl overflow-hidden shadow-sm transition-all duration-200">
+            <button onclick="toggleFaq(1)" class="w-full flex items-center justify-between gap-4 p-6 text-left focus:outline-none">
+                <span class="font-bold text-gray-900 dark:text-white text-base sm:text-lg">
+                    🔒 How long are my files stored, and are they secure?
+                </span>
+                <span id="icon-1" class="text-xl text-gray-400 transition-transform duration-200">➕</span>
+            </button>
+            <div id="ans-1" class="hidden border-t border-gray-100 dark:border-gray-850 p-6 bg-gray-50/50 dark:bg-black/10 text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed space-y-3">
+                <p>
+                    Your document privacy is our absolute priority. 
+                </p>
+                <ul class="list-disc list-inside space-y-1 pl-1">
+                    <li><strong>Guest Uploads:</strong> Files are automatically and permanently deleted from our servers <strong>1 hour</strong> after conversion.</li>
+                    <li><strong>Registered Users:</strong> Files are saved in your dashboard and kept for <strong>24 hours</strong> before deletion.</li>
+                </ul>
+                <p>
+                    All document transfers are secured with bank-grade <strong>SSL/TLS encryption</strong>, and we never read, archive, inspect, or share your document contents.
+                </p>
+            </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="bg-white dark:bg-[#0b1630] border border-gray-200/60 dark:border-gray-800/60 rounded-2xl overflow-hidden shadow-sm transition-all duration-200">
+            <button onclick="toggleFaq(2)" class="w-full flex items-center justify-between gap-4 p-6 text-left focus:outline-none">
+                <span class="font-bold text-gray-900 dark:text-white text-base sm:text-lg">
+                    ⚡ What are the file size and usage limits?
+                </span>
+                <span id="icon-2" class="text-xl text-gray-400 transition-transform duration-200">➕</span>
+            </button>
+            <div id="ans-2" class="hidden border-t border-gray-100 dark:border-gray-850 p-6 bg-gray-50/50 dark:bg-black/10 text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p class="mb-3">Our file limits are tier-dependent:</p>
+                <ul class="list-disc list-inside space-y-1.5 pl-1">
+                    <li><strong>Free/Guest Tier:</strong> Up to <strong>10MB</strong> per file.</li>
+                    <li><strong>Developer Tier:</strong> Up to <strong>50MB</strong> per file, with 5,000 monthly API calls.</li>
+                    <li><strong>Corporate Tier:</strong> Up to <strong>500MB+</strong> per file with high-priority processing queues.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="bg-white dark:bg-[#0b1630] border border-gray-200/60 dark:border-gray-800/60 rounded-2xl overflow-hidden shadow-sm transition-all duration-200">
+            <button onclick="toggleFaq(3)" class="w-full flex items-center justify-between gap-4 p-6 text-left focus:outline-none">
+                <span class="font-bold text-gray-900 dark:text-white text-base sm:text-lg">
+                    💻 Is there a developer API available?
+                </span>
+                <span id="icon-3" class="text-xl text-gray-400 transition-transform duration-200">➕</span>
+            </button>
+            <div id="ans-3" class="hidden border-t border-gray-100 dark:border-gray-850 p-6 bg-gray-50/50 dark:bg-black/10 text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p>
+                    Yes! Developers who upgrade to our <strong>Developer Plan</strong> receive access to a REST API. You can generate custom API keys, configure delivery webhooks, and integrate document conversion workflows seamlessly in Node.js, Python, PHP, or cURL.
+                </p>
+                <p class="mt-3">
+                    Check out the full <a href="/api/docs/" class="text-blue-600 dark:text-[#38b6ff] hover:underline font-bold">API Reference Docs</a> for integration quickstarts and code snippets.
+                </p>
+            </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="bg-white dark:bg-[#0b1630] border border-gray-200/60 dark:border-gray-800/60 rounded-2xl overflow-hidden shadow-sm transition-all duration-200">
+            <button onclick="toggleFaq(4)" class="w-full flex items-center justify-between gap-4 p-6 text-left focus:outline-none">
+                <span class="font-bold text-gray-900 dark:text-white text-base sm:text-lg">
+                    💳 Which payment methods do you support?
+                </span>
+                <span id="icon-4" class="text-xl text-gray-400 transition-transform duration-200">➕</span>
+            </button>
+            <div id="ans-4" class="hidden border-t border-gray-100 dark:border-gray-850 p-6 bg-gray-50/50 dark:bg-black/10 text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p>
+                    We use Stripe and Razorpay to process payments securely. We support:
+                </p>
+                <ul class="list-disc list-inside space-y-1 mt-2 pl-1">
+                    <li>Major credit and debit cards (Visa, Mastercard, RuPay)</li>
+                    <li>UPI (Google Pay, PhonePe, Paytm, etc.)</li>
+                    <li>Netbanking across all major banks</li>
+                </ul>
+                <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
+                    We do not store your card details on our servers; all payments are processed directly by our secure payment gateway providers.
+                </p>
+            </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="bg-white dark:bg-[#0b1630] border border-gray-200/60 dark:border-gray-800/60 rounded-2xl overflow-hidden shadow-sm transition-all duration-200">
+            <button onclick="toggleFaq(5)" class="w-full flex items-center justify-between gap-4 p-6 text-left focus:outline-none">
+                <span class="font-bold text-gray-900 dark:text-white text-base sm:text-lg">
+                    🔄 How do I upgrade or cancel my subscription?
+                </span>
+                <span id="icon-5" class="text-xl text-gray-400 transition-transform duration-200">➕</span>
+            </button>
+            <div id="ans-5" class="hidden border-t border-gray-100 dark:border-gray-850 p-6 bg-gray-50/50 dark:bg-black/10 text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p>
+                    You can upgrade your account to the Developer tier on our <a href="/pricing/" class="text-blue-600 dark:text-[#38b6ff] hover:underline font-bold">Pricing page</a>. Subscriptions are billed on a recurring 30-day basis. You can cancel your subscription at any time, and you will continue to have access to your Developer benefits until the end of your billing cycle.
+                </p>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Still need help -->
+    <div class="mt-16 text-center p-8 bg-gray-50 dark:bg-[#0b1630]/40 border border-gray-100 dark:border-gray-800/60 rounded-3xl">
+        <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Still have questions?</h3>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">No problem! We are happy to help you with custom setups or pricing queries.</p>
+        <a href="mailto:subhashmaurya830@gmail.com" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl transition-colors">
+            📧 Contact Support
+        </a>
+    </div>
+</div>
+
+<script>
+    function toggleFaq(id) {
+        const ans = document.getElementById(`ans-${id}`);
+        const icon = document.getElementById(`icon-${id}`);
+        if (!ans || !icon) return;
+        
+        if (ans.classList.contains('hidden')) {
+            ans.classList.remove('hidden');
+            icon.textContent = '➖';
+            icon.classList.add('rotate-180');
+        } else {
+            ans.classList.add('hidden');
+            icon.textContent = '➕';
+            icon.classList.remove('rotate-180');
+        }
+    }
+</script>
+{% endblock %}

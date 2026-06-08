@@ -3,32 +3,86 @@
 {% block title %}Privacy Policy — ShiftDocs{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-5 py-12">
-    <div class="bg-white dark:bg-[var(--d-card)] rounded-2xl shadow-sm border g-divider p-8 sm:p-12">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-[#e2f0ff] mb-6">Privacy Policy</h1>
-        <p class="text-sm g-sub-text mb-8">Last Updated: March 2026</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex flex-col lg:flex-row gap-8">
+        
+        <!-- Sticky Sidebar Navigation -->
+        <aside class="w-full lg:w-64 shrink-0 lg:sticky lg:top-24 h-fit">
+            <nav class="space-y-1.5 bg-white dark:bg-[#0b1630] border border-gray-100 dark:border-gray-800/60 p-4 rounded-2xl shadow-sm">
+                <div class="px-3 py-2 text-xs font-black uppercase tracking-wider text-gray-400">Privacy Sections</div>
+                <a href="#collection" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">1. Information We Collect</a>
+                <a href="#storage" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">2. Auto-Deletion Policy</a>
+                <a href="#cookies" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">3. Cookies & Local Data</a>
+                <a href="#security" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">4. Security Measures</a>
+                <a href="#processors" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">5. Data Processors</a>
+            </nav>
+        </aside>
 
-        <div class="space-y-6 text-gray-700 dark:text-[#c8dff5] leading-relaxed">
-            <section>
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-[#e2f0ff] mb-3">1. Information We Collect</h2>
-                <p>We only collect the absolute minimum information required to provide our service. When you upload a file, we temporarily store it on our secure servers solely for the purpose of processing your request.</p>
-            </section>
+        <!-- Main Content -->
+        <main class="flex-1 min-w-0 bg-white dark:bg-[#0b1630] border border-gray-100 dark:border-gray-800/60 p-8 sm:p-12 rounded-3xl shadow-sm space-y-10">
+            <div class="space-y-3">
+                <div class="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full">
+                    🛡️ Privacy Center
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white leading-tight">Privacy Policy</h1>
+                <p class="text-xs text-gray-400 dark:text-gray-500 font-mono">Last Updated: March 2026</p>
+            </div>
 
-            <section>
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-[#e2f0ff] mb-3">2. Document Storage and Auto-Deletion</h2>
-                <p>Your privacy is our highest priority. All uploaded and converted files are automatically and permanently deleted from our servers 1 hour after processing (or 24 hours if you are a registered user saving to your dashboard). We do not keep backups of your files.</p>
-            </section>
+            <div class="space-y-10 text-gray-700 dark:text-[#c8dff5] leading-relaxed text-sm sm:text-base">
+                
+                <!-- Section 1 -->
+                <section id="collection" class="scroll-mt-24 space-y-3">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">1. Information We Collect</h2>
+                    <p>
+                        We operate on a zero-tracking philosophy. We do not gather, index, or analyze personal user information. When you upload a file, we temporarily collect and process it solely for the purpose of document conversion.
+                    </p>
+                </section>
 
-            <section>
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-[#e2f0ff] mb-3">3. Cookies</h2>
-                <p>We use essential cookies to keep track of your session and conversion history so we can display them on your dashboard. We do not use third-party tracking cookies or sell your browsing data.</p>
-            </section>
+                <!-- Section 2 -->
+                <section id="storage" class="scroll-mt-24 space-y-3 border-t border-gray-50 dark:border-gray-850 pt-8">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">2. Document Storage and Auto-Deletion</h2>
+                    <p>
+                        All uploaded files and converted outputs are automatically and permanently deleted from our servers:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 pl-1 font-medium text-gray-900 dark:text-white">
+                        <li><strong>Within 1 Hour</strong> for anonymous guest sessions.</li>
+                        <li><strong>Within 24 Hours</strong> for logged-in registered accounts.</li>
+                    </ul>
+                    <p>
+                        No backup archives or permanent copies of your files are ever maintained. Once deleted, files are completely unrecoverable.
+                    </p>
+                </section>
 
-            <section>
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-[#e2f0ff] mb-3">4. Security Measures</h2>
-                <p>We implement a variety of security measures to maintain the safety of your personal information when you submit or access your documents, including HTTPS encryption (TLS) on all data transfers.</p>
-            </section>
-        </div>
+                <!-- Section 3 -->
+                <section id="cookies" class="scroll-mt-24 space-y-3 border-t border-gray-50 dark:border-gray-850 pt-8">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">3. Cookies & Local Data</h2>
+                    <p>
+                        ShiftDocs uses only essential session cookies to remember your conversion history and keep you logged in. We do not use third-party analytics trackers, advertising cookies, or behavioral targeting scripts. Your data stays entirely in your browser and on your dashboard.
+                    </p>
+                </section>
+
+                <!-- Section 4 -->
+                <section id="security" class="scroll-mt-24 space-y-3 border-t border-gray-50 dark:border-gray-850 pt-8">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">4. Security Measures</h2>
+                    <p>
+                        We employ rigorous technical security measures to safeguard document workflows. All data transfers between your browser and our servers are encrypted using <strong>HTTPS (TLS 1.3)</strong>. In addition, servers run automated sandboxed processing to prevent internal access.
+                    </p>
+                </section>
+
+                <!-- Section 5 -->
+                <section id="processors" class="scroll-mt-24 space-y-3 border-t border-gray-50 dark:border-gray-850 pt-8">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">5. Subprocessors</h2>
+                    <p>
+                        We partner with secure, industry-leading infrastructure and payment providers to host our application and process billing:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1.5 pl-1">
+                        <li><strong>Razorpay:</strong> Secure Payment Gateway (UPI, Cards, Netbanking)</li>
+                        <li><strong>AWS (Amazon Web Services):</strong> Secure Cloud Hosting & Infrastructure</li>
+                    </ul>
+                </section>
+
+            </div>
+        </main>
     </div>
 </div>
 {% endblock %}

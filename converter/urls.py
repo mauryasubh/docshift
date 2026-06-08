@@ -28,6 +28,7 @@ urlpatterns = [
     path('pricing/',                                views.pricing_view,          name='pricing'),
     path('contact-sales/',                          views.contact_sales,         name='contact_sales'),
     path('privacy/',                                views.privacy_view,          name='privacy'),
+    path('faq/',                                    views.faq_view,              name='faq'),
 
     path('job/<uuid:uuid>/retry/',                  views.job_retry,             name='job_retry'),
     path('dashboard/export/csv/',                   views.export_csv,            name='export_csv'),

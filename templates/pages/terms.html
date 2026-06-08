@@ -3,32 +3,75 @@
 {% block title %}Terms of Service — ShiftDocs{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-5 py-12">
-    <div class="bg-white dark:bg-[var(--d-card)] rounded-2xl shadow-sm border g-divider p-8 sm:p-12">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-[#e2f0ff] mb-6">Terms of Service</h1>
-        <p class="text-sm g-sub-text mb-8">Last Updated: March 2026</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex flex-col lg:flex-row gap-8">
+        
+        <!-- Sticky Sidebar Navigation -->
+        <aside class="w-full lg:w-64 shrink-0 lg:sticky lg:top-24 h-fit">
+            <nav class="space-y-1.5 bg-white dark:bg-[#0b1630] border border-gray-100 dark:border-gray-800/60 p-4 rounded-2xl shadow-sm">
+                <div class="px-3 py-2 text-xs font-black uppercase tracking-wider text-gray-400">Terms Sections</div>
+                <a href="#acceptance" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">1. Acceptance</a>
+                <a href="#description" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">2. Service Description</a>
+                <a href="#privacy" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">3. Privacy & Security</a>
+                <a href="#billing" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">4. Billing & Refund</a>
+                <a href="#disclaimer" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">5. Disclaimer</a>
+            </nav>
+        </aside>
 
-        <div class="space-y-6 text-gray-700 dark:text-[#c8dff5] leading-relaxed">
-            <section>
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-[#e2f0ff] mb-3">1. Acceptance of Terms</h2>
-                <p>By accessing and using ShiftDocs, you accept and agree to be bound by the terms and provision of this agreement. In addition, when using these particular services, you shall be subject to any posted guidelines or rules applicable to such services.</p>
-            </section>
+        <!-- Main Content -->
+        <main class="flex-1 min-w-0 bg-white dark:bg-[#0b1630] border border-gray-100 dark:border-gray-800/60 p-8 sm:p-12 rounded-3xl shadow-sm space-y-10">
+            <div class="space-y-3">
+                <div class="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full">
+                    ⚖️ Legal Center
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white leading-tight">Terms of Service</h1>
+                <p class="text-xs text-gray-400 dark:text-gray-500 font-mono">Last Updated: March 2026</p>
+            </div>
 
-            <section>
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-[#e2f0ff] mb-3">2. Service Description</h2>
-                <p>ShiftDocs provides document conversion and processing tools. We do not guarantee continuous, uninterrupted access to the site, and operation of the site may be interfered with by numerous factors outside of our control.</p>
-            </section>
+            <div class="space-y-10 text-gray-700 dark:text-[#c8dff5] leading-relaxed text-sm sm:text-base">
+                
+                <!-- Section 1 -->
+                <section id="acceptance" class="scroll-mt-24 space-y-3">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">1. Acceptance of Terms</h2>
+                    <p>
+                        By accessing and using the ShiftDocs platform (available at <code>shiftdocs.io</code>), you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to these terms, you should not access or use our services.
+                    </p>
+                </section>
 
-            <section>
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-[#e2f0ff] mb-3">3. File Privacy & Security</h2>
-                <p>Files uploaded to ShiftDocs are kept strictly confidential. Files are automatically deleted from our servers one hour after processing. We do not read, share, or sell your documents to any third parties.</p>
-            </section>
+                <!-- Section 2 -->
+                <section id="description" class="scroll-mt-24 space-y-3 border-t border-gray-50 dark:border-gray-850 pt-8">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">2. Service Description</h2>
+                    <p>
+                        ShiftDocs provides manual and automated REST API document conversion tools (PDF to Word, Image resizing, Merging, OCR, etc.). We strive to maintain continuous uptime but do not guarantee uninterrupted service. We reserve the right to modify or terminate aspects of our tools at any time.
+                    </p>
+                </section>
 
-            <section>
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-[#e2f0ff] mb-3">4. Disclaimer of Warranties</h2>
-                <p>The materials on ShiftDocs's website are provided on an 'as is' basis. We make no warranties, expressed or implied, and hereby disclaim and negate all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.</p>
-            </section>
-        </div>
+                <!-- Section 3 -->
+                <section id="privacy" class="scroll-mt-24 space-y-3 border-t border-gray-50 dark:border-gray-850 pt-8">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">3. File Privacy & Security</h2>
+                    <p>
+                        Your files are kept strictly confidential. ShiftDocs automatically purges guest-uploaded files within <strong>1 hour</strong> and registered account history files within <strong>24 hours</strong> of processing. We do not view, monitor, copy, share, or sell your documents to any third parties.
+                    </p>
+                </section>
+
+                <!-- Section 4 -->
+                <section id="billing" class="scroll-mt-24 space-y-3 border-t border-gray-50 dark:border-gray-850 pt-8">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">4. Subscriptions & Payments</h2>
+                    <p>
+                        Some features (e.g. Developer REST API access) require a paid subscription. You agree to provide valid billing information through Stripe or Razorpay. You can cancel your subscription at any time via your dashboard, and benefits will remain active until the end of the current billing cycle. Refunds are evaluated on a case-by-case basis.
+                    </p>
+                </section>
+
+                <!-- Section 5 -->
+                <section id="disclaimer" class="scroll-mt-24 space-y-3 border-t border-gray-50 dark:border-gray-850 pt-8">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">5. Disclaimer of Warranties</h2>
+                    <p>
+                        ShiftDocs's tools are provided "as is". We make no warranties, expressed or implied, regarding conversion accuracy, speed, or reliability. In no event shall ShiftDocs or its developers be liable for any damages (including loss of data or profit) arising out of the use or inability to use the tools.
+                    </p>
+                </section>
+
+            </div>
+        </main>
     </div>
 </div>
 {% endblock %}

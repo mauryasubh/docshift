@@ -222,6 +222,19 @@
         </a>
         {% endif %}
 
+        <a href="/pricing/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-nav">🏷️</span>
+          Pricing
+        </a>
+        <a href="/faq/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-nav">🙋</span>
+          FAQ
+        </a>
+        <a href="/api/docs/" class="mob-tool-item" onclick="mobDrawerClose()">
+          <span class="mob-tool-icon mob-icon-nav">💻</span>
+          API Docs
+        </a>
+
         <div class="mob-divider"></div>
 
         <!-- PDF Tools -->
@@ -352,11 +365,15 @@
     <footer class="border-t g-divider py-5 px-6 mt-8">
       <div
         class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-        <span class="font-mono text-xs g-sub-text">&copy; {% now "Y" %} ShiftDocs. Designed & Built by Subhash
-          Maurya.</span>
+        <span class="font-mono text-xs g-sub-text">
+          &copy; {% now "Y" %} ShiftDocs. Designed & Built by 
+          <a href="https://github.com/mauryasubh" target="_blank" rel="noopener noreferrer" class="hover:underline font-bold text-gray-700 dark:text-gray-300">Subhash Maurya</a>
+          (<a href="https://github.com/mauryasubh" target="_blank" rel="noopener noreferrer" class="hover:underline">GitHub</a> &middot; <a href="https://www.linkedin.com/in/subhash-maurya-0555381b8/" target="_blank" rel="noopener noreferrer" class="hover:underline">LinkedIn</a>)
+        </span>
         <span class="font-mono text-xs g-sub-text">
           <a href="/terms/" class="hover:underline">Terms</a> &middot;
           <a href="/privacy/" class="hover:underline">Privacy</a> &middot;
+          <a href="/faq/" class="hover:underline">FAQ</a> &middot;
           <a href="/api/docs/" class="hover:underline">API Docs</a> &middot;
           {% if user.is_authenticated %}
           Files kept 24h
