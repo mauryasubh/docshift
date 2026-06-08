@@ -1,63 +1,436 @@
 {% extends "base.html" %}
 
-{% block title %}API Documentation — ShiftDocs{% endblock %}
+{% block title %}API Reference & Documentation — ShiftDocs{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-5 py-10">
-    <h1 class="text-4xl font-black mb-4 dark:text-white">ShiftDocs API Reference</h1>
-    <p class="text-lg text-gray-600 dark:text-gray-300 mb-8">
-        Integrate powerful document conversion directly into your application using our REST API.
-    </p>
+<!-- Main Layout Container -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex flex-col lg:flex-row gap-8">
+        
+        <!-- 1. LEFT SIDEBAR NAVIGATION (Sticky on desktop) -->
+        <aside class="w-full lg:w-64 shrink-0 lg:sticky lg:top-24 h-fit">
+            <nav class="space-y-1.5 bg-white dark:bg-[#0b1630] border border-gray-100 dark:border-gray-800/60 p-4 rounded-2xl shadow-sm">
+                <div class="px-3 py-2 text-xs font-black uppercase tracking-wider text-gray-400">Documentation</div>
+                
+                <a href="#getting-started" class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <span class="text-base">🚀</span> Getting Started
+                </a>
+                <a href="#authentication" class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <span class="text-base">🔑</span> Authentication
+                </a>
+                <a href="#quickstart" class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <span class="text-base">💻</span> Code Quickstarts
+                </a>
+                
+                <div class="px-3 py-2 pt-4 text-xs font-black uppercase tracking-wider text-gray-400">Endpoints</div>
+                
+                <a href="#endpoint-convert" class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <span class="text-xs bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-bold px-1.5 py-0.5 rounded">POST</span> Convert Document
+                </a>
+                <a href="#endpoint-status" class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <span class="text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 font-bold px-1.5 py-0.5 rounded">GET</span> Check Job Status
+                </a>
+                <a href="#endpoint-webhooks" class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <span class="text-base">🪝</span> Webhooks (Callbacks)
+                </a>
+                
+                <div class="px-3 py-2 pt-4 text-xs font-black uppercase tracking-wider text-gray-400">Reference</div>
+                
+                <a href="#tools-directory" class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-blue-600 dark:text-[#38b6ff] bg-blue-50/50 dark:bg-blue-500/5 hover:bg-blue-100/50 dark:hover:bg-blue-500/10 transition-colors">
+                    <span class="text-base">🛠️</span> Available Slugs Catalog
+                </a>
+            </nav>
+        </aside>
 
-    <!-- Authentication -->
-    <div class="mb-12">
-        <h2 class="text-2xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-gray-700">1. Authentication</h2>
-        <p class="text-gray-700 dark:text-gray-300 mb-4">
-            Authenticate your requests by sending your API Key in the <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">Authorization</code> header as a Bearer token.
-        </p>
-        <pre class="bg-gray-900 text-green-400 p-4 rounded-xl overflow-x-auto text-sm font-mono">Authorization: Bearer YOUR_API_KEY</pre>
-        <p class="mt-4 text-sm">
-            <a href="/dashboard/api/" class="text-blue-600 dark:text-[#38b6ff] hover:underline">Get your API key &rarr;</a>
-        </p>
-    </div>
+        <!-- 2. MAIN DOCUMENTATION CONTENT -->
+        <main class="flex-1 min-w-0 space-y-12">
+            
+            <!-- Intro / Header -->
+            <section id="getting-started" class="scroll-mt-24 space-y-4">
+                <div class="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full">
+                    🚀 ShiftDocs Developer API
+                </div>
+                <h1 class="text-4xl md:text-5xl font-black text-gray-900 dark:text-white leading-tight">
+                    API Reference
+                </h1>
+                <p class="text-lg text-gray-600 dark:text-gray-300 max-w-3xl">
+                    Integrate high-speed, enterprise-grade file conversions directly into your app. This REST API supports file size limits up to 50MB and runs asynchronously to preserve server responsiveness.
+                </p>
+                <div class="grid sm:grid-cols-2 gap-4 max-w-xl pt-2">
+                    <div class="p-4 rounded-2xl bg-white dark:bg-[#0b1630] border border-gray-100 dark:border-gray-800/60 shadow-sm flex items-center gap-3">
+                        <span class="text-2xl">⚡</span>
+                        <div>
+                            <div class="font-bold text-gray-900 dark:text-white text-sm">Base URL</div>
+                            <code class="text-xs text-blue-600 dark:text-blue-400 select-all font-mono">https://shiftdocs.io</code>
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-white dark:bg-[#0b1630] border border-gray-100 dark:border-gray-800/60 shadow-sm flex items-center gap-3">
+                        <span class="text-2xl">🔑</span>
+                        <div>
+                            <div class="font-bold text-gray-900 dark:text-white text-sm">Plan Tier Required</div>
+                            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">Developer Plan &middot; 5,000 req/mo</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    <!-- Convert PDF -->
-    <div class="mb-12">
-        <h2 class="text-2xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-gray-700">2. Convert Documents</h2>
-        <p class="text-gray-700 dark:text-gray-300 mb-4">
-            Submit files for conversion using a <code>multipart/form-data</code> POST request.
-        </p>
-        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold mb-4">POST</span> 
-        <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded dark:text-white">/api/v1/convert/{tool_slug}/</code>
+            <!-- Authentication -->
+            <section id="authentication" class="scroll-mt-24 space-y-4 border-t border-gray-100 dark:border-gray-800/60 pt-10">
+                <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">
+                    1. Authentication
+                </h2>
+                <p class="text-gray-600 dark:text-gray-300">
+                    All HTTP requests to the API endpoints must include your unique API key in the <code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm text-red-600 dark:text-red-400 font-mono">Authorization</code> header as a Bearer token.
+                </p>
+                
+                <div class="bg-gray-900 rounded-2xl overflow-hidden relative group">
+                    <div class="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-950 text-xs text-gray-400 font-mono">
+                        <span>HTTP Header Example</span>
+                        <button onclick="copyToClipboard('Authorization: Bearer YOUR_API_KEY', 'copy-auth')" id="copy-auth" class="hover:text-white flex items-center gap-1.5 font-sans font-semibold">
+                            📋 Copy
+                        </button>
+                    </div>
+                    <pre class="p-4 overflow-x-auto text-sm text-green-400 font-mono">Authorization: Bearer YOUR_API_KEY</pre>
+                </div>
+                
+                <div class="flex items-center gap-2 p-4 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 text-sm text-blue-700 dark:text-blue-300 border border-blue-100/50 dark:border-blue-900/30">
+                    💡 <span class="font-medium">Need a Key?</span> You can generate, rotate, and copy your live key inside your <a href="/dashboard/" class="underline font-bold hover:text-blue-800 dark:hover:text-blue-200">API & Billing Dashboard</a>.
+                </div>
+            </section>
 
-        <h3 class="font-bold mt-4 mb-2 dark:text-white">Parameters</h3>
-        <ul class="list-disc list-inside text-gray-700 dark:text-gray-300 mb-6">
-            <li><code>tool_slug</code> (url): The tool you wish to run (e.g., <code>merge_pdf</code>, <code>word_to_pdf</code>)</li>
-            <li><code>file</code> (form-data): The file to convert. Max size: 50MB.</li>
-        </ul>
+            <!-- Quickstart Guides & Interactive Code Tabs -->
+            <section id="quickstart" class="scroll-mt-24 space-y-4 border-t border-gray-100 dark:border-gray-800/60 pt-10">
+                <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">
+                    2. Code Quickstarts
+                </h2>
+                <p class="text-gray-600 dark:text-gray-300">
+                    Choose your language below to see how to upload files, handle async tasks, and download output formats.
+                </p>
 
-        <h3 class="font-bold mb-2 dark:text-white">Example Request (cURL)</h3>
-        <pre class="bg-gray-900 text-gray-100 p-4 rounded-xl overflow-x-auto text-sm font-mono">curl -X POST https://yourdomain.com/api/v1/convert/pdf_to_images/ \
+                <!-- Tabs Navigation -->
+                <div class="flex border-b border-gray-200 dark:border-gray-800">
+                    <button onclick="switchTab('curl')" id="btn-curl" class="code-tab-btn border-b-2 border-blue-500 px-5 py-3 text-sm font-bold text-blue-600 dark:text-blue-400 transition-all">
+                        Shell / cURL
+                    </button>
+                    <button onclick="switchTab('python')" id="btn-python" class="code-tab-btn border-b-2 border-transparent px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all">
+                        Python (Requests)
+                    </button>
+                    <button onclick="switchTab('node')" id="btn-node" class="code-tab-btn border-b-2 border-transparent px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all">
+                        Node.js (Axios)
+                    </button>
+                </div>
+
+                <!-- Tabs Content -->
+                <!-- Tab: cURL -->
+                <div id="code-curl" class="code-tab-content space-y-3">
+                    <div class="bg-gray-900 rounded-2xl overflow-hidden relative">
+                        <div class="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-950 text-xs text-gray-400 font-mono">
+                            <span>cURL script</span>
+                            <button onclick="copyToClipboard('curl -X POST https://shiftdocs.io/api/v1/convert/pdf_to_images/ \\\n  -H \&quot;Authorization: Bearer YOUR_API_KEY\&quot; \\\n  -F \&quot;file=@/path/to/doc.pdf\&quot;', 'copy-curl')" id="copy-curl" class="hover:text-white flex items-center gap-1.5 font-sans font-semibold">
+                                📋 Copy Script
+                            </button>
+                        </div>
+                        <pre class="p-4 overflow-x-auto text-xs sm:text-sm text-gray-100 font-mono">curl -X POST https://shiftdocs.io/api/v1/convert/pdf_to_images/ \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -F "file=@/path/to/document.pdf"</pre>
-    </div>
+  -F "file=@/path/to/doc.pdf"</pre>
+                    </div>
+                </div>
 
+                <!-- Tab: Python -->
+                <div id="code-python" class="code-tab-content hidden space-y-3">
+                    <div class="bg-gray-900 rounded-2xl overflow-hidden relative">
+                        <div class="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-950 text-xs text-gray-400 font-mono">
+                            <span>python requests script</span>
+                            <button onclick="copyToClipboard('import requests\n\nurl = \&quot;https://shiftdocs.io/api/v1/convert/pdf_to_images/\&quot;\nheaders = {\&quot;Authorization\&quot;: \&quot;Bearer YOUR_API_KEY\&quot;}\nfiles = {\&quot;file\&quot;: open(\&quot;doc.pdf\&quot;, \&quot;rb\&quot;)}\n\nres = requests.post(url, headers=headers, files=files)\nprint(res.json())', 'copy-py')" id="copy-py" class="hover:text-white flex items-center gap-1.5 font-sans font-semibold">
+                                📋 Copy Script
+                            </button>
+                        </div>
+                        <pre class="p-4 overflow-x-auto text-xs sm:text-sm text-purple-300 font-mono">import requests
 
-    <!-- Webhooks -->
-    <div class="mb-12">
-        <h2 class="text-2xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-gray-700">3. Webhooks (Callbacks)</h2>
-        <p class="text-gray-700 dark:text-gray-300 mb-4">
-            Because document conversion can take time, the API returns a <code>202 Accepted</code> status immediately. 
-            Configure a Webhook URL in your dashboard to have ShiftDocs automatically <code>POST</code> the results to your server when finished.
-        </p>
+url = "https://shiftdocs.io/api/v1/convert/pdf_to_images/"
+headers = {"Authorization": "Bearer YOUR_API_KEY"}
+files = {"file": open("doc.pdf", "rb")}
 
-        <h3 class="font-bold mb-2 dark:text-white">Webhook Payload</h3>
-        <pre class="bg-gray-900 text-purple-300 p-4 rounded-xl overflow-x-auto text-sm font-mono">{
-  "job_id": "b32a9e22-8df3-4c55-b44c-1b77c8e9",
+response = requests.post(url, headers=headers, files=files)
+print(response.json())</pre>
+                    </div>
+                </div>
+
+                <!-- Tab: Node -->
+                <div id="code-node" class="code-tab-content hidden space-y-3">
+                    <div class="bg-gray-900 rounded-2xl overflow-hidden relative">
+                        <div class="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-950 text-xs text-gray-400 font-mono">
+                            <span>axios client script</span>
+                            <button onclick="copyToClipboard('const axios = require(\&quot;axios\&quot;);\nconst FormData = require(\&quot;form-data\&quot;);\nconst fs = require(\&quot;fs\&quot;);\n\nconst form = new FormData();\nform.append(\&quot;file\&quot;, fs.createReadStream(\&quot;doc.pdf\&quot;));\n\naxios.post(\&quot;https://shiftdocs.io/api/v1/convert/pdf_to_images/\&quot;, form, {\n  headers: {\n    ...form.getHeaders(),\n    \&quot;Authorization\&quot;: \&quot;Bearer YOUR_API_KEY\&quot;\n  }\n}).then(res => console.log(res.data));', 'copy-node')" id="copy-node" class="hover:text-white flex items-center gap-1.5 font-sans font-semibold">
+                                📋 Copy Script
+                            </button>
+                        </div>
+                        <pre class="p-4 overflow-x-auto text-xs sm:text-sm text-blue-300 font-mono">const axios = require("axios");
+const FormData = require("form-data");
+const fs = require("fs");
+
+const form = new FormData();
+form.append("file", fs.createReadStream("doc.pdf"));
+
+axios.post("https://shiftdocs.io/api/v1/convert/pdf_to_images/", form, {
+  headers: {
+    ...form.getHeaders(),
+    "Authorization": "Bearer YOUR_API_KEY"
+  }
+}).then(res => console.log(res.data));</pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Endpoint: Convert Document -->
+            <section id="endpoint-convert" class="scroll-mt-24 space-y-6 border-t border-gray-100 dark:border-gray-800/60 pt-10">
+                <div class="space-y-2">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+                        3. Convert Document
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Uploads and dispatches a file conversion task asynchronously. 
+                    </p>
+                </div>
+
+                <!-- Endpoint Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-850">
+                    <span class="bg-blue-600 text-white font-black text-sm px-3 py-1.5 rounded-xl text-center self-start sm:self-auto">POST</span>
+                    <code class="text-xs sm:text-sm font-mono dark:text-white select-all break-all flex-1">/api/v1/convert/<span class="text-blue-500 font-bold font-mono">{tool_slug}</span>/</code>
+                </div>
+
+                <!-- Parameters Table -->
+                <div class="space-y-3">
+                    <h3 class="font-bold text-gray-955 dark:text-white">API Parameters</h3>
+                    <div class="overflow-x-auto border border-gray-100 dark:border-gray-800/60 rounded-2xl">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50 dark:bg-gray-800/50 text-xs font-bold text-gray-500 uppercase border-b border-gray-100 dark:border-gray-800/60">
+                                <tr>
+                                    <th class="px-6 py-3">Parameter</th>
+                                    <th class="px-6 py-3">Location</th>
+                                    <th class="px-6 py-3">Type</th>
+                                    <th class="px-6 py-3">Required</th>
+                                    <th class="px-6 py-3">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-800/60 text-gray-700 dark:text-gray-300">
+                                <tr>
+                                    <td class="px-6 py-4 font-mono font-bold text-blue-600 dark:text-blue-400">{tool_slug}</td>
+                                    <td class="px-6 py-4 text-xs">URL Path</td>
+                                    <td class="px-6 py-4 font-mono text-xs">string</td>
+                                    <td class="px-6 py-4 text-emerald-600 font-bold">Yes</td>
+                                    <td class="px-6 py-4">The slug identifier of the conversion tool (e.g. <code>merge_pdf</code>, <code>docx_to_pdf</code>). See list below.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 font-mono font-bold">file</td>
+                                    <td class="px-6 py-4 text-xs">form-data</td>
+                                    <td class="px-6 py-4 font-mono text-xs">binary</td>
+                                    <td class="px-6 py-4 text-emerald-600 font-bold">Yes</td>
+                                    <td class="px-6 py-4">The raw file payload to convert. Maximum size allowed: 50MB.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Response Codes -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-gray-950 dark:text-white">Response Payload (202 Accepted)</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        When the request is accepted, the server immediately returns a `202 Accepted` status with job details. 
+                    </p>
+                    <div class="bg-gray-900 rounded-2xl overflow-hidden">
+                        <div class="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-950 text-xs text-gray-400 font-mono">
+                            <span>JSON Response</span>
+                        </div>
+                        <pre class="p-4 overflow-x-auto text-sm text-cyan-300 font-mono">{
+  "status": "processing",
+  "job_id": "b78b87ee-c40d-45db-9ce3-1996ec091393",
+  "status_url": "https://shiftdocs.io/job/b78b87ee-c40d-45db-9ce3-1996ec091393/status/json/",
+  "message": "File queued successfully. Poll the status_url or wait for your webhook."
+}</pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Endpoint: Check Job Status -->
+            <section id="endpoint-status" class="scroll-mt-24 space-y-6 border-t border-gray-100 dark:border-gray-800/60 pt-10">
+                <div class="space-y-2">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+                        4. Check Job Status
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Retrieves the status, conversion progress, error logs, or download link for a processed job.
+                    </p>
+                </div>
+
+                <!-- Endpoint Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-850">
+                    <span class="bg-emerald-600 text-white font-black text-sm px-3 py-1.5 rounded-xl text-center self-start sm:self-auto">GET</span>
+                    <code class="text-xs sm:text-sm font-mono dark:text-white select-all break-all flex-1">/job/<span class="text-emerald-500 font-bold font-mono">{job_id}</span>/status/json/</code>
+                </div>
+
+                <!-- Response Codes -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-gray-950 dark:text-white">Response Payload (200 OK)</h3>
+                    <div class="bg-gray-900 rounded-2xl overflow-hidden">
+                        <div class="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-950 text-xs text-gray-400 font-mono">
+                            <span>JSON Response</span>
+                        </div>
+                        <pre class="p-4 overflow-x-auto text-sm text-amber-300 font-mono">{
   "status": "done",
-  "download_url": "/job/b32a9.../download/",
+  "progress": 100,
+  "tool_id": "pdf_to_images",
+  "tool_name": "PDF to Images",
+  "original_name": "document.pdf",
+  "input_size_human": "550 KB",
+  "output_size_human": "2.4 MB",
+  "compression_ratio": null,
+  "error_message": null,
+  "download_url": "/job/b78b87ee-c40d-45db-9ce3-1996ec091393/download/",
+  "expiry_seconds": 86390,
+  "is_guest": false
+}</pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Endpoint: Webhooks -->
+            <section id="endpoint-webhooks" class="scroll-mt-24 space-y-6 border-t border-gray-100 dark:border-gray-800/60 pt-10">
+                <div class="space-y-2">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">
+                        5. Webhooks (Callbacks)
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Instead of polling the status endpoint, you can configure a Webhook URL in your dashboard. When the conversion finishes, our server will automatically send an HTTP POST request directly to your listener.
+                    </p>
+                </div>
+
+                <!-- Webhook Event Schema -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-gray-955 dark:text-white">Webhook POST Payload</h3>
+                    <div class="bg-gray-900 rounded-2xl overflow-hidden">
+                        <div class="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-950 text-xs text-gray-400 font-mono">
+                            <span>JSON Post Received</span>
+                        </div>
+                        <pre class="p-4 overflow-x-auto text-sm text-pink-300 font-mono">{
+  "job_id": "b78b87ee-c40d-45db-9ce3-1996ec091393",
+  "status": "done",
+  "download_url": "https://shiftdocs.io/job/b78b87ee-c40d-45db-9ce3-1996ec091393/download/",
   "error": null
 }</pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. DETAILED AVAILABLE SLUGS CATALOG -->
+            <section id="tools-directory" class="scroll-mt-24 space-y-6 border-t border-gray-100 dark:border-gray-800/60 pt-10">
+                <div class="space-y-2">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">
+                        6. API Slugs Catalog
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Below is a list of all currently supported tool types. Use the slug in your API URL path like this:
+                        <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded font-mono text-xs">/api/v1/convert/<b>{tool_slug}</b>/</code>
+                    </p>
+                </div>
+
+                <!-- Search Input for Tool slugs -->
+                <div class="max-w-md">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">🔍</span>
+                        <input type="text" id="tool-search" onkeyup="filterTools()" placeholder="Search slugs (e.g. compress, docx, png)..." 
+                               class="w-full bg-white dark:bg-[#0b1630] border border-gray-200 dark:border-gray-800 rounded-xl pl-9 pr-4 py-2 text-sm outline-none focus:border-blue-500/80 transition-all dark:text-white">
+                    </div>
+                </div>
+
+                <!-- Tools List Grid -->
+                <div class="grid sm:grid-cols-2 gap-4" id="tools-list">
+                    {% for slug, config in tool_config.items %}
+                    <div class="tool-card p-5 rounded-2xl bg-white dark:bg-[#0b1630] border border-gray-100 dark:border-gray-800/60 shadow-sm flex flex-col gap-3 transition-transform hover:-translate-y-0.5" 
+                         data-slug="{{ slug }}" data-name="{{ config.name }}">
+                        
+                        <!-- Header: Name & Icon -->
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">{{ config.icon }}</span>
+                            <div>
+                                <h4 class="font-bold text-gray-900 dark:text-white text-sm">{{ config.name }}</h4>
+                                <span class="text-xs font-semibold text-gray-400 capitalize">{{ config.category }} Tool</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <p class="text-xs text-gray-500 dark:text-gray-400 flex-1 leading-relaxed">
+                            {{ config.description }}
+                        </p>
+
+                        <!-- Allowed files & Slug Copy -->
+                        <div class="pt-3 border-t border-gray-50 dark:border-gray-850 flex items-center justify-between gap-3 text-xs">
+                            <div>
+                                <span class="text-gray-400">Accepts:</span>
+                                <code class="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-mono font-bold px-1 rounded">{{ config.accept }}</code>
+                            </div>
+                            
+                            <!-- Copy Slug Pill -->
+                            <button onclick="copyToClipboard('{{ slug }}', 'copy-{{ slug }}')" id="copy-{{ slug }}"
+                                    class="bg-gray-50 hover:bg-gray-100 dark:bg-white/5 dark:hover:bg-white/10 px-2.5 py-1 rounded-lg font-mono font-bold text-gray-600 dark:text-gray-300 transition-colors flex items-center gap-1 shrink-0">
+                                🔑 <span class="font-mono text-[10px]">{{ slug }}</span>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+        </main>
     </div>
 </div>
+
+<script>
+    // Copy to clipboard helper with success UI text swap
+    function copyToClipboard(text, btnId) {
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById(btnId);
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '✅ <span class="text-emerald-500 font-bold font-sans">Copied!</span>';
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+            }, 1200);
+        });
+    }
+
+    // Code snippets language tabs switcher
+    function switchTab(lang) {
+        // Hide all contents
+        document.querySelectorAll('.code-tab-content').forEach(el => el.classList.add('hidden'));
+        
+        // Reset navigation buttons styles
+        document.querySelectorAll('.code-tab-btn').forEach(btn => {
+            btn.classList.remove('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+            btn.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+        });
+        
+        // Show current tab & activate current button
+        document.getElementById(`code-${lang}`).classList.remove('hidden');
+        document.getElementById(`btn-${lang}`).classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+        document.getElementById(`btn-${lang}`).classList.add('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+    }
+
+    // Realtime local search tools directory filter
+    function filterTools() {
+        const query = document.getElementById('tool-search').value.toLowerCase().trim();
+        const cards = document.querySelectorAll('.tool-card');
+        
+        cards.forEach(card => {
+            const slug = card.dataset.slug.toLowerCase();
+            const name = card.dataset.name.toLowerCase();
+            
+            if (slug.includes(query) || name.includes(query)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+</script>
 {% endblock %}
