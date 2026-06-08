@@ -48,7 +48,7 @@ html.dark .jobs-table tr{background:transparent;}
 .jobs-table tr:last-child td{border-bottom:none;}
 .jobs-table tbody tr:hover{background:#f8faff;}
 html.dark .jobs-table tbody tr:hover{background:rgba(56,182,255,.04);}
-.jobs-table-wrap{background:#fff;border:1px solid var(--g-border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.jobs-table-wrap{background:#fff;border:1px solid var(--g-border);border-radius:12px;overflow-x:auto;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 html.dark .jobs-table-wrap{background:#0b1630;border-color:var(--d-border);box-shadow:none;}
 .type-badge{display:inline-block;padding:2px 7px;border-radius:5px;font-size:.7rem;font-family:'JetBrains Mono',monospace;font-weight:600;background:#f0f4f9;color:#5f6368;border:1px solid #dadce0;}
 html.dark .type-badge{background:rgba(255,255,255,.07);color:var(--d-sub);border-color:rgba(255,255,255,.1);}
@@ -475,7 +475,8 @@ function switchTab(tabId) {
 const savedTab = localStorage.getItem('ds_active_tab') || 'history';
 if (savedTab === 'api' && document.getElementById('tab-api')) switchTab('api');
 
-var currentView = localStorage.getItem('ds_dash_view') || 'table';
+var isMobile = window.innerWidth < 640;
+var currentView = localStorage.getItem('ds_dash_view') || (isMobile ? 'cards' : 'table');
 function setView(v) {
   currentView = v;
   localStorage.setItem('ds_dash_view', v);

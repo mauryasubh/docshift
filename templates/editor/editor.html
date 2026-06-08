@@ -76,6 +76,58 @@ html.dark .blk-tag{background:#38b6ff;color:#050d1e;}
 .imgblk.removed{border-color:rgba(239,68,68,.5)!important;border-style:solid;background:rgba(239,68,68,.06);opacity:.4;}
 body.hl-mode .page-ov{cursor:crosshair!important;}
 body.ann-mode .page-ov{cursor:text!important;}
+
+@media (max-width: 768px) {
+  .editor-body {
+    flex-direction: column;
+    position: relative;
+  }
+  .edit-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    height: 60vh;
+    z-index: 40;
+    border-left: none;
+    border-top: 1px solid var(--g-border);
+    transform: translate3d(0, 100%, 0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+  }
+  html.dark .edit-panel {
+    border-top-color: var(--d-border);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+  }
+  .edit-panel.open {
+    transform: translate3d(0, 0, 0);
+  }
+  .editor-canvas {
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+  .editor-toolbar {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    padding: 0 0.5rem;
+    height: 52px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .editor-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+  .editor-toolbar > * {
+    flex-shrink: 0;
+  }
+  .ep-close {
+    font-size: 1.25rem !important;
+    padding: 6px 12px !important;
+  }
+}
 </style>
 {% endblock %}
 
@@ -557,6 +609,15 @@ function showPane(which) {
   document.getElementById('pane-empty').style.display = which === 'empty' ? 'block' : 'none';
   document.getElementById('pane-text').style.display  = which === 'text'  ? 'flex'  : 'none';
   document.getElementById('pane-img').style.display   = which === 'img'   ? 'flex'  : 'none';
+  
+  const panel = document.querySelector('.edit-panel');
+  if (panel) {
+    if (which === 'empty') {
+      panel.classList.remove('open');
+    } else {
+      panel.classList.add('open');
+    }
+  }
 }
 function closePane() { deselect(); }
 function deselect() {

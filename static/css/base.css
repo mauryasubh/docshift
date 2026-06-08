@@ -820,15 +820,16 @@ html.dark .tools-panel-footer {
   z-index: 410;
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
+  transform: translate3d(100%, 0, 0);
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
+  will-change: transform;
 }
 html.dark .mob-drawer {
   background: #070f24;
 }
 .mob-drawer.open {
-  transform: translateX(0);
+  transform: translate3d(0, 0, 0);
 }
 .mob-drawer-header {
   display: flex;
@@ -920,11 +921,11 @@ html.dark .mob-section-label {
 .mob-tool-item {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.6rem 0.6rem;
-  border-radius: 9px;
+  gap: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
   text-decoration: none;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: var(--g-text);
   font-weight: 500;
   transition:
