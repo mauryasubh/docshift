@@ -165,6 +165,7 @@ def stripe_webhook(request):
                 # Set subscription dates
                 profile.plan_start_date = timezone.now()
                 profile.plan_expiry_date = timezone.now() + timedelta(days=30)
+                profile.last_quota_reset = timezone.now()
                 
                 profile.save()
             except User.DoesNotExist:
@@ -220,7 +221,7 @@ def razorpay_create_order(request):
             "currency": order['currency'],
             "order_id": order['id'],
             "name": "ShiftDocs",
-            "description": "Developer Plan (30 Days)",
+            "description": "Developer Plan (90 Days)",
             "prefill": {
                 "name": request.user.username,
                 "email": request.user.email
@@ -265,9 +266,11 @@ def razorpay_verify(request):
         profile.razorpay_order_id = order_id
         profile.razorpay_payment_id = payment_id
         
-        # One-time payment grants 30 days
+        # One-time payment grants 90 days
         profile.plan_start_date = timezone.now()
-        profile.plan_expiry_date = timezone.now() + timedelta(days=30)
+        profile.plan_expiry_date = timezone.now() + timedelta(days=90)
+        profile.last_quota_reset = timezone.now()
+        profile.api_calls_used_this_month = 0
         profile.save()
         
         return JsonResponse({
@@ -316,7 +319,9 @@ def razorpay_webhook(request):
                     profile.plan_tier = 'Developer'
                     profile.razorpay_order_id = order_id
                     profile.plan_start_date = timezone.now()
-                    profile.plan_expiry_date = timezone.now() + timedelta(days=30)
+                    profile.plan_expiry_date = timezone.now() + timedelta(days=90)
+                    profile.last_quota_reset = timezone.now()
+                    profile.api_calls_used_this_month = 0
                     profile.save()
                     
         return HttpResponse(status=200)

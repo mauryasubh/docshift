@@ -26,6 +26,7 @@ class Profile(models.Model):
     
     plan_start_date = models.DateTimeField(null=True, blank=True)
     plan_expiry_date = models.DateTimeField(null=True, blank=True)
+    last_quota_reset = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
         return f"{self.user.username}'s Profile"

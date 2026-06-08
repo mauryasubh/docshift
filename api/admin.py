@@ -3,7 +3,7 @@ from .models import Profile
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'api_key', 'plan_tier', 'api_calls_used_this_month', 'plan_expiry_date')
+    list_display = ('user', 'api_key', 'plan_tier', 'api_calls_used_this_month', 'plan_expiry_date', 'last_quota_reset')
     list_filter = ('plan_tier',)
     search_fields = ('user__username', 'user__email', 'api_key')
     ordering = ('-user__date_joined',)

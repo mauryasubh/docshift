@@ -17,8 +17,7 @@ def send_webhook_task(url, payload):
 @shared_task
 def check_quota_resets_task():
     """
-    Iterates through all user profiles and resets their monthly API usage 
-    if their current 'month' has expired.
+    Checks all non-Free profiles and downgrades them if they have expired.
     """
     from api.models import Profile
     now = timezone.now()
@@ -27,14 +26,16 @@ def check_quota_resets_task():
     
     count = 0
     for profile in expired_profiles:
+        profile.plan_tier = 'Free'
+        profile.plan_start_date = None
+        profile.plan_expiry_date = None
+        profile.last_quota_reset = None
         profile.api_calls_used_this_month = 0
-        # Push the expiry date forward by 30 days
-        if profile.plan_expiry_date:
-            profile.plan_expiry_date += timedelta(days=30)
-        else:
-            profile.plan_expiry_date = now + timedelta(days=30)
-        
-        profile.save(update_fields=['api_calls_used_this_month', 'plan_expiry_date'])
+        profile.stripe_subscription_id = None
+        profile.razorpay_subscription_id = None
+        profile.razorpay_order_id = None
+        profile.razorpay_payment_id = None
+        profile.save()
         count += 1
         
-    return f"Reset usage for {count} profiles."
+    return f"Downgraded {count} expired profiles."

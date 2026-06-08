@@ -449,7 +449,7 @@ html.dark .dash-tab-btn.active{color:var(--d-accent);border-bottom-color:var(--d
                 </div>
                 <div class="grid grid-cols-2 gap-6 mb-6">
                     <div><p class="text-xs uppercase text-gray-400 font-bold">Start Date</p><p class="font-semibold">{{ api_profile.plan_start_date|date:"M j, Y"|default:"N/A" }}</p></div>
-                    <div><p class="text-xs uppercase text-gray-400 font-bold">Next Renewal</p><p class="font-semibold">{% if api_profile.plan_tier == 'Free' %}Lifetime{% else %}{{ api_profile.plan_expiry_date|date:"M j, Y"|default:"N/A" }}{% endif %}</p></div>
+                    <div><p class="text-xs uppercase text-gray-400 font-bold">{% if api_profile.stripe_subscription_id %}Next Renewal{% else %}Expiry Date{% endif %}</p><p class="font-semibold">{% if api_profile.plan_tier == 'Free' %}Lifetime{% else %}{{ api_profile.plan_expiry_date|date:"M j, Y"|default:"N/A" }}{% endif %}</p></div>
                 </div>
                 <div class="flex gap-4">
                   <a href="/pricing/" class="g-btn px-4 py-2 rounded-lg text-sm">Change Plan</a>
