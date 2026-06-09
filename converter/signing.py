@@ -123,7 +123,128 @@ def _get_signer():
 #  Sign a PDF
 # ─────────────────────────────────────────────────────────────
 
-def sign_pdf(input_bytes, signer_name="ShiftDocs User", reason="Document Signing"):
+def _draw_visible_stamp(input_bytes, signer_name, reason, position, page_choice, stamp_style="card", offset=10):
+    """Draw a visual signature stamp on the PDF using PyMuPDF."""
+    try:
+        import fitz
+        import qrcode
+
+        doc = fitz.open(stream=input_bytes, filetype="pdf")
+        if len(doc) == 0:
+            return input_bytes
+
+        # Select page
+        if page_choice == 'first':
+            page = doc[0]
+        else:
+            page = doc[-1]
+
+        page_rect = page.rect
+        width = page_rect.width
+        height = page_rect.height
+
+        # Dynamic size based on style choice
+        if stamp_style == 'qr_only':
+            stamp_width = 36
+            stamp_height = 36
+        elif stamp_style == 'text_only':
+            stamp_width = 120
+            stamp_height = 36
+        else: # 'card' (default)
+            stamp_width = 160
+            stamp_height = 46
+
+        # Configurable offset from page boundaries
+        margin = float(offset)
+
+        # Position calculation
+        if position == 'bottom_left':
+            x1 = margin
+            y1 = height - stamp_height - margin
+        elif position == 'top_right':
+            x1 = width - stamp_width - margin
+            y1 = margin
+        elif position == 'top_left':
+            x1 = margin
+            y1 = margin
+        else: # bottom_right
+            x1 = width - stamp_width - margin
+            y1 = height - stamp_height - margin
+
+        x2 = x1 + stamp_width
+        y2 = y1 + stamp_height
+
+        stamp_rect = fitz.Rect(x1, y1, x2, y2)
+
+        # Generate QR code for styles that require it
+        if stamp_style in ['card', 'qr_only']:
+            qr = qrcode.QRCode(version=1, box_size=8, border=1)
+            qr.add_data("https://shiftdocs.io/digital-sign/")
+            qr.make(fit=True)
+            qr_img = qr.make_image(fill_color="black", back_color="white")
+
+            qr_bytes = io.BytesIO()
+            qr_img.save(qr_bytes, format="PNG")
+            qr_png = qr_bytes.getvalue()
+
+        # Render based on selected stamp style
+        if stamp_style == 'qr_only':
+            # QR only: no text, no border card, just a tiny clean QR code
+            page.insert_image(stamp_rect, stream=qr_png)
+
+        elif stamp_style == 'text_only':
+            # Text only: compact text box with rounded border
+            try:
+                page.draw_rect(stamp_rect, color=(0.1, 0.45, 0.91), fill=(0.96, 0.98, 1.0), width=1.0, radius=4.0)
+            except Exception:
+                page.draw_rect(stamp_rect, color=(0.1, 0.45, 0.91), fill=(0.96, 0.98, 1.0), width=1.0)
+
+            text_rect = fitz.Rect(x1 + 6, y1 + 4, x2 - 6, y2 - 4)
+            signer_name_clean = signer_name[:20]
+            now_str = datetime.datetime.now().strftime("%d %b %Y, %H:%M")
+            text = (
+                "DIGITALLY SIGNED\n"
+                f"Signer: {signer_name_clean}\n"
+                f"Date: {now_str}"
+            )
+            page.insert_textbox(text_rect, text, fontsize=6.0, fontname="helv", color=(0.1, 0.12, 0.15), align=0)
+
+        else:
+            # Card: details + QR code next to it (standard default, now more compact)
+            try:
+                page.draw_rect(stamp_rect, color=(0.1, 0.45, 0.91), fill=(0.96, 0.98, 1.0), width=1.0, radius=4.0)
+            except Exception:
+                page.draw_rect(stamp_rect, color=(0.1, 0.45, 0.91), fill=(0.96, 0.98, 1.0), width=1.0)
+
+            # Insert QR code
+            qr_size = stamp_height - 10
+            qr_rect = fitz.Rect(x1 + 5, y1 + 5, x1 + 5 + qr_size, y1 + 5 + qr_size)
+            page.insert_image(qr_rect, stream=qr_png)
+
+            # Insert text next to the QR code
+            text_rect = fitz.Rect(x1 + 5 + qr_size + 6, y1 + 5, x2 - 5, y2 - 5)
+            signer_name_clean = signer_name[:20]
+            now_str = datetime.datetime.now().strftime("%d %b %Y, %H:%M")
+            text = (
+                "DIGITALLY SIGNED\n"
+                f"Signer: {signer_name_clean}\n"
+                f"Date: {now_str}\n"
+                "Via: shiftdocs.io"
+            )
+            page.insert_textbox(text_rect, text, fontsize=6.0, fontname="helv", color=(0.1, 0.12, 0.15), align=0)
+
+        # Write back to bytes
+        out_bytes = doc.write()
+        doc.close()
+        return out_bytes
+    except Exception as e:
+        logger.error("Failed to draw visible stamp: %s", str(e))
+        return input_bytes
+
+
+def sign_pdf(input_bytes, signer_name="ShiftDocs User", reason="Document Signing",
+             visual_signature=True, position="bottom_right", page_choice="last",
+             stamp_style="card", offset=10):
     """
     Sign a PDF byte stream with a PAdES-B Level 2 signature.
 
@@ -131,12 +252,29 @@ def sign_pdf(input_bytes, signer_name="ShiftDocs User", reason="Document Signing
         input_bytes: bytes — raw PDF content
         signer_name: str — name to embed in the signature
         reason: str — reason for signing
+        visual_signature: bool — whether to draw a visible stamp
+        position: str — 'bottom_right', 'bottom_left', 'top_right', 'top_left'
+        page_choice: str — 'last', 'first'
+        stamp_style: str — 'card', 'qr_only', 'text_only'
+        offset: int — margin offset from borders
 
     Returns:
         bytes — the signed PDF content
     """
     from pyhanko.sign.signers import PdfSignatureMetadata, sign_pdf as pyhanko_sign_pdf
     from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
+
+    # Draw visual signature stamp if requested
+    if visual_signature:
+        input_bytes = _draw_visible_stamp(
+            input_bytes, 
+            signer_name=signer_name, 
+            reason=reason, 
+            position=position, 
+            page_choice=page_choice,
+            stamp_style=stamp_style,
+            offset=offset
+        )
 
     signer = _get_signer()
 

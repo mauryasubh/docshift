@@ -204,6 +204,12 @@ MAX_UPLOAD_SIZE = 50 * 1024 * 1024   # 50 MB
 GUEST_EXPIRY_MINUTES = 5      # guests: 5 minutes
 USER_EXPIRY_HOURS    = 24     # logged-in: 24 hours
 
+# ── Digital Signature Quota Limits ─────────────────────────
+DSIGN_LIMIT_GUEST_SIGN = int(os.environ.get('DSIGN_LIMIT_GUEST_SIGN', 5))
+DSIGN_LIMIT_GUEST_VERIFY = int(os.environ.get('DSIGN_LIMIT_GUEST_VERIFY', 5))
+DSIGN_LIMIT_USER_SIGN = int(os.environ.get('DSIGN_LIMIT_USER_SIGN', 10))
+DSIGN_LIMIT_USER_VERIFY = int(os.environ.get('DSIGN_LIMIT_USER_VERIFY', 10))
+
 # ── Celery ─────────────────────────────────────────────────
 CELERY_BROKER_URL        = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND    = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')

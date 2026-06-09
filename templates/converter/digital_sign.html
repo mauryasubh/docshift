@@ -13,17 +13,24 @@
   <!-- ═══════════════════════════════════════════════════
        HEADER — Compact one-liner
        ═══════════════════════════════════════════════════ -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-5 pb-3">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-5 pb-2">
     <div class="flex items-center gap-3 flex-wrap">
       <h1 class="text-[1.35rem] font-extrabold text-gray-900 dark:text-white leading-tight">
-        🔐 Digital <span class="grad">Sign</span> & Verify
+        Digital <span class="grad">Sign</span> & Verify
       </h1>
-      <span class="dsign-badge">Stage 3</span>
+      <span class="dsign-badge">NEW</span>
     </div>
-    <span class="dsign-remaining">
-      🔑 {{ remaining }} use{{ remaining|pluralize }} left
+    <span class="dsign-remaining {% if remaining_sign >= limit_sign %}hidden{% endif %}">
+      🔑 {{ remaining_sign }} sign{{ remaining_sign|pluralize }} left
       {% if is_guest %}(guest){% else %}today{% endif %}
     </span>
+  </div>
+
+  <!-- TRUST BAR -->
+  <div class="flex flex-wrap items-center justify-center gap-3 mb-5 mt-1">
+    <span class="dsign-pill">No data stored</span>
+    <span class="dsign-pill">100% local processing</span>
+    <span class="dsign-pill">No external APIs</span>
   </div>
 
   <!-- ═══════════════════════════════════════════════════
@@ -31,10 +38,10 @@
        ═══════════════════════════════════════════════════ -->
   <div class="dsign-tabs mb-5" id="dsign-tabs">
     <button class="dsign-tab active" onclick="dsignSwitchTab('sign')" id="tab-sign">
-      ✍️ Sign Document
+      Sign Document
     </button>
     <button class="dsign-tab" onclick="dsignSwitchTab('verify')" id="tab-verify">
-      🔍 Verify Document
+      Verify Document
     </button>
   </div>
 
@@ -46,7 +53,9 @@
     <!-- Drop Zone -->
     <div class="dsign-drop" id="sign-drop" onclick="document.getElementById('sign-file-input').click()">
       <div id="sign-drop-default">
-        <div class="text-4xl mb-3 select-none">🔐</div>
+        <svg class="w-10 h-10 mb-3 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
         <h3 class="text-[1rem] font-bold text-gray-900 dark:text-white mb-1">Drop your PDF here to sign</h3>
         <p class="text-[0.8rem] text-gray-600 dark:text-gray-300">
           PDF up to 50 MB — or <span class="text-green-600 dark:text-[#34d399] underline font-semibold">browse files</span>
@@ -64,6 +73,55 @@
       </div>
     </div>
     <input type="file" id="sign-file-input" class="hidden" accept=".pdf">
+
+    <!-- Visual Signature Stamp Settings -->
+    <div class="p-3.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl flex flex-col gap-3 sm:flex-row sm:items-center text-xs">
+      <span class="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">🔏 Appearance Stamp:</span>
+      <label class="flex items-center gap-1.5 cursor-pointer">
+        <input type="checkbox" id="sign-visual-enable" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+        <span>Draw stamp on document</span>
+      </label>
+      
+      <div id="sign-visual-options" class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-1">
+          <span class="text-gray-500">Style:</span>
+          <select id="sign-style" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 rounded-lg px-2 py-1">
+            <option value="card" selected>Compact Card</option>
+            <option value="qr_only">QR Code Only</option>
+            <option value="text_only">Text Only</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <span class="text-gray-500">Position:</span>
+          <select id="sign-position" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 rounded-lg px-2 py-1">
+            <option value="bottom_right" selected>Bottom Right</option>
+            <option value="bottom_left">Bottom Left</option>
+            <option value="top_right">Top Right</option>
+            <option value="top_left">Top Left</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <span class="text-gray-500">Page:</span>
+          <select id="sign-page" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 rounded-lg px-2 py-1">
+            <option value="last" selected>Last Page</option>
+            <option value="first">First Page</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <span class="text-gray-500">Margin:</span>
+          <select id="sign-offset" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 rounded-lg px-2 py-1">
+            <option value="10" selected>10px (Default)</option>
+            <option value="20">20px</option>
+            <option value="40">40px</option>
+            <option value="60">60px</option>
+            <option value="80">80px (Inward)</option>
+          </select>
+        </div>
+      </div>
+    </div>
 
     <!-- Reason + Button inline -->
     <div class="flex flex-col sm:flex-row gap-3">
@@ -85,7 +143,9 @@
 
     <div class="dsign-drop" id="verify-drop" onclick="document.getElementById('verify-file-input').click()">
       <div id="verify-drop-default">
-        <div class="text-4xl mb-3 select-none">🔍</div>
+        <svg class="w-10 h-10 mb-3 mx-auto text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
         <h3 class="text-[1rem] font-bold text-gray-900 dark:text-white mb-1">Drop a signed PDF to verify</h3>
         <p class="text-[0.8rem] text-gray-600 dark:text-gray-300">
           Check if it's still original — or <span class="text-indigo-600 dark:text-indigo-400 underline font-semibold">browse files</span>
@@ -110,15 +170,29 @@
     </button>
 
     <div id="verify-result" class="hidden"></div>
-  </div>
 
-  <!-- ═══════════════════════════════════════════════════
-       THREE TRUST PILLS — Tiny, non-intrusive
-       ═══════════════════════════════════════════════════ -->
-  <div class="flex flex-wrap items-center justify-center gap-3 mt-6 mb-2">
-    <span class="dsign-pill">🔒 No data stored</span>
-    <span class="dsign-pill">⚡ 100% local processing</span>
-    <span class="dsign-pill">🚫 No external APIs</span>
+    <!-- Verification Result Mockup Previews -->
+    <div id="verify-preview-box" class="p-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl">
+      <div class="text-[0.68rem] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Example Verification Results</div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- Success Mockup -->
+        <div class="p-3 bg-green-500/5 border border-green-500/15 rounded-xl text-left">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-green-600 dark:text-[#34d399] text-xs font-bold">✅ Authentic</span>
+            <span class="text-[0.6rem] bg-green-500/10 text-green-700 dark:text-[#34d399] px-1.5 py-0.5 rounded-md font-mono font-bold">Intact</span>
+          </div>
+          <p class="text-[0.7rem] text-gray-500 dark:text-gray-400">All signatures verified. The document has not been modified after signing.</p>
+        </div>
+        <!-- Tampered Mockup -->
+        <div class="p-3 bg-red-500/5 border border-red-500/15 rounded-xl text-left">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-red-600 dark:text-red-400 text-xs font-bold">🚨 TAMPERED</span>
+            <span class="text-[0.6rem] bg-red-500/10 text-red-700 dark:text-red-400 px-1.5 py-0.5 rounded-md font-mono font-bold">Modified</span>
+          </div>
+          <p class="text-[0.7rem] text-gray-500 dark:text-gray-400">Signatures are broken! The document was modified after signing.</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- LIMIT REACHED BANNER -->
@@ -231,14 +305,29 @@
 {% block extra_js %}
 <script>
   const CSRF = '{{ csrf_token }}';
-  let signFile = null, verifyFile = null, remaining = {{ remaining }};
+  let signFile = null, verifyFile = null;
+  let remainingSign = {{ remaining_sign }};
+  let remainingVerify = {{ remaining_verify }};
+  const limitSign = {{ limit_sign }};
+  const limitVerify = {{ limit_verify }};
+  let currentTab = 'sign';
   const isGuest = {{ is_guest|yesno:"true,false" }};
 
+  // Toggle visual signature options based on checkbox
+  const visualEnable = document.getElementById('sign-visual-enable');
+  if (visualEnable) {
+    visualEnable.addEventListener('change', function() {
+      document.getElementById('sign-visual-options').style.display = this.checked ? 'flex' : 'none';
+    });
+  }
+
   function dsignSwitchTab(tab) {
+    currentTab = tab;
     document.getElementById('panel-sign').classList.toggle('hidden', tab !== 'sign');
     document.getElementById('panel-verify').classList.toggle('hidden', tab !== 'verify');
     document.getElementById('tab-sign').classList.toggle('active', tab === 'sign');
     document.getElementById('tab-verify').classList.toggle('active', tab === 'verify');
+    updateRemaining();
   }
 
   function fmtSize(b) {
@@ -299,6 +388,7 @@
     document.getElementById('verify-fsize').textContent = fmtSize(file.size);
     document.getElementById('verify-btn').disabled = false;
     document.getElementById('verify-btn-label').textContent = '⚡ VERIFY NOW';
+    document.getElementById('verify-preview-box').classList.add('hidden'); // Hide mockup preview
   }
 
   function dsignClearVerify() {
@@ -308,6 +398,7 @@
     document.getElementById('verify-btn').disabled = true;
     document.getElementById('verify-btn-label').textContent = 'VERIFY DOCUMENT';
     document.getElementById('verify-result').classList.add('hidden');
+    document.getElementById('verify-preview-box').classList.remove('hidden'); // Restore mockup preview
   }
 
   /* ── SIGN: Execute ── */
@@ -320,6 +411,11 @@
     const fd = new FormData();
     fd.append('file', signFile);
     fd.append('reason', document.getElementById('sign-reason').value || 'Document Signing');
+    fd.append('visual_signature', document.getElementById('sign-visual-enable').checked ? 'true' : 'false');
+    fd.append('position', document.getElementById('sign-position').value);
+    fd.append('page_choice', document.getElementById('sign-page').value);
+    fd.append('stamp_style', document.getElementById('sign-style').value);
+    fd.append('offset', document.getElementById('sign-offset').value);
 
     try {
       const resp = await fetch('/digital-sign/sign/', { method:'POST', headers:{'X-CSRFToken':CSRF}, body:fd });
@@ -328,7 +424,7 @@
 
       const blob = await resp.blob(), url = URL.createObjectURL(blob), a = document.createElement('a');
       a.href = url; a.download = 'signed_'+signFile.name; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-      remaining--; updateRemaining();
+      remainingSign--; updateRemaining();
       showResult(resultDiv, 'valid', '✅', 'Signed Successfully!', 'Your signed PDF has been downloaded. No copy was kept.');
     } catch (err) {
       showResult(resultDiv, 'tampered', '❌', 'Signing Failed', err.message);
@@ -352,7 +448,7 @@
 
       const data = await resp.json();
       if (data.error) throw new Error(data.error);
-      remaining--; updateRemaining();
+      remainingVerify--; updateRemaining();
 
       if (data.status === 'unsigned') { showResult(resultDiv, 'unsigned', '⚠️', 'No Signatures Found', data.summary); }
       else if (data.status === 'valid') { showResult(resultDiv, 'valid', '✅', 'Document is Authentic', data.summary, data.signatures); }
@@ -380,8 +476,37 @@
 
   function updateRemaining() {
     const el = document.querySelector('.dsign-remaining');
-    if (el) el.innerHTML = `🔑 ${remaining} use${remaining===1?'':'s'} left ${isGuest?'(guest)':'today'}`;
-    if (remaining <= 0) document.getElementById('limit-banner').classList.remove('hidden');
+    if (!el) return;
+
+    if (currentTab === 'sign') {
+      el.innerHTML = `🔑 ${remainingSign} sign${remainingSign===1?'':'s'} left ${isGuest?'(guest)':'today'}`;
+      if (remainingSign < limitSign) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+      if (remainingSign <= 0) {
+        document.getElementById('limit-banner').classList.remove('hidden');
+        document.getElementById('sign-btn').disabled = true;
+      } else {
+        document.getElementById('limit-banner').classList.add('hidden');
+        if (signFile) document.getElementById('sign-btn').disabled = false;
+      }
+    } else {
+      el.innerHTML = `🔑 ${remainingVerify} verification${remainingVerify===1?'':'s'} left ${isGuest?'(guest)':'today'}`;
+      if (remainingVerify < limitVerify) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+      if (remainingVerify <= 0) {
+        document.getElementById('limit-banner').classList.remove('hidden');
+        document.getElementById('verify-btn').disabled = true;
+      } else {
+        document.getElementById('limit-banner').classList.add('hidden');
+        if (verifyFile) document.getElementById('verify-btn').disabled = false;
+      }
+    }
   }
 </script>
 {% endblock %}

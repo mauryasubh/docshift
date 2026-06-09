@@ -1249,55 +1249,66 @@ def _get_client_ip(request):
     return request.META.get('REMOTE_ADDR', '0.0.0.0')
 
 
-def _check_sign_rate_limit(request):
+def _check_sign_rate_limit(request, action='sign'):
     """
     Check if the user can perform a sign/verify action.
-    Guest: 2 ops per session (+ IP fallback).
-    Logged-in: 5 per calendar day.
     Returns (allowed: bool, remaining: int, message: str).
     """
     from django.utils import timezone as tz
-    from datetime import timedelta
 
     if request.user.is_authenticated:
-        # Logged-in: 5 per day
+        # Logged-in quota
+        limit = getattr(settings, 'DSIGN_LIMIT_USER_SIGN' if action == 'sign' else 'DSIGN_LIMIT_USER_VERIFY', 10)
         today_start = tz.now().replace(hour=0, minute=0, second=0, microsecond=0)
         daily_count = GuestUsageLog.objects.filter(
             ip_address=_get_client_ip(request),
+            action=action,
             created_at__gte=today_start,
         ).count()
-        # Also count by user-associated logs
-        daily_count = max(daily_count, request.session.get('dsign_count', 0))
-        remaining = max(0, 5 - daily_count)
-        if daily_count >= 5:
-            return False, 0, 'Daily limit reached (5/day). Come back tomorrow!'
+        session_count = request.session.get(f'dsign_count_{action}', 0)
+        daily_count = max(daily_count, session_count)
+        remaining = max(0, limit - daily_count)
+        if daily_count >= limit:
+            return False, 0, f'Daily limit reached ({limit}/day for {action}ing). Come back tomorrow!'
         return True, remaining, ''
     else:
-        # Guest: 2 total ops via session + IP
-        session_count = request.session.get('dsign_count', 0)
+        # Guest quota
+        limit = getattr(settings, 'DSIGN_LIMIT_GUEST_SIGN' if action == 'sign' else 'DSIGN_LIMIT_GUEST_VERIFY', 5)
+        session_count = request.session.get(f'dsign_count_{action}', 0)
         ip = _get_client_ip(request)
-        ip_count = GuestUsageLog.objects.filter(ip_address=ip).count()
+        ip_count = GuestUsageLog.objects.filter(ip_address=ip, action=action).count()
         used = max(session_count, ip_count)
-        remaining = max(0, 2 - used)
-        if used >= 2:
-            return False, 0, 'Guest limit reached (2 free uses). Sign up for 5/day!'
+        remaining = max(0, limit - used)
+        if used >= limit:
+            return False, 0, f'Guest limit reached ({limit} free {action}s). Sign up for more!'
         return True, remaining, ''
 
 
 def _record_sign_usage(request, action='sign'):
     """Record that a sign/verify op was used."""
-    count = request.session.get('dsign_count', 0)
-    request.session['dsign_count'] = count + 1
+    session_key = f'dsign_count_{action}'
+    count = request.session.get(session_key, 0)
+    request.session[session_key] = count + 1
     ip = _get_client_ip(request)
     GuestUsageLog.objects.create(ip_address=ip, action=action)
 
 
 def digital_sign_page(request):
     """Render the Digital Signature & Verification page."""
-    allowed, remaining, _ = _check_sign_rate_limit(request)
+    allowed_sign, remaining_sign, _ = _check_sign_rate_limit(request, 'sign')
+    allowed_verify, remaining_verify, _ = _check_sign_rate_limit(request, 'verify')
+
+    # Max limits to pass to front-end (to hide/show the quota display dynamically)
+    limit_sign = getattr(settings, 'DSIGN_LIMIT_GUEST_SIGN' if not request.user.is_authenticated else 'DSIGN_LIMIT_USER_SIGN', 5)
+    limit_verify = getattr(settings, 'DSIGN_LIMIT_GUEST_VERIFY' if not request.user.is_authenticated else 'DSIGN_LIMIT_USER_VERIFY', 5)
+
     return render(request, 'converter/digital_sign.html', {
-        'allowed': allowed,
-        'remaining': remaining,
+        'allowed_sign': allowed_sign,
+        'remaining_sign': remaining_sign,
+        'limit_sign': limit_sign,
+        'allowed_verify': allowed_verify,
+        'remaining_verify': remaining_verify,
+        'limit_verify': limit_verify,
         'is_guest': not request.user.is_authenticated,
     })
 
@@ -1308,7 +1319,7 @@ def digital_sign_api(request):
     from .signing import sign_pdf
 
     # Rate limit check
-    allowed, remaining, msg = _check_sign_rate_limit(request)
+    allowed, remaining, msg = _check_sign_rate_limit(request, 'sign')
     if not allowed:
         return JsonResponse({'error': msg, 'limit_reached': True}, status=429)
 
@@ -1333,11 +1344,29 @@ def digital_sign_api(request):
         signer_name = "ShiftDocs Guest"
 
     reason = request.POST.get('reason', 'Document Signing')
+    visual_signature = request.POST.get('visual_signature', 'true') == 'true'
+    position = request.POST.get('position', 'bottom_right')
+    page_choice = request.POST.get('page_choice', 'last')
+    stamp_style = request.POST.get('stamp_style', 'card')
+
+    try:
+        offset = int(request.POST.get('offset', 10))
+    except ValueError:
+        offset = 10
 
     if not _dsign_semaphore.acquire(blocking=False):
         return JsonResponse({'error': 'Server busy — too many signing requests. Try again in a few seconds.'}, status=503)
     try:
-        signed_bytes = sign_pdf(input_bytes, signer_name=signer_name, reason=reason)
+        signed_bytes = sign_pdf(
+            input_bytes, 
+            signer_name=signer_name, 
+            reason=reason,
+            visual_signature=visual_signature,
+            position=position,
+            page_choice=page_choice,
+            stamp_style=stamp_style,
+            offset=offset
+        )
     except Exception as e:
         return JsonResponse({'error': f'Signing failed: {str(e)}'}, status=500)
     finally:
@@ -1364,7 +1393,7 @@ def digital_verify_api(request):
     from .signing import verify_pdf
 
     # Rate limit check
-    allowed, remaining, msg = _check_sign_rate_limit(request)
+    allowed, remaining, msg = _check_sign_rate_limit(request, 'verify')
     if not allowed:
         return JsonResponse({'error': msg, 'limit_reached': True}, status=429)
 
