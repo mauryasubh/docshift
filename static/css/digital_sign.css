@@ -1,0 +1,397 @@
+/* ═══════════════════════════════════════════════════════════
+   Stage 3 — Digital Signature & Verification (Minimalist)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Gradient text ── */
+.grad {
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+html.dark .grad {
+  background: linear-gradient(135deg, #34d399 0%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Badge ── */
+.dsign-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .3rem .75rem;
+  border-radius: 999px;
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  background: rgba(16,185,129,.1);
+  color: #059669;
+  border: 1px solid rgba(16,185,129,.25);
+}
+html.dark .dsign-badge {
+  background: rgba(52,211,153,.08);
+  color: #34d399;
+  border-color: rgba(52,211,153,.2);
+}
+
+/* ── Remaining ── */
+.dsign-remaining {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .25rem .6rem;
+  border-radius: 8px;
+  font-size: .7rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(16,185,129,.08);
+  color: #059669;
+}
+html.dark .dsign-remaining {
+  background: rgba(52,211,153,.08);
+  color: #34d399;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TABS
+   ═══════════════════════════════════════════════════════════ */
+.dsign-tabs {
+  display: flex;
+  gap: .35rem;
+  padding: .3rem;
+  border-radius: 14px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+html.dark .dsign-tabs {
+  background: rgba(255,255,255,.05);
+  border-color: rgba(255,255,255,.1);
+}
+.dsign-tab {
+  flex: 1;
+  padding: .65rem 1rem;
+  border-radius: 10px;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  transition: all .2s;
+  text-align: center;
+}
+html.dark .dsign-tab { color: #94a3b8; }
+.dsign-tab:hover { color: #1e293b; background: rgba(255,255,255,.5); }
+html.dark .dsign-tab:hover { color: #e2e8f0; background: rgba(255,255,255,.08); }
+.dsign-tab.active {
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+html.dark .dsign-tab.active {
+  background: rgba(255,255,255,.12);
+  color: #f1f5f9;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DROP ZONE
+   ═══════════════════════════════════════════════════════════ */
+.dsign-drop {
+  border: 2px dashed #d1d5db;
+  border-radius: 18px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .25s;
+  background: #fafbfc;
+}
+html.dark .dsign-drop {
+  border-color: rgba(255,255,255,.12);
+  background: rgba(255,255,255,.02);
+}
+.dsign-drop:hover,
+.dsign-drop.dragover {
+  border-color: #10b981;
+  background: rgba(16,185,129,.03);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(16,185,129,.1);
+}
+html.dark .dsign-drop:hover,
+html.dark .dsign-drop.dragover {
+  border-color: rgba(52,211,153,.5);
+  background: rgba(52,211,153,.04);
+}
+
+/* ── File card ── */
+.dsign-file-card {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .75rem 1rem;
+  border-radius: 12px;
+  background: rgba(16,185,129,.05);
+  border: 1px solid rgba(16,185,129,.2);
+  animation: dsignFadeIn .3s ease;
+  text-align: left;
+}
+html.dark .dsign-file-card {
+  background: rgba(52,211,153,.05);
+  border-color: rgba(52,211,153,.15);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ACTION BUTTONS
+   ═══════════════════════════════════════════════════════════ */
+.dsign-action-btn {
+  width: 100%;
+  padding: .85rem 1.5rem;
+  border-radius: 14px;
+  font-size: .8rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,.1);
+  transition: all .2s;
+  color: #fff;
+}
+.dsign-action-btn:disabled { opacity: .25; filter: grayscale(1); cursor: default; }
+.dsign-action-btn:active:not(:disabled) { transform: scale(0.98); }
+.dsign-action-btn-sign { background: linear-gradient(135deg, #10b981, #059669); }
+.dsign-action-btn-verify { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+
+/* ═══════════════════════════════════════════════════════════
+   TRUST PILLS
+   ═══════════════════════════════════════════════════════════ */
+.dsign-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .4rem .8rem;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 600;
+  color: #4b5563;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+html.dark .dsign-pill {
+  color: #d1d5db;
+  background: rgba(255,255,255,.05);
+  border-color: rgba(255,255,255,.1);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DIVIDER
+   ═══════════════════════════════════════════════════════════ */
+.dsign-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.dsign-divider::before,
+.dsign-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+html.dark .dsign-divider::before,
+html.dark .dsign-divider::after {
+  background: rgba(255,255,255,.1);
+}
+.dsign-divider-text {
+  font-size: .72rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESULT CARDS
+   ═══════════════════════════════════════════════════════════ */
+.dsign-result {
+  border-radius: 14px;
+  padding: 1.2rem;
+  border: 1px solid;
+  animation: dsignFadeIn .4s ease;
+}
+@keyframes dsignFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.dsign-result.valid {
+  background: linear-gradient(135deg, rgba(16,185,129,.05), rgba(52,211,153,.08));
+  border-color: rgba(16,185,129,.25);
+}
+html.dark .dsign-result.valid {
+  background: linear-gradient(135deg, rgba(16,185,129,.08), rgba(52,211,153,.05));
+  border-color: rgba(52,211,153,.2);
+}
+.dsign-result.tampered {
+  background: linear-gradient(135deg, rgba(239,68,68,.05), rgba(248,113,113,.08));
+  border-color: rgba(239,68,68,.25);
+}
+html.dark .dsign-result.tampered {
+  background: linear-gradient(135deg, rgba(239,68,68,.08), rgba(248,113,113,.05));
+  border-color: rgba(248,113,113,.2);
+}
+.dsign-result.unsigned {
+  background: linear-gradient(135deg, rgba(234,179,8,.05), rgba(250,204,21,.08));
+  border-color: rgba(234,179,8,.25);
+}
+html.dark .dsign-result.unsigned {
+  background: linear-gradient(135deg, rgba(234,179,8,.08), rgba(250,204,21,.05));
+  border-color: rgba(250,204,21,.2);
+}
+
+/* ── Spinner ── */
+.dsign-spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(16,185,129,.2);
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: dsignSpin .7s linear infinite;
+  display: inline-block;
+}
+@keyframes dsignSpin { to { transform: rotate(360deg); } }
+
+/* ── Limit Banner ── */
+.dsign-limit-banner {
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(234,179,8,.06), rgba(251,191,36,.1));
+  border: 1px solid rgba(234,179,8,.25);
+}
+html.dark .dsign-limit-banner {
+  background: linear-gradient(135deg, rgba(234,179,8,.06), rgba(251,191,36,.06));
+  border-color: rgba(250,204,21,.15);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DEVELOPER NOTE
+   ═══════════════════════════════════════════════════════════ */
+.dsign-dev-note {
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+html.dark .dsign-dev-note {
+  background: rgba(255,255,255,.03);
+  border-color: rgba(255,255,255,.08);
+}
+.dsign-dev-avatar {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(139,92,246,.1), rgba(59,130,246,.1));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INFO CARDS (3-column how it works)
+   ═══════════════════════════════════════════════════════════ */
+.dsign-info-card {
+  padding: 1.2rem;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+}
+html.dark .dsign-info-card {
+  background: rgba(255,255,255,.03);
+  border-color: rgba(255,255,255,.08);
+}
+.dsign-info-num {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .75rem; font-weight: 800;
+  background: linear-gradient(135deg, #10b981, #3b82f6);
+  color: #fff;
+  margin-bottom: .5rem;
+}
+
+/* ── Education card ── */
+.dsign-edu-card {
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+html.dark .dsign-edu-card {
+  border-color: rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+}
+
+/* ── Level table ── */
+.dsign-level-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: .82rem;
+}
+.dsign-level-table th {
+  padding: .55rem .9rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #6b7280;
+  border-bottom: 2px solid #e5e7eb;
+}
+html.dark .dsign-level-table th {
+  color: #9ca3af;
+  border-color: rgba(255,255,255,.1);
+}
+.dsign-level-table td {
+  padding: .55rem .9rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+html.dark .dsign-level-table td {
+  border-color: rgba(255,255,255,.05);
+}
+.dsign-level-table tr.highlight td {
+  background: rgba(16,185,129,.06);
+}
+html.dark .dsign-level-table tr.highlight td {
+  background: rgba(52,211,153,.06);
+}
+
+/* ── Use case mini pills ── */
+.dsign-usecase-mini {
+  padding: .65rem 1rem;
+  border-radius: 10px;
+  font-size: .8rem;
+  font-weight: 600;
+  color: #374151;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all .2s;
+}
+html.dark .dsign-usecase-mini {
+  color: #e5e7eb;
+  background: rgba(255,255,255,.03);
+  border-color: rgba(255,255,255,.08);
+}
+.dsign-usecase-mini:hover {
+  border-color: #10b981;
+  background: rgba(16,185,129,.04);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .dsign-drop { padding: 2rem 1.2rem; }
+  .dsign-info-card { padding: 1rem; }
+  .dsign-dev-note { padding: 1.2rem; }
+}

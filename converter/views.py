@@ -1227,3 +1227,170 @@ def contact_sales(request):
             messages.error(request, "Please fill in all required fields.")
             
     return render(request, 'converter/contact.html')
+
+
+# ─────────────────────────────────────────────────────────────
+#  Stage 3 — Digital Sign & Verify
+# ─────────────────────────────────────────────────────────────
+
+from .models import GuestUsageLog
+import threading
+
+# Concurrency guard — max 20 simultaneous sign/verify ops.
+# Beyond this, return 503 instead of choking all Gunicorn workers.
+_dsign_semaphore = threading.Semaphore(20)
+
+
+def _get_client_ip(request):
+    """Get the real client IP, handling proxies."""
+    xff = request.META.get('HTTP_X_FORWARDED_FOR')
+    if xff:
+        return xff.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '0.0.0.0')
+
+
+def _check_sign_rate_limit(request):
+    """
+    Check if the user can perform a sign/verify action.
+    Guest: 2 ops per session (+ IP fallback).
+    Logged-in: 5 per calendar day.
+    Returns (allowed: bool, remaining: int, message: str).
+    """
+    from django.utils import timezone as tz
+    from datetime import timedelta
+
+    if request.user.is_authenticated:
+        # Logged-in: 5 per day
+        today_start = tz.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        daily_count = GuestUsageLog.objects.filter(
+            ip_address=_get_client_ip(request),
+            created_at__gte=today_start,
+        ).count()
+        # Also count by user-associated logs
+        daily_count = max(daily_count, request.session.get('dsign_count', 0))
+        remaining = max(0, 5 - daily_count)
+        if daily_count >= 5:
+            return False, 0, 'Daily limit reached (5/day). Come back tomorrow!'
+        return True, remaining, ''
+    else:
+        # Guest: 2 total ops via session + IP
+        session_count = request.session.get('dsign_count', 0)
+        ip = _get_client_ip(request)
+        ip_count = GuestUsageLog.objects.filter(ip_address=ip).count()
+        used = max(session_count, ip_count)
+        remaining = max(0, 2 - used)
+        if used >= 2:
+            return False, 0, 'Guest limit reached (2 free uses). Sign up for 5/day!'
+        return True, remaining, ''
+
+
+def _record_sign_usage(request, action='sign'):
+    """Record that a sign/verify op was used."""
+    count = request.session.get('dsign_count', 0)
+    request.session['dsign_count'] = count + 1
+    ip = _get_client_ip(request)
+    GuestUsageLog.objects.create(ip_address=ip, action=action)
+
+
+def digital_sign_page(request):
+    """Render the Digital Signature & Verification page."""
+    allowed, remaining, _ = _check_sign_rate_limit(request)
+    return render(request, 'converter/digital_sign.html', {
+        'allowed': allowed,
+        'remaining': remaining,
+        'is_guest': not request.user.is_authenticated,
+    })
+
+
+@require_http_methods(["POST"])
+def digital_sign_api(request):
+    """Sign a PDF with a Level 2 digital signature. Returns the signed PDF."""
+    from .signing import sign_pdf
+
+    # Rate limit check
+    allowed, remaining, msg = _check_sign_rate_limit(request)
+    if not allowed:
+        return JsonResponse({'error': msg, 'limit_reached': True}, status=429)
+
+    uploaded = request.FILES.get('file')
+    if not uploaded:
+        return JsonResponse({'error': 'No file uploaded.'}, status=400)
+
+    if not uploaded.name.lower().endswith('.pdf'):
+        return JsonResponse({'error': 'Only PDF files can be signed.'}, status=400)
+
+    max_size = getattr(settings, 'MAX_UPLOAD_SIZE', 50 * 1024 * 1024)
+    if uploaded.size > max_size:
+        return JsonResponse({'error': 'File too large (max 50 MB).'}, status=400)
+
+    # Read the file
+    input_bytes = uploaded.read()
+
+    # Build signer name
+    if request.user.is_authenticated:
+        signer_name = request.user.get_full_name() or request.user.username
+    else:
+        signer_name = "ShiftDocs Guest"
+
+    reason = request.POST.get('reason', 'Document Signing')
+
+    if not _dsign_semaphore.acquire(blocking=False):
+        return JsonResponse({'error': 'Server busy — too many signing requests. Try again in a few seconds.'}, status=503)
+    try:
+        signed_bytes = sign_pdf(input_bytes, signer_name=signer_name, reason=reason)
+    except Exception as e:
+        return JsonResponse({'error': f'Signing failed: {str(e)}'}, status=500)
+    finally:
+        _dsign_semaphore.release()
+
+    # Record usage
+    _record_sign_usage(request, 'sign')
+
+    # Return the signed PDF as a download
+    import io
+    from django.http import FileResponse
+    response = FileResponse(
+        io.BytesIO(signed_bytes),
+        as_attachment=True,
+        filename=f"signed_{uploaded.name}",
+        content_type='application/pdf',
+    )
+    return response
+
+
+@require_http_methods(["POST"])
+def digital_verify_api(request):
+    """Verify all digital signatures in a PDF. Returns JSON results."""
+    from .signing import verify_pdf
+
+    # Rate limit check
+    allowed, remaining, msg = _check_sign_rate_limit(request)
+    if not allowed:
+        return JsonResponse({'error': msg, 'limit_reached': True}, status=429)
+
+    uploaded = request.FILES.get('file')
+    if not uploaded:
+        return JsonResponse({'error': 'No file uploaded.'}, status=400)
+
+    if not uploaded.name.lower().endswith('.pdf'):
+        return JsonResponse({'error': 'Only PDF files can be verified.'}, status=400)
+
+    max_size = getattr(settings, 'MAX_UPLOAD_SIZE', 50 * 1024 * 1024)
+    if uploaded.size > max_size:
+        return JsonResponse({'error': 'File too large (max 50 MB).'}, status=400)
+
+    input_bytes = uploaded.read()
+
+    if not _dsign_semaphore.acquire(blocking=False):
+        return JsonResponse({'error': 'Server busy — too many verification requests. Try again in a few seconds.'}, status=503)
+    try:
+        result = verify_pdf(input_bytes)
+    except Exception as e:
+        return JsonResponse({'error': f'Verification failed: {str(e)}'}, status=500)
+    finally:
+        _dsign_semaphore.release()
+
+    # Record usage
+    _record_sign_usage(request, 'verify')
+
+    return JsonResponse(result)

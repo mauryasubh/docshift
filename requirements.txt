@@ -41,3 +41,7 @@ requests>=2.28.0
 
 # OCR
 pytesseract>=0.3.10 
+
+# Digital Signatures (Stage 3)
+pyhanko>=0.21
+pyhanko-certvalidator>=0.26

@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+{% block title %}Digital Signature & Verification — ShiftDocs{% endblock %}
+
+{% block extra_head %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/digital_sign.css' %}">
+<meta name="description" content="Sign PDFs with Level 2 Advanced digital signatures and verify document integrity. Free, fast, no data stored.">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-5">
+
+  <!-- ═══════════════════════════════════════════════════
+       HEADER — Compact one-liner
+       ═══════════════════════════════════════════════════ -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-5 pb-3">
+    <div class="flex items-center gap-3 flex-wrap">
+      <h1 class="text-[1.35rem] font-extrabold text-gray-900 dark:text-white leading-tight">
+        🔐 Digital <span class="grad">Sign</span> & Verify
+      </h1>
+      <span class="dsign-badge">Stage 3</span>
+    </div>
+    <span class="dsign-remaining">
+      🔑 {{ remaining }} use{{ remaining|pluralize }} left
+      {% if is_guest %}(guest){% else %}today{% endif %}
+    </span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       TABS — Full width, centered
+       ═══════════════════════════════════════════════════ -->
+  <div class="dsign-tabs mb-5" id="dsign-tabs">
+    <button class="dsign-tab active" onclick="dsignSwitchTab('sign')" id="tab-sign">
+      ✍️ Sign Document
+    </button>
+    <button class="dsign-tab" onclick="dsignSwitchTab('verify')" id="tab-verify">
+      🔍 Verify Document
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       SIGN PANEL — Clean, minimal
+       ═══════════════════════════════════════════════════ -->
+  <div id="panel-sign" class="space-y-4">
+
+    <!-- Drop Zone -->
+    <div class="dsign-drop" id="sign-drop" onclick="document.getElementById('sign-file-input').click()">
+      <div id="sign-drop-default">
+        <div class="text-4xl mb-3 select-none">🔐</div>
+        <h3 class="text-[1rem] font-bold text-gray-900 dark:text-white mb-1">Drop your PDF here to sign</h3>
+        <p class="text-[0.8rem] text-gray-600 dark:text-gray-300">
+          PDF up to 50 MB — or <span class="text-green-600 dark:text-[#34d399] underline font-semibold">browse files</span>
+        </p>
+      </div>
+      <div id="sign-file-card" class="dsign-file-card hidden">
+        <div class="text-xl">📕</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-bold text-[0.82rem] text-gray-900 dark:text-white truncate" id="sign-fname">—</div>
+          <div class="text-[0.7rem] font-mono text-gray-500 mt-0.5" id="sign-fsize">—</div>
+        </div>
+        <button type="button" onclick="event.stopPropagation(); dsignClearSign()" class="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+    </div>
+    <input type="file" id="sign-file-input" class="hidden" accept=".pdf">
+
+    <!-- Reason + Button inline -->
+    <div class="flex flex-col sm:flex-row gap-3">
+      <input type="text" id="sign-reason" value="Document Signing" maxlength="100"
+             class="g-input flex-1 !py-2.5 !text-sm !rounded-xl" placeholder="Reason (e.g. Contract Approval)">
+      <button type="button" id="sign-btn" onclick="dsignDoSign()"
+              class="dsign-action-btn dsign-action-btn-sign sm:w-auto sm:px-8" disabled>
+        <span id="sign-btn-label">SIGN DOCUMENT</span>
+      </button>
+    </div>
+
+    <div id="sign-result" class="hidden"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       VERIFY PANEL — Clean, minimal
+       ═══════════════════════════════════════════════════ -->
+  <div id="panel-verify" class="hidden space-y-4">
+
+    <div class="dsign-drop" id="verify-drop" onclick="document.getElementById('verify-file-input').click()">
+      <div id="verify-drop-default">
+        <div class="text-4xl mb-3 select-none">🔍</div>
+        <h3 class="text-[1rem] font-bold text-gray-900 dark:text-white mb-1">Drop a signed PDF to verify</h3>
+        <p class="text-[0.8rem] text-gray-600 dark:text-gray-300">
+          Check if it's still original — or <span class="text-indigo-600 dark:text-indigo-400 underline font-semibold">browse files</span>
+        </p>
+      </div>
+      <div id="verify-file-card" class="dsign-file-card hidden">
+        <div class="text-xl">📕</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-bold text-[0.82rem] text-gray-900 dark:text-white truncate" id="verify-fname">—</div>
+          <div class="text-[0.7rem] font-mono text-gray-500 mt-0.5" id="verify-fsize">—</div>
+        </div>
+        <button type="button" onclick="event.stopPropagation(); dsignClearVerify()" class="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+    </div>
+    <input type="file" id="verify-file-input" class="hidden" accept=".pdf">
+
+    <button type="button" id="verify-btn" onclick="dsignDoVerify()"
+            class="dsign-action-btn dsign-action-btn-verify w-full" disabled>
+      <span id="verify-btn-label">VERIFY DOCUMENT</span>
+    </button>
+
+    <div id="verify-result" class="hidden"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       THREE TRUST PILLS — Tiny, non-intrusive
+       ═══════════════════════════════════════════════════ -->
+  <div class="flex flex-wrap items-center justify-center gap-3 mt-6 mb-2">
+    <span class="dsign-pill">🔒 No data stored</span>
+    <span class="dsign-pill">⚡ 100% local processing</span>
+    <span class="dsign-pill">🚫 No external APIs</span>
+  </div>
+
+  <!-- LIMIT REACHED BANNER -->
+  <div id="limit-banner" class="dsign-limit-banner hidden mt-6">
+    <div class="text-3xl mb-3">🔒</div>
+    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">
+      {% if is_guest %}Guest Limit Reached{% else %}Daily Limit Reached{% endif %}
+    </h3>
+    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+      {% if is_guest %}You've used your 2 free operations. Sign up to unlock 5 per day!
+      {% else %}You've used all 5 operations for today. Come back tomorrow!{% endif %}
+    </p>
+    {% if is_guest %}
+    <a href="/auth/signup/" class="inline-block px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg"
+       style="background: linear-gradient(135deg, #10b981, #059669); color: #fff;">Sign Up Free — Unlock 5/day</a>
+    {% endif %}
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       DIVIDER
+       ═══════════════════════════════════════════════════ -->
+  <div class="dsign-divider mt-12 mb-10">
+    <span class="dsign-divider-text">Learn more about digital signatures</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       INFO SECTION — Separated, breathing room
+       ═══════════════════════════════════════════════════ -->
+
+  <!-- How it works — Compact 3-column -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    <div class="dsign-info-card">
+      <div class="dsign-info-num">1</div>
+      <div class="text-[.85rem] font-bold text-gray-900 dark:text-white mb-1">Fingerprint</div>
+      <div class="text-[.78rem] text-gray-600 dark:text-gray-300 leading-relaxed">Every word creates a unique code. Change one letter and the entire code changes.</div>
+    </div>
+    <div class="dsign-info-card">
+      <div class="dsign-info-num">2</div>
+      <div class="text-[.85rem] font-bold text-gray-900 dark:text-white mb-1">Lock it</div>
+      <div class="text-[.78rem] text-gray-600 dark:text-gray-300 leading-relaxed">The fingerprint is sealed inside the PDF with a digital lock. Nobody can fake it.</div>
+    </div>
+    <div class="dsign-info-card">
+      <div class="dsign-info-num">3</div>
+      <div class="text-[.85rem] font-bold text-gray-900 dark:text-white mb-1">Verify</div>
+      <div class="text-[.78rem] text-gray-600 dark:text-gray-300 leading-relaxed">Upload the signed PDF — if the fingerprint still matches, it's untouched.</div>
+    </div>
+  </div>
+
+  <!-- Level 2 Explainer — Compact -->
+  <div class="dsign-edu-card mb-8">
+    <h3 class="font-extrabold text-[.95rem] text-gray-900 dark:text-white mb-3">🏅 What is Level 2 (Advanced)?</h3>
+    <p class="text-[.82rem] text-gray-600 dark:text-gray-300 leading-relaxed mb-3">
+      Not all signatures are equal. We use <strong class="text-green-600 dark:text-[#34d399]">Level 2</strong> — strong enough for contracts, invoices, and NDAs.
+    </p>
+    <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-white/10">
+      <table class="dsign-level-table">
+        <thead><tr><th>Level</th><th>Type</th><th>Good For</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="font-mono font-bold text-gray-500">L1</td>
+            <td class="text-gray-700 dark:text-gray-300">Basic</td>
+            <td class="text-gray-600 dark:text-gray-400">Internal memos</td>
+          </tr>
+          <tr class="highlight">
+            <td class="font-mono font-bold text-green-600 dark:text-[#34d399]">L2 ✓</td>
+            <td class="text-green-700 dark:text-[#34d399] font-bold">Advanced</td>
+            <td class="text-green-700 dark:text-[#34d399]">Contracts, invoices, NDAs</td>
+          </tr>
+          <tr>
+            <td class="font-mono font-bold text-gray-500">L3</td>
+            <td class="text-gray-700 dark:text-gray-300">Qualified</td>
+            <td class="text-gray-600 dark:text-gray-400">Government filings</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Use cases — Compact grid -->
+  <div class="mb-16">
+    <h3 class="font-extrabold text-[.95rem] text-gray-900 dark:text-white mb-4">🌍 Where Can You Use This?</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div class="dsign-usecase-mini">📄 Contracts & NDAs</div>
+      <div class="dsign-usecase-mini">🧾 Invoices & POs</div>
+      <div class="dsign-usecase-mini">📋 HR & Offer Letters</div>
+      <div class="dsign-usecase-mini">🏥 Medical Records</div>
+      <div class="dsign-usecase-mini">🏛️ Legal Filings</div>
+      <div class="dsign-usecase-mini">🔧 Engineering ECOs</div>
+    </div>
+  </div>
+
+  <!-- Developer's Note — Last thing on the page -->
+  <div class="dsign-dev-note mb-16">
+    <div class="flex items-start gap-3">
+      <div class="dsign-dev-avatar">👨‍💻</div>
+      <div>
+        <div class="text-[.88rem] font-extrabold text-gray-900 dark:text-white mb-1.5">Why I Built This</div>
+        <div class="text-[.82rem] text-gray-600 dark:text-gray-300 leading-[1.7]">
+          I looked everywhere for a free tool to digitally sign my PDFs — not just slap an image on them, but actually <em>cryptographically</em> sign them so no one can tamper with the content. Every tool I found either charged money, required you to hand over your documents, or didn't offer verification.
+          <br><br>
+          <strong class="text-gray-900 dark:text-white">ShiftDocs signs your documents for free, stores nothing, and lets anyone verify if a document has been changed.</strong> No other free tool does all three. Your document never touches any disk — it's processed in memory and gone the moment you download it.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const CSRF = '{{ csrf_token }}';
+  let signFile = null, verifyFile = null, remaining = {{ remaining }};
+  const isGuest = {{ is_guest|yesno:"true,false" }};
+
+  function dsignSwitchTab(tab) {
+    document.getElementById('panel-sign').classList.toggle('hidden', tab !== 'sign');
+    document.getElementById('panel-verify').classList.toggle('hidden', tab !== 'verify');
+    document.getElementById('tab-sign').classList.toggle('active', tab === 'sign');
+    document.getElementById('tab-verify').classList.toggle('active', tab === 'verify');
+  }
+
+  function fmtSize(b) {
+    if (!b) return '0 B';
+    const u = ['B','KB','MB','GB']; let i=0, s=b;
+    while (s>=1024 && i<3) { s/=1024; i++; }
+    return s.toFixed(1)+' '+u[i];
+  }
+
+  /* ── SIGN ── */
+  const signDrop = document.getElementById('sign-drop');
+  const signInput = document.getElementById('sign-file-input');
+  signDrop.addEventListener('dragover', e => { e.preventDefault(); signDrop.classList.add('dragover'); });
+  signDrop.addEventListener('dragleave', () => signDrop.classList.remove('dragover'));
+  signDrop.addEventListener('drop', e => {
+    e.preventDefault(); signDrop.classList.remove('dragover');
+    if (e.dataTransfer.files.length) { signInput.files = e.dataTransfer.files; dsignHandleSignFile(e.dataTransfer.files[0]); }
+  });
+  signInput.addEventListener('change', () => { if (signInput.files.length) dsignHandleSignFile(signInput.files[0]); });
+
+  function dsignHandleSignFile(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Please select a PDF file.'); return; }
+    signFile = file;
+    document.getElementById('sign-drop-default').classList.add('hidden');
+    document.getElementById('sign-file-card').classList.remove('hidden');
+    document.getElementById('sign-fname').textContent = file.name;
+    document.getElementById('sign-fsize').textContent = fmtSize(file.size);
+    document.getElementById('sign-btn').disabled = false;
+    document.getElementById('sign-btn-label').textContent = '⚡ SIGN NOW';
+  }
+
+  function dsignClearSign() {
+    signFile = null; signInput.value = '';
+    document.getElementById('sign-drop-default').classList.remove('hidden');
+    document.getElementById('sign-file-card').classList.add('hidden');
+    document.getElementById('sign-btn').disabled = true;
+    document.getElementById('sign-btn-label').textContent = 'SIGN DOCUMENT';
+    document.getElementById('sign-result').classList.add('hidden');
+  }
+
+  /* ── VERIFY ── */
+  const verifyDrop = document.getElementById('verify-drop');
+  const verifyInput = document.getElementById('verify-file-input');
+  verifyDrop.addEventListener('dragover', e => { e.preventDefault(); verifyDrop.classList.add('dragover'); });
+  verifyDrop.addEventListener('dragleave', () => verifyDrop.classList.remove('dragover'));
+  verifyDrop.addEventListener('drop', e => {
+    e.preventDefault(); verifyDrop.classList.remove('dragover');
+    if (e.dataTransfer.files.length) { verifyInput.files = e.dataTransfer.files; dsignHandleVerifyFile(e.dataTransfer.files[0]); }
+  });
+  verifyInput.addEventListener('change', () => { if (verifyInput.files.length) dsignHandleVerifyFile(verifyInput.files[0]); });
+
+  function dsignHandleVerifyFile(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Please select a PDF file.'); return; }
+    verifyFile = file;
+    document.getElementById('verify-drop-default').classList.add('hidden');
+    document.getElementById('verify-file-card').classList.remove('hidden');
+    document.getElementById('verify-fname').textContent = file.name;
+    document.getElementById('verify-fsize').textContent = fmtSize(file.size);
+    document.getElementById('verify-btn').disabled = false;
+    document.getElementById('verify-btn-label').textContent = '⚡ VERIFY NOW';
+  }
+
+  function dsignClearVerify() {
+    verifyFile = null; verifyInput.value = '';
+    document.getElementById('verify-drop-default').classList.remove('hidden');
+    document.getElementById('verify-file-card').classList.add('hidden');
+    document.getElementById('verify-btn').disabled = true;
+    document.getElementById('verify-btn-label').textContent = 'VERIFY DOCUMENT';
+    document.getElementById('verify-result').classList.add('hidden');
+  }
+
+  /* ── SIGN: Execute ── */
+  async function dsignDoSign() {
+    if (!signFile) return;
+    const btn = document.getElementById('sign-btn'), label = document.getElementById('sign-btn-label'), resultDiv = document.getElementById('sign-result');
+    btn.disabled = true;
+    label.innerHTML = '<span class="dsign-spinner" style="width:16px;height:16px;border-width:2px;vertical-align:middle;margin-right:6px;display:inline-block;"></span> SIGNING...';
+
+    const fd = new FormData();
+    fd.append('file', signFile);
+    fd.append('reason', document.getElementById('sign-reason').value || 'Document Signing');
+
+    try {
+      const resp = await fetch('/digital-sign/sign/', { method:'POST', headers:{'X-CSRFToken':CSRF}, body:fd });
+      if (resp.status === 429) { const d = await resp.json(); showResult(resultDiv, 'unsigned', '🔒', 'Limit Reached', d.error); document.getElementById('limit-banner').classList.remove('hidden'); btn.disabled=true; label.textContent='LIMIT REACHED'; return; }
+      if (!resp.ok) { const d = await resp.json(); throw new Error(d.error||'Signing failed'); }
+
+      const blob = await resp.blob(), url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = 'signed_'+signFile.name; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      remaining--; updateRemaining();
+      showResult(resultDiv, 'valid', '✅', 'Signed Successfully!', 'Your signed PDF has been downloaded. No copy was kept.');
+    } catch (err) {
+      showResult(resultDiv, 'tampered', '❌', 'Signing Failed', err.message);
+    }
+    btn.disabled = false; label.textContent = '⚡ SIGN NOW';
+  }
+
+  /* ── VERIFY: Execute ── */
+  async function dsignDoVerify() {
+    if (!verifyFile) return;
+    const btn = document.getElementById('verify-btn'), label = document.getElementById('verify-btn-label'), resultDiv = document.getElementById('verify-result');
+    btn.disabled = true;
+    label.innerHTML = '<span class="dsign-spinner" style="width:16px;height:16px;border-width:2px;vertical-align:middle;margin-right:6px;display:inline-block;border-color:rgba(99,102,241,.2);border-top-color:#6366f1;"></span> VERIFYING...';
+
+    const fd = new FormData();
+    fd.append('file', verifyFile);
+
+    try {
+      const resp = await fetch('/digital-sign/verify/', { method:'POST', headers:{'X-CSRFToken':CSRF}, body:fd });
+      if (resp.status === 429) { const d = await resp.json(); showResult(resultDiv, 'unsigned', '🔒', 'Limit Reached', d.error); document.getElementById('limit-banner').classList.remove('hidden'); btn.disabled=true; label.textContent='LIMIT REACHED'; return; }
+
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error);
+      remaining--; updateRemaining();
+
+      if (data.status === 'unsigned') { showResult(resultDiv, 'unsigned', '⚠️', 'No Signatures Found', data.summary); }
+      else if (data.status === 'valid') { showResult(resultDiv, 'valid', '✅', 'Document is Authentic', data.summary, data.signatures); }
+      else if (data.status === 'tampered') { showResult(resultDiv, 'tampered', '🚨', 'TAMPERED — Document Modified!', data.summary, data.signatures); }
+      else { showResult(resultDiv, 'unsigned', '⚠️', data.summary || 'Unknown result', ''); }
+    } catch (err) {
+      showResult(resultDiv, 'tampered', '❌', 'Verification Failed', err.message);
+    }
+    btn.disabled = false; label.textContent = '⚡ VERIFY NOW';
+  }
+
+  function showResult(div, type, icon, title, msg, sigs) {
+    let html = `<div class="dsign-result ${type}"><div class="flex items-center gap-3"><span class="text-2xl">${icon}</span><div><div class="font-bold text-gray-900 dark:text-white">${title}</div><div class="text-sm text-gray-600 dark:text-gray-300 mt-1">${msg}</div></div></div>`;
+    if (sigs && sigs.length) {
+      html += '<div class="mt-3 space-y-2">';
+      sigs.forEach((s,i) => {
+        const cl = s.valid ? 'text-green-600 dark:text-[#34d399]' : 'text-red-600 dark:text-red-400';
+        html += `<div class="p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-white/3"><div class="flex justify-between text-[.78rem] mb-1"><span class="font-bold text-gray-900 dark:text-white">Sig #${i+1}</span><span class="font-bold ${cl}">${s.valid?'✅ Intact':'❌ Broken'}</span></div><div class="text-[.72rem] text-gray-600 dark:text-gray-400">Signer: ${s.signer_name||'Unknown'} · Reason: ${s.reason||'—'}</div></div>`;
+      });
+      html += '</div>';
+    }
+    div.innerHTML = html + '</div>';
+    div.classList.remove('hidden');
+  }
+
+  function updateRemaining() {
+    const el = document.querySelector('.dsign-remaining');
+    if (el) el.innerHTML = `🔑 ${remaining} use${remaining===1?'':'s'} left ${isGuest?'(guest)':'today'}`;
+    if (remaining <= 0) document.getElementById('limit-banner').classList.remove('hidden');
+  }
+</script>
+{% endblock %}

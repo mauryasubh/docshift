@@ -487,6 +487,39 @@ html.dark .editor-pill:hover {
   box-shadow: 0 2px 12px rgba(124, 58, 237, 0.25);
 }
 
+/* ── Digital Sign pill ── */
+.dsign-nav-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: "JetBrains Mono", monospace;
+  border: 1.5px solid #059669;
+  background: #059669;
+  color: #fff;
+  transition: all 0.2s;
+  user-select: none;
+  text-decoration: none;
+  font-weight: 600;
+}
+.dsign-nav-pill:hover {
+  background: #047857;
+  border-color: #047857;
+  box-shadow: 0 2px 12px rgba(5, 150, 105, 0.35);
+}
+html.dark .dsign-nav-pill {
+  background: rgba(5, 150, 105, 0.2);
+  border-color: rgba(52, 211, 153, 0.6);
+  color: #6ee7b7;
+}
+html.dark .dsign-nav-pill:hover {
+  background: rgba(5, 150, 105, 0.35);
+  border-color: #34d399;
+  box-shadow: 0 2px 12px rgba(52, 211, 153, 0.25);
+}
 
 /* ── Avatar ── */
 .avatar-circle {

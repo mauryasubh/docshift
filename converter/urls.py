@@ -38,4 +38,9 @@ urlpatterns = [
     path('batch/<str:batch_id>/download-zip/', views.batch_download_zip, name='batch_download_zip'),
 
     path('convert/url/', views.url_upload, name='url_upload'),
+
+    # ── Stage 3 — Digital Signature & Verification ───────────────────
+    path('digital-sign/',        views.digital_sign_page,   name='digital_sign'),
+    path('digital-sign/sign/',   views.digital_sign_api,    name='digital_sign_api'),
+    path('digital-sign/verify/', views.digital_verify_api,  name='digital_verify_api'),
 ]
