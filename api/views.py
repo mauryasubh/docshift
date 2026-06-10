@@ -64,6 +64,133 @@ def api_convert(request, tool_slug):
     }, status=202)
 
 
+@csrf_exempt
+@rate_limit_api(requests_per_minute=20)
+def api_digital_sign(request):
+    """
+    Sign a PDF document with a Level 2 digital signature.
+    Expects method: POST
+    Expects header: Authorization: Bearer <API_KEY>
+    Expects form-data: 
+      - file: PDF file to sign
+      - reason: (optional) reason string
+      - visual_signature: (optional) "true"/"false" (defaults to true)
+      - position: (optional) "bottom_right"/"bottom_left"/"top_right"/"top_left"/"center" (defaults to bottom_right)
+      - stamp_style: (optional) "card"/"minimal"/"badge" (defaults to card)
+      - page_choice: (optional) "last"/"first" (defaults to last)
+      - offset: (optional) integer margin offset (defaults to 10)
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed. Use POST.'}, status=405)
+        
+    if 'file' not in request.FILES:
+        return JsonResponse({'error': "Missing 'file' field in multipart form-data."}, status=400)
+        
+    uploaded_file = request.FILES['file']
+    if not uploaded_file.name.lower().endswith('.pdf'):
+        return JsonResponse({'error': 'Only PDF files can be digitally signed.'}, status=400)
+        
+    # Validate basic size constraints (e.g. 50MB max)
+    if uploaded_file.size > 50 * 1024 * 1024:
+        return JsonResponse({'error': "File is too large. Max size is 50MB."}, status=413)
+
+    # Read bytes
+    try:
+        input_bytes = uploaded_file.read()
+    except Exception as e:
+        return JsonResponse({'error': f"Failed to read file: {str(e)}"}, status=400)
+
+    # Get optional params
+    reason = request.POST.get('reason', 'Document Signing')
+    visual_signature = request.POST.get('visual_signature', 'true').strip().lower() == 'true'
+    position = request.POST.get('position', 'bottom_right')
+    page_choice = request.POST.get('page_choice', 'last')
+    stamp_style = request.POST.get('stamp_style', 'card')
+    
+    try:
+        offset = int(request.POST.get('offset', 10))
+    except (ValueError, TypeError):
+        offset = 10
+
+    # Execute signing synchronously
+    from converter.signing import sign_pdf
+    try:
+        signed_bytes = sign_pdf(
+            input_bytes,
+            signer_name=request.api_profile.user.get_full_name() or request.api_profile.user.username,
+            reason=reason,
+            visual_signature=visual_signature,
+            position=position,
+            page_choice=page_choice,
+            stamp_style=stamp_style,
+            offset=offset
+        )
+    except Exception as e:
+        return JsonResponse({'error': f"Signing failed: {str(e)}"}, status=500)
+
+    # Increment quota usage
+    request.api_profile.api_calls_used_this_month += 1
+    request.api_profile.save()
+
+    # Return signed file
+    import io
+    from django.http import FileResponse
+    response = FileResponse(
+        io.BytesIO(signed_bytes),
+        as_attachment=True,
+        filename=f"signed_{uploaded_file.name}",
+        content_type='application/pdf'
+    )
+    return response
+
+
+@csrf_exempt
+@rate_limit_api(requests_per_minute=20)
+def api_digital_verify(request):
+    """
+    Verify all digital signatures in a PDF.
+    Expects method: POST
+    Expects header: Authorization: Bearer <API_KEY>
+    Expects form-data:
+      - file: PDF file to verify
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed. Use POST.'}, status=405)
+        
+    if 'file' not in request.FILES:
+        return JsonResponse({'error': "Missing 'file' field in multipart form-data."}, status=400)
+        
+    uploaded_file = request.FILES['file']
+    if not uploaded_file.name.lower().endswith('.pdf'):
+        return JsonResponse({'error': 'Only PDF files can be verified.'}, status=400)
+        
+    # Validate basic size constraints (e.g. 50MB max)
+    if uploaded_file.size > 50 * 1024 * 1024:
+        return JsonResponse({'error': "File is too large. Max size is 50MB."}, status=413)
+
+    # Read bytes
+    try:
+        input_bytes = uploaded_file.read()
+    except Exception as e:
+        return JsonResponse({'error': f"Failed to read file: {str(e)}"}, status=400)
+
+    # Execute verification synchronously
+    from converter.signing import verify_pdf
+    try:
+        result = verify_pdf(input_bytes)
+    except Exception as e:
+        return JsonResponse({'error': f"Verification failed: {str(e)}"}, status=500)
+
+    # Increment quota usage
+    request.api_profile.api_calls_used_this_month += 1
+    request.api_profile.save()
+
+    return JsonResponse(result)
+
+
+
+
+
 
 
 # ── Subscription & Payments ──────────────────────────────────
@@ -183,7 +310,7 @@ from datetime import timedelta
 @login_required
 def razorpay_create_order(request):
     """
-    Creates a Razorpay Order for the Developer plan (One-Time purchase, 30 days).
+    Creates a Razorpay Order for the Developer plan (One-Time purchase, 30 or 90 days).
     """
     try:
         # Simulation Mode Check
@@ -194,8 +321,18 @@ def razorpay_create_order(request):
 
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
         
-        # Compute dynamic amount in paisa from settings
-        amount_in_paisa = settings.RAZORPAY_PLAN_PRICE_INR * 100
+        # Get requested duration (default to 3 months / 90 days)
+        duration_param = request.GET.get('duration', '3')
+        if duration_param == '1':
+            price_inr = getattr(settings, 'RAZORPAY_PLAN_PRICE_30_DAYS_INR', 799)
+            days = 30
+            desc = "Developer Plan (30 Days)"
+        else:
+            price_inr = getattr(settings, 'RAZORPAY_PLAN_PRICE_90_DAYS_INR', 1499)
+            days = 90
+            desc = "Developer Plan (90 Days)"
+        
+        amount_in_paisa = price_inr * 100
         
         data = {
             "amount": amount_in_paisa,
@@ -204,7 +341,8 @@ def razorpay_create_order(request):
             "notes": {
                 "user_id": request.user.id,
                 "email": request.user.email,
-                "plan": "Developer"
+                "plan": "Developer",
+                "days": days
             }
         }
         
@@ -221,7 +359,7 @@ def razorpay_create_order(request):
             "currency": order['currency'],
             "order_id": order['id'],
             "name": "ShiftDocs",
-            "description": "Developer Plan (90 Days)",
+            "description": desc,
             "prefill": {
                 "name": request.user.username,
                 "email": request.user.email
@@ -260,17 +398,33 @@ def razorpay_verify(request):
         
         client.utility.verify_payment_signature(params_dict)
         
+        # Fetch order from Razorpay to read verified notes including plan duration days
+        days = 90
+        try:
+            order = client.order.fetch(order_id)
+            notes = order.get('notes', {})
+            days = int(notes.get('days', 90))
+            
+            # Security verification: Ensure order belongs to current user
+            order_user_id = notes.get('user_id')
+            if order_user_id and int(order_user_id) != request.user.id:
+                return JsonResponse({"error": "Unauthorized order verification."}, status=403)
+        except Exception:
+            pass  # Fallback to default if order fetch fails
+        
         # Upgrade User Profile
         profile = request.user.api_profile
         profile.plan_tier = 'Developer'
         profile.razorpay_order_id = order_id
         profile.razorpay_payment_id = payment_id
         
-        # One-time payment grants 90 days
-        profile.plan_start_date = timezone.now()
-        profile.plan_expiry_date = timezone.now() + timedelta(days=90)
-        profile.last_quota_reset = timezone.now()
-        profile.api_calls_used_this_month = 0
+        # Only update plan validity and reset usage if not already active
+        if not profile.plan_expiry_date or profile.plan_expiry_date < timezone.now():
+            profile.plan_start_date = timezone.now()
+            profile.plan_expiry_date = timezone.now() + timedelta(days=days)
+            profile.last_quota_reset = timezone.now()
+            profile.api_calls_used_this_month = 0
+            
         profile.save()
         
         return JsonResponse({
@@ -309,20 +463,26 @@ def razorpay_webhook(request):
             order_id = order_entity['id']
             notes = order_entity.get('notes', {})
             user_id = notes.get('user_id')
+            days = int(notes.get('days', 90))  # Default fallback
             
             if user_id:
-                user = User.objects.get(id=user_id)
-                profile = user.api_profile
-                
-                # Check if already processed to avoid redundant operations
-                if profile.plan_tier != 'Developer' or not profile.is_plan_active():
+                try:
+                    user = User.objects.get(id=user_id)
+                    profile = user.api_profile
+                    
                     profile.plan_tier = 'Developer'
                     profile.razorpay_order_id = order_id
-                    profile.plan_start_date = timezone.now()
-                    profile.plan_expiry_date = timezone.now() + timedelta(days=90)
-                    profile.last_quota_reset = timezone.now()
-                    profile.api_calls_used_this_month = 0
+                    
+                    # Only update plan validity and reset usage if not already active
+                    if not profile.plan_expiry_date or profile.plan_expiry_date < timezone.now():
+                        profile.plan_start_date = timezone.now()
+                        profile.plan_expiry_date = timezone.now() + timedelta(days=days)
+                        profile.last_quota_reset = timezone.now()
+                        profile.api_calls_used_this_month = 0
+                    
                     profile.save()
+                except User.DoesNotExist:
+                    pass
                     
         return HttpResponse(status=200)
     except Exception:

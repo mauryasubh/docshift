@@ -81,6 +81,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -117,7 +118,15 @@ WSGI_APPLICATION = 'docshift.wsgi.application'
 DATABASE_URL = os.environ.get('DATABASE_URL')
 USE_POSTGRES = str(os.environ.get('USE_POSTGRES', 'False')).strip().lower() == 'true'
 
-if DATABASE_URL:
+if 'test' in sys.argv:
+    # SQLite fallback (testing only)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+elif DATABASE_URL:
     # Production: Render/Railway provides a single connection string
     import dj_database_url
     DATABASES = {
@@ -155,10 +164,24 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+from django.utils.translation import gettext_lazy as _
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE     = os.environ.get('DJANGO_TIME_ZONE', 'Asia/Kolkata')
 USE_I18N      = True
 USE_TZ        = True
+
+LANGUAGES = [
+    ('en', _('English')),
+    ('es', _('Spanish')),
+    ('hi', _('Hindi')),
+    ('fr', _('French')),
+    ('de', _('German')),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 STATIC_URL    = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
@@ -324,6 +347,8 @@ RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_placeholder')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'rzp_test_secret_placeholder')
 RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', 'rzp_webhook_secret_placeholder')
 RAZORPAY_PLAN_PRICE_INR = int(os.environ.get('RAZORPAY_PLAN_PRICE_INR', 1499))
+RAZORPAY_PLAN_PRICE_30_DAYS_INR = int(os.environ.get('RAZORPAY_PLAN_PRICE_30_DAYS_INR', 799))
+RAZORPAY_PLAN_PRICE_90_DAYS_INR = int(os.environ.get('RAZORPAY_PLAN_PRICE_90_DAYS_INR', 1499))
 
 # ── Production security ────────────────────────────────────
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'

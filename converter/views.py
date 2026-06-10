@@ -258,9 +258,30 @@ def terms_view(request):
     return render(request, 'pages/terms.html')
 
 def pricing_view(request):
-    price_inr = getattr(settings, 'RAZORPAY_PLAN_PRICE_INR', 1499)
+    from .geoip import get_user_country
+    country = get_user_country(request)
+    price_30_days = getattr(settings, 'RAZORPAY_PLAN_PRICE_30_DAYS_INR', 799)
+    price_90_days = getattr(settings, 'RAZORPAY_PLAN_PRICE_90_DAYS_INR', 1499)
+    
+    if country == 'IN':
+        currency = 'INR'
+        symbol = '₹'
+        price = f"{price_90_days:,}"
+        gateway = 'razorpay'
+    else:
+        currency = 'USD'
+        symbol = '$'
+        price = '19'
+        gateway = 'stripe'
+        
     return render(request, 'converter/pricing.html', {
-        'plan_price_inr': f"{price_inr:,}"
+        'price_30_days': price_30_days,
+        'price_90_days': price_90_days,
+        'country': country,
+        'currency': currency,
+        'symbol': symbol,
+        'price': price,
+        'gateway': gateway,
     })
 
 

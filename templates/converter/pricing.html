@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}Pricing — ShiftDocs API{% endblock %}
+{% block title %}Simple & Transparent Pricing Plans | ShiftDocs{% endblock %}
+{% block meta_description %}View ShiftDocs pricing plans. Free unlimited manual file conversions, and affordable Developer API options for automated document processing.{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto px-5 py-16">
@@ -51,7 +52,7 @@
                     files.</p>
             </div>
             <div class="mb-6">
-                <span class="text-4xl font-black text-gray-900 dark:text-white">₹0</span>
+                <span class="text-4xl font-black text-gray-900 dark:text-white">{{ symbol }}0</span>
                 <span class="text-gray-500 dark:text-gray-400">/month</span>
             </div>
             <ul class="space-y-4 mb-8 flex-1">
@@ -92,9 +93,25 @@
                 <p class="text-blue-100 text-sm mt-2">For indie hackers and startups integrating file conversion.</p>
             </div>
             <div class="mb-6">
-                <span class="text-4xl font-black text-white">₹{{ plan_price_inr|default:"1,499" }}</span>
-                <span class="text-blue-200">/ 90 Days</span>
+                <span class="text-4xl font-black text-white" id="plan-price">{{ symbol }}{{ price }}</span>
+                <span class="text-blue-200" id="plan-period">{% if currency == 'INR' %}/ 90 Days{% else %}/ month{% endif %}</span>
             </div>
+
+            {% if currency == 'INR' %}
+            <!-- Plan Duration Dropdown -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <label for="plan-duration" class="block text-xs font-bold text-blue-100 uppercase tracking-wider">Select Duration</label>
+                    <span class="bg-teal-300 text-blue-950 text-[10px] font-black uppercase tracking-wider py-0.5 px-2 rounded-full shadow-sm">⭐ Best Value</span>
+                </div>
+                <select id="plan-duration" onchange="updateDurationPrice();" 
+                        class="w-full bg-blue-700 border border-blue-500 text-white text-sm rounded-xl py-3 pl-3 pr-10 focus:ring-2 focus:ring-teal-400 focus:outline-none cursor-pointer appearance-none bg-no-repeat"
+                        style="background-image: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E&quot;); background-position: right 0.75rem center; background-size: 1.1rem auto;">
+                    <option value="1" class="bg-blue-800 text-white">1 Month — ₹{{ price_30_days }} (₹{{ price_30_days }}/mo)</option>
+                    <option value="3" selected class="bg-blue-800 text-white">3 Months — ₹{{ price_90_days }} (₹499/mo)</option>
+                </select>
+            </div>
+            {% endif %}
             <ul class="space-y-4 mb-8 flex-1">
                 <li class="flex items-start text-sm text-white">
                     <span class="text-blue-300 mr-2">✓</span> <strong class="mr-1">5,000</strong> API Calls / 30 Days
@@ -108,6 +125,9 @@
                 <li class="flex items-start text-sm text-white">
                     <span class="text-blue-300 mr-2">✓</span> Webhook Callbacks
                 </li>
+                <li class="flex items-start text-sm text-white">
+                    <span class="text-blue-300 mr-2">✓</span> Digital Signature API (Sign & Verify)
+                </li>
             </ul>
 
             {% if user.is_authenticated %}
@@ -116,11 +136,20 @@
                 class="w-full py-3 px-4 rounded-xl bg-emerald-700 text-emerald-100 font-bold cursor-not-allowed">
                 Current Plan
             </button>
-            {% else %}
+            {% elif gateway == 'razorpay' %}
             <button onclick="startRazorpayPayment();" id="rzp-button"
                 class="w-full py-3 px-4 rounded-xl bg-white text-blue-600 font-bold hover:bg-gray-50 transition-colors">
                 Upgrade to Developer
             </button>
+            {% else %}
+            <button disabled
+                class="w-full py-3 px-4 rounded-xl bg-blue-700/50 text-blue-200 font-bold cursor-not-allowed"
+                title="International card payments are coming soon!">
+                Coming Soon via Stripe
+            </button>
+            <p class="text-xs text-blue-100 text-center mt-2">
+                Need it now? <a href="mailto:subhashmaurya830@gmail.com" class="underline hover:text-white font-bold">Contact support</a> for USD invoicing.
+            </p>
             {% endif %}
             {% else %}
             <button onclick="window.location.href='/auth/login/?next=/pricing/';"
@@ -146,13 +175,16 @@
                     <span class="text-green-500 mr-2">✓</span> <strong class="mr-1">50,000+</strong> API Calls / month
                 </li>
                 <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
-                    <span class="text-green-500 mr-2">✓</span> 500MB+ Max File Size
+                    <span class="text-green-500 mr-2">✓</span> 200MB+ Max File Size
                 </li>
                 <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
                     <span class="text-green-500 mr-2">✓</span> Priority Processing Queue
                 </li>
                 <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
                     <span class="text-green-500 mr-2">✓</span> Dedicated Success Manager
+                </li>
+                <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                    <span class="text-green-500 mr-2">✓</span> Digital Signature API (Sign & Verify)
                 </li>
             </ul>
 
@@ -189,6 +221,22 @@
         }
     });
 
+    function updateDurationPrice() {
+        const select = document.getElementById('plan-duration');
+        if (!select) return;
+        const val = select.value;
+        const priceSpan = document.getElementById('plan-price');
+        const periodSpan = document.getElementById('plan-period');
+        
+        if (val === '1') {
+            priceSpan.innerText = '₹{{ price_30_days }}';
+            periodSpan.innerText = '/ 30 Days';
+        } else {
+            priceSpan.innerText = '₹{{ price_90_days }}';
+            periodSpan.innerText = '/ 90 Days';
+        }
+    }
+
     function startRazorpayPayment() {
         const btn = document.getElementById('rzp-button');
         if (!btn) return;
@@ -196,7 +244,10 @@
         btn.disabled = true;
         btn.innerText = 'Initializing...';
 
-        fetch('/api/subscription/razorpay/create-order/')
+        const durationSelect = document.getElementById('plan-duration');
+        const duration = durationSelect ? durationSelect.value : '3';
+
+        fetch(`/api/subscription/razorpay/create-order/?duration=${duration}`)
             .then(res => res.json())
             .then(data => {
                 if (data.error) {

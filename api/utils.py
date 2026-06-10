@@ -18,10 +18,11 @@ def rate_limit_api(requests_per_minute=20):
                 return JsonResponse({'error': 'Missing or invalid Authorization: Bearer token'}, status=401)
             
             api_key = auth_header.split(' ')[1]
+            from django.core.exceptions import ValidationError
             try:
-                # UUIDs can raise ValueError if malformed
+                # UUIDs can raise ValueError or ValidationError if malformed
                 profile = Profile.objects.get(api_key=api_key)
-            except (Profile.DoesNotExist, ValueError):
+            except (Profile.DoesNotExist, ValueError, ValidationError):
                 return JsonResponse({'error': 'Invalid API Key'}, status=401)
             
             # --- Redis Speed Limiter ---

@@ -1,9 +1,15 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en" class="dark">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {% block meta_robots %}
+  <meta name="robots" content="index, follow" />
+  {% endblock %}
+  <meta name="description" content="{% block meta_description %}Convert Word, Excel, PowerPoint, images, and other file formats to PDF online for free. Fast, secure, and easy PDF conversion with ShiftDocs.{% endblock %}" />
+  <link rel="canonical" href="{% block canonical_url %}https://shiftdocs.io{{ request.path }}{% endblock %}" />
   <title>{% block title %}ShiftDocs — Document Converter{% endblock %}</title>
   <script>(function () { var t = localStorage.getItem('ds_theme'); if (t === 'light') document.documentElement.classList.remove('dark'); else document.documentElement.classList.add('dark'); })();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,7 +46,7 @@
           class="text-xs font-bold text-gray-600 dark:text-[#c8dff5] hover:bg-gray-100 dark:hover:bg-white/5 px-3 py-1.5 rounded-full transition-all hidden sm:flex items-center gap-2 group">
           <span
             class="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-white/5 rounded-full text-[0.65rem] group-hover:scale-110 transition-transform">🛠️</span>
-          Tools
+          {% translate "Tools" %}
         </a>
 
         <!-- PDF Editor -->
@@ -50,14 +56,14 @@
               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
             </path>
           </svg>
-          PDF Editor
+          {% translate "PDF Editor" %}
           <span
             style="font-size:.55rem;background:rgba(255,255,255,.25);padding:1px 5px;border-radius:6px;letter-spacing:.04em;">NEW</span>
         </a>
 
         <!-- Digital Sign -->
         <a href="/digital-sign/" class="dsign-nav-pill hidden sm:flex ml-1">
-          🔐 Digital Sign
+          🔐 {% translate "Digital Sign" %}
           <span
             style="font-size:.55rem;background:rgba(255,255,255,.25);padding:1px 5px;border-radius:6px;letter-spacing:.04em;">NEW</span>
         </a>
@@ -69,7 +75,7 @@
           class="text-xs font-bold text-gray-600 dark:text-[#c8dff5] hover:bg-gray-100 dark:hover:bg-white/5 px-3 py-1.5 rounded-full transition-all hidden sm:flex items-center gap-2 group">
           <span
             class="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-white/5 rounded-full text-[0.65rem] group-hover:scale-110 transition-transform">🏷️</span>
-          Pricing
+          {% translate "Pricing" %}
         </a>
 
         <div class="flex-1"></div>
@@ -141,7 +147,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                Sign out
+                {% translate "Sign out" %}
               </button>
             </form>
           </div>
@@ -150,11 +156,11 @@
         {% else %}
         <a href="/auth/login/"
           class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 transition-colors hidden sm:inline-block">
-          Sign in
+          {% translate "Sign in" %}
         </a>
         <a href="/auth/signup/"
           class="g-btn ml-1 px-5 py-2 rounded-full text-[0.82rem] shadow-md hover:shadow-blue-500/20 transition-all hidden sm:inline-block">
-          Get started
+          {% translate "Get started" %}
         </a>
         {% endif %}
 

@@ -4,6 +4,8 @@ from . import views
 urlpatterns = [
     path('docs/', views.api_docs, name='api_docs'),
     path('v1/convert/<str:tool_slug>/', views.api_convert, name='api_convert'),
+    path('v1/digital-sign/sign/', views.api_digital_sign, name='api_digital_sign'),
+    path('v1/digital-sign/verify/', views.api_digital_verify, name='api_digital_verify'),
     
     # ── Subscription & Payments ──────────────────────────────────
     path('subscription/checkout/developer/', views.checkout_developer, name='checkout_developer'),

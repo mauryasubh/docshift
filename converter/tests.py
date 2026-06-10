@@ -162,3 +162,33 @@ class ResendEmailBackendTests(TestCase):
                 "bcc": ["bcc@example.com"],
                 "reply_to": ["reply@example.com"]
             })
+
+
+class RegionalPricingViewTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(username="testpricinguser", password="testpassword123")
+
+    def test_pricing_view_india(self):
+        # Testing India regional pricing
+        response = self.client.get('/pricing/?geoip_mock=IN')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['currency'], 'INR')
+        self.assertEqual(response.context['symbol'], '₹')
+        self.assertEqual(response.context['price'], '1,499')
+        self.assertEqual(response.context['gateway'], 'razorpay')
+        self.assertContains(response, '₹1499')
+        self.assertContains(response, 'Select Duration')
+
+    def test_pricing_view_usa(self):
+        # Testing USA regional pricing (Rest of world/USD zone)
+        self.client.force_login(self.user)
+        response = self.client.get('/pricing/?geoip_mock=US')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['currency'], 'USD')
+        self.assertEqual(response.context['symbol'], '$')
+        self.assertEqual(response.context['price'], '19')
+        self.assertEqual(response.context['gateway'], 'stripe')
+        self.assertContains(response, '$19')
+        self.assertContains(response, 'Coming Soon via Stripe')
+        self.assertContains(response, 'for USD invoicing')

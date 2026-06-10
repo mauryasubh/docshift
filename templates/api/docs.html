@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}API Reference & Documentation — ShiftDocs{% endblock %}
+{% block title %}Developer REST API Reference & Documentation | ShiftDocs{% endblock %}
+{% block meta_description %}Read the ShiftDocs REST API reference. Integrate asynchronous file conversions, signatures, and webhooks in Node.js, Python, or cURL. Base URL: https://shiftdocs.io.{% endblock %}
 
 {% block content %}
 <!-- Main Layout Container -->
@@ -29,6 +30,12 @@
                 </a>
                 <a href="#endpoint-status" class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                     <span class="text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 font-bold px-1.5 py-0.5 rounded">GET</span> Check Job Status
+                </a>
+                <a href="#endpoint-digital-sign" class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <span class="text-xs bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-bold px-1.5 py-0.5 rounded">POST</span> Sign PDF (Digital)
+                </a>
+                <a href="#endpoint-digital-verify" class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <span class="text-xs bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-bold px-1.5 py-0.5 rounded">POST</span> Verify Signature
                 </a>
                 <a href="#endpoint-webhooks" class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-[#c8dff5] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                     <span class="text-base">🪝</span> Webhooks (Callbacks)
@@ -295,11 +302,170 @@ axios.post("https://shiftdocs.io/api/v1/convert/pdf_to_images/", form, {
                 </div>
             </section>
 
+            <!-- Endpoint: Sign PDF (Digital) -->
+            <section id="endpoint-digital-sign" class="scroll-mt-24 space-y-6 border-t border-gray-100 dark:border-gray-800/60 pt-10">
+                <div class="space-y-2">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+                        5. Sign PDF (Digital Signature)
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Digitally signs a PDF document using Level 2 cryptographically secure signatures. Returns the signed PDF file directly.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-850">
+                    <span class="bg-blue-600 text-white font-black text-sm px-3 py-1.5 rounded-xl text-center self-start sm:self-auto">POST</span>
+                    <code class="text-xs sm:text-sm font-mono dark:text-white select-all break-all flex-1">/api/v1/digital-sign/sign/</code>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="font-bold text-gray-955 dark:text-white">API Parameters</h3>
+                    <div class="overflow-x-auto border border-gray-100 dark:border-gray-800/60 rounded-2xl">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50 dark:bg-gray-800/50 text-xs font-bold text-gray-500 uppercase border-b border-gray-100 dark:border-gray-800/60">
+                                <tr>
+                                    <th class="px-6 py-3">Parameter</th>
+                                    <th class="px-6 py-3">Location</th>
+                                    <th class="px-6 py-3">Type</th>
+                                    <th class="px-6 py-3">Required</th>
+                                    <th class="px-6 py-3">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-800/60 text-gray-700 dark:text-gray-300">
+                                <tr>
+                                    <td class="px-6 py-4 font-mono font-bold">file</td>
+                                    <td class="px-6 py-4 text-xs">form-data</td>
+                                    <td class="px-6 py-4 font-mono text-xs">binary</td>
+                                    <td class="px-6 py-4 text-emerald-600 font-bold">Yes</td>
+                                    <td class="px-6 py-4">The raw PDF file payload to sign. Max size: 50MB.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 font-mono font-bold">reason</td>
+                                    <td class="px-6 py-4 text-xs">form-data</td>
+                                    <td class="px-6 py-4 font-mono text-xs">string</td>
+                                    <td class="px-6 py-4 text-gray-400">No</td>
+                                    <td class="px-6 py-4">The reason for signing. Defaults to <code>Document Signing</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 font-mono font-bold">visual_signature</td>
+                                    <td class="px-6 py-4 text-xs">form-data</td>
+                                    <td class="px-6 py-4 font-mono text-xs">string</td>
+                                    <td class="px-6 py-4 text-gray-400">No</td>
+                                    <td class="px-6 py-4">Whether to draw a visual stamp block (<code>"true"</code> or <code>"false"</code>). Defaults to <code>"true"</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 font-mono font-bold">position</td>
+                                    <td class="px-6 py-4 text-xs">form-data</td>
+                                    <td class="px-6 py-4 font-mono text-xs">string</td>
+                                    <td class="px-6 py-4 text-gray-400">No</td>
+                                    <td class="px-6 py-4">Stamp position: <code>bottom_right</code>, <code>bottom_left</code>, <code>top_right</code>, <code>top_left</code>, or <code>center</code>. Defaults to <code>bottom_right</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 font-mono font-bold">stamp_style</td>
+                                    <td class="px-6 py-4 text-xs">form-data</td>
+                                    <td class="px-6 py-4 font-mono text-xs">string</td>
+                                    <td class="px-6 py-4 text-gray-400">No</td>
+                                    <td class="px-6 py-4">Visual card theme: <code>card</code>, <code>minimal</code>, or <code>badge</code>. Defaults to <code>card</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 font-mono font-bold">page_choice</td>
+                                    <td class="px-6 py-4 text-xs">form-data</td>
+                                    <td class="px-6 py-4 font-mono text-xs">string</td>
+                                    <td class="px-6 py-4 text-gray-400">No</td>
+                                    <td class="px-6 py-4">Page to stamp: <code>first</code> or <code>last</code>. Defaults to <code>last</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 font-mono font-bold">offset</td>
+                                    <td class="px-6 py-4 text-xs">form-data</td>
+                                    <td class="px-6 py-4 font-mono text-xs">integer</td>
+                                    <td class="px-6 py-4 text-gray-400">No</td>
+                                    <td class="px-6 py-4">Offset margin in pixels from the page edge. Defaults to <code>10</code>.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-bold text-gray-955 dark:text-white">cURL Example</h3>
+                    <div class="bg-gray-900 rounded-2xl overflow-hidden relative">
+                        <pre class="p-4 overflow-x-auto text-xs sm:text-sm text-gray-100 font-mono">curl -X POST https://shiftdocs.io/api/v1/digital-sign/sign/ \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "file=@/path/to/doc.pdf" \
+  -F "reason=Contract Sign" \
+  -F "visual_signature=true" \
+  --output signed_doc.pdf</pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Endpoint: Verify Signature -->
+            <section id="endpoint-digital-verify" class="scroll-mt-24 space-y-6 border-t border-gray-100 dark:border-gray-800/60 pt-10">
+                <div class="space-y-2">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+                        6. Verify Signatures
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Verifies the integrity of all digital signatures embedded in a PDF document. Returns verification logs.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-850">
+                    <span class="bg-blue-600 text-white font-black text-sm px-3 py-1.5 rounded-xl text-center self-start sm:self-auto">POST</span>
+                    <code class="text-xs sm:text-sm font-mono dark:text-white select-all break-all flex-1">/api/v1/digital-sign/verify/</code>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="font-bold text-gray-955 dark:text-white">API Parameters</h3>
+                    <div class="overflow-x-auto border border-gray-100 dark:border-gray-800/60 rounded-2xl">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50 dark:bg-gray-800/50 text-xs font-bold text-gray-500 uppercase border-b border-gray-100 dark:border-gray-800/60">
+                                <tr>
+                                    <th class="px-6 py-3">Parameter</th>
+                                    <th class="px-6 py-3">Location</th>
+                                    <th class="px-6 py-3">Type</th>
+                                    <th class="px-6 py-3">Required</th>
+                                    <th class="px-6 py-3">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-800/60 text-gray-700 dark:text-gray-300">
+                                <tr>
+                                    <td class="px-6 py-4 font-mono font-bold">file</td>
+                                    <td class="px-6 py-4 text-xs">form-data</td>
+                                    <td class="px-6 py-4 font-mono text-xs">binary</td>
+                                    <td class="px-6 py-4 text-emerald-600 font-bold">Yes</td>
+                                    <td class="px-6 py-4">The raw signed PDF file to verify. Max size: 50MB.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-bold text-gray-950 dark:text-white">Response Payload (200 OK)</h3>
+                    <div class="bg-gray-900 rounded-2xl overflow-hidden">
+                        <pre class="p-4 overflow-x-auto text-sm text-cyan-300 font-mono">{
+  "has_signatures": true,
+  "status": "valid",
+  "summary": "Document is signed and authentic. No modifications detected.",
+  "signatures": [
+    {
+      "signer_name": "John Doe",
+      "reason": "Contract Acceptance",
+      "signing_time": "2026-06-10 09:12:00 UTC",
+      "integrity": "valid"
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+            </section>
+
             <!-- Endpoint: Webhooks -->
             <section id="endpoint-webhooks" class="scroll-mt-24 space-y-6 border-t border-gray-100 dark:border-gray-800/60 pt-10">
                 <div class="space-y-2">
                     <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">
-                        5. Webhooks (Callbacks)
+                        7. Webhooks (Callbacks)
                     </h2>
                     <p class="text-gray-600 dark:text-gray-300">
                         Instead of polling the status endpoint, you can configure a Webhook URL in your dashboard. When the conversion finishes, our server will automatically send an HTTP POST request directly to your listener.
@@ -327,7 +493,7 @@ axios.post("https://shiftdocs.io/api/v1/convert/pdf_to_images/", form, {
             <section id="tools-directory" class="scroll-mt-24 space-y-6 border-t border-gray-100 dark:border-gray-800/60 pt-10">
                 <div class="space-y-2">
                     <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">
-                        6. API Slugs Catalog
+                        8. API Slugs Catalog
                     </h2>
                     <p class="text-gray-600 dark:text-gray-300">
                         Below is a list of all currently supported tool types. Use the slug in your API URL path like this:
