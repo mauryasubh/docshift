@@ -1,0 +1,10 @@
+Hello {{ user.username }},
+
+Thank you for signing up for ShiftDocs! Please confirm your email address by clicking the link below:
+
+{{ activate_url }}
+
+If you did not sign up for ShiftDocs, you can safely ignore this email.
+
+Best regards,
+The ShiftDocs Team

@@ -254,12 +254,16 @@ LOGIN_REDIRECT_URL  = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 ACCOUNT_LOGIN_BY_CODE_ENABLED = False
-ACCOUNT_EMAIL_VERIFICATION    = 'none'
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_EMAIL_REQUIRED        = True
+ACCOUNT_EMAIL_VERIFICATION    = 'mandatory'
+ACCOUNT_PREVENT_ENUMERATION   = False
 ACCOUNT_SIGNUP_FIELDS         = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_SESSION_REMEMBER      = True
 
+
 SOCIALACCOUNT_AUTO_SIGNUP   = True
-SOCIALACCOUNT_EMAIL_REQUIRED = False
+SOCIALACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_LOGIN_ON_GET  = True
 
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
@@ -302,7 +306,13 @@ TESSERACT_CMD = os.environ.get(
 
 
 # ── Email ──────────────────────────────────────────────────
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
+if RESEND_API_KEY:
+    EMAIL_BACKEND = 'converter.email_backend.ResendEmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
 
 # ── Stripe ──────────────────────────────────────────────────
 STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_placeholder')

@@ -102,3 +102,63 @@ class DigitalSignatureTests(TestCase):
                 result = verify_pdf(signed_bytes)
                 self.assertTrue(result['has_signatures'])
                 self.assertEqual(result['status'], 'valid')
+
+from unittest.mock import patch
+from django.core.mail import send_mail, EmailMultiAlternatives
+
+class ResendEmailBackendTests(TestCase):
+    @patch('resend.Emails.send')
+    def test_send_email_successful(self, mock_send):
+        # Override the settings inside the test to force usage of our backend
+        with self.settings(
+            EMAIL_BACKEND='converter.email_backend.ResendEmailBackend',
+            RESEND_API_KEY='test_resend_api_key_123',
+            DEFAULT_FROM_EMAIL='onboarding@resend.dev'
+        ):
+            # 1. Simple text email
+            send_mail(
+                subject='Test Subject',
+                message='Test Body',
+                from_email='onboarding@resend.dev',
+                recipient_list=['receiver@example.com'],
+                fail_silently=False
+            )
+            
+            # Verify resend.Emails.send was called with correct payload
+            mock_send.assert_called_once_with({
+                "from": "onboarding@resend.dev",
+                "to": ["receiver@example.com"],
+                "subject": "Test Subject",
+                "text": "Test Body"
+            })
+            
+    @patch('resend.Emails.send')
+    def test_send_multipart_email_successful(self, mock_send):
+        with self.settings(
+            EMAIL_BACKEND='converter.email_backend.ResendEmailBackend',
+            RESEND_API_KEY='test_resend_api_key_123',
+            DEFAULT_FROM_EMAIL='onboarding@resend.dev'
+        ):
+            # 2. Email with HTML alternatives
+            msg = EmailMultiAlternatives(
+                subject='Html Subject',
+                body='Text content',
+                from_email='onboarding@resend.dev',
+                to=['receiver2@example.com'],
+                cc=['cc@example.com'],
+                bcc=['bcc@example.com'],
+                reply_to=['reply@example.com']
+            )
+            msg.attach_alternative('<p>Html content</p>', 'text/html')
+            msg.send(fail_silently=False)
+            
+            mock_send.assert_called_once_with({
+                "from": "onboarding@resend.dev",
+                "to": ["receiver2@example.com"],
+                "subject": "Html Subject",
+                "text": "Text content",
+                "html": "<p>Html content</p>",
+                "cc": ["cc@example.com"],
+                "bcc": ["bcc@example.com"],
+                "reply_to": ["reply@example.com"]
+            })

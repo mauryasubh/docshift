@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Your Email - ShiftDocs</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f6f9fc; padding: 40px 0;">
+    <tr>
+      <td align="center">
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #eef2f6;">
+          <!-- Header -->
+          <tr>
+            <td align="center" style="background: linear-gradient(135deg, #1a73e8 0%, #4f46e5 60%, #7c3aed 100%); padding: 32px 0;">
+              <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 800; font-size: 26px; color: #ffffff; letter-spacing: -0.5px;">ShiftDocs</span>
+            </td>
+          </tr>
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 32px; color: #1e293b;">
+              <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 16px 0; color: #0f172a;">Confirm your email address</h1>
+              <p style="font-size: 15px; line-height: 24px; color: #475569; margin: 0 0 24px 0;">
+                Hello <strong>{{ user.username }}</strong>,
+              </p>
+              <p style="font-size: 15px; line-height: 24px; color: #475569; margin: 0 0 32px 0;">
+                Please confirm your email address by clicking the button below:
+              </p>
+              
+              <!-- Button -->
+              <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 32px auto;">
+                <tr>
+                  <td align="center" style="border-radius: 12px; background-color: #1a73e8;">
+                    <a href="{{ activate_url }}" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 15px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 12px; border: 1px solid #1a73e8; transition: background-color 0.2s ease;">
+                      Confirm Email Address
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="font-size: 13px; line-height: 20px; color: #64748b; margin: 0 0 24px 0; padding: 16px; background-color: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9;">
+                <strong>Trouble clicking the button?</strong><br>
+                Copy and paste this URL into your web browser:<br>
+                <a href="{{ activate_url }}" style="color: #1a73e8; word-break: break-all;">{{ activate_url }}</a>
+              </p>
+              <p style="font-size: 14px; line-height: 22px; color: #64748b; margin: 0;">
+                If you did not request this email confirmation, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 13px;">
+              <p style="margin: 0 0 8px 0;">&copy; 2026 ShiftDocs. All rights reserved.</p>
+              <p style="margin: 0;">Designed for secure, seamless document operations.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

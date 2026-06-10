@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Reset Password — ShiftDocs{% endblock %}
+{% block title %}Verification Required — ShiftDocs{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -111,42 +111,7 @@
     width: 100%;
     max-width: 400px;
     animation: slideUp .4s ease both;
-  }
-
-  .auth-heading {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 800;
-    font-size: 1.6rem;
-    letter-spacing: -.04em;
-    color: #202124;
-    margin-bottom: .35rem;
     text-align: center;
-  }
-
-  html.dark .auth-heading {
-    color: #e2f0ff;
-  }
-
-  .f-label {
-    display: block;
-    font-size: .78rem;
-    font-weight: 600;
-    margin-bottom: .35rem;
-    color: #374151;
-  }
-
-  html.dark .f-label {
-    color: #a8c4d8;
-  }
-
-  .f-err {
-    font-size: .72rem;
-    color: #ea4335;
-    margin-top: .25rem;
-  }
-
-  html.dark .f-err {
-    color: var(--d-red);
   }
 
   @keyframes slideUp {
@@ -173,44 +138,33 @@
   <!-- RIGHT: Content -->
   <div class="auth-right">
     <div class="auth-form-box">
-      <!-- Lock Icon -->
-      <div class="w-16 h-16 mx-auto mb-6 bg-blue-50 dark:bg-blue-500/10 rounded-2xl border border-blue-100 dark:border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-[#38b6ff]">
+      <!-- Shield/Lock Icon -->
+      <div class="w-16 h-16 mx-auto mb-6 bg-amber-50 dark:bg-amber-500/10 rounded-2xl border border-amber-100 dark:border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
         <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
         </svg>
       </div>
 
-      <h1 class="auth-heading mb-2 leading-tight">Reset password</h1>
-      <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 text-center leading-relaxed">
-        Enter your email address below and we'll send you a link to reset your password.
+      <h1 class="auth-heading text-[1.6rem] font-extrabold text-gray-900 dark:text-white mb-2 leading-tight">Verify your email</h1>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+        Your email address needs to be verified before you can access ShiftDocs.
+        {% if email %}
+          A verification link was sent to <strong class="text-gray-900 dark:text-white">{{ email }}</strong>.
+        {% else %}
+          Please check your email for the verification link.
+        {% endif %}
       </p>
 
-      {% if form.errors %}
-      <div class="mb-3 p-3 rounded-lg text-sm bg-red-50 border border-red-200 text-red-700
-                  dark:bg-[rgba(248,113,113,.08)] dark:border-[rgba(248,113,113,.2)] dark:text-[#f87171]">
-        {{ form.non_field_errors|join:", " }}
-        {% for field in form %}
-          {% if field.errors %}
-            {{ field.label }}: {{ field.errors|join:", " }}
-          {% endif %}
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      <form method="post" action="{% url 'account_reset_password' %}">
+      <form method="post" action="{% url 'account_email' %}">
         {% csrf_token %}
-        <div class="mb-5">
-          <label class="f-label">Email Address</label>
-          <input type="email" name="email" class="g-input" placeholder="you@example.com" required autocomplete="email">
-        </div>
-        <button type="submit" class="g-btn w-full py-2.5 rounded-xl font-bold text-sm">
-          Send Reset Link
+        <button type="submit" name="action_send" class="g-btn w-full py-2.5 rounded-xl font-bold text-sm mb-4">
+          Resend Verification Link
         </button>
       </form>
 
-      <div class="mt-6 pt-4 border-t g-divider text-center">
-        <a href="{% url 'account_login' %}" class="text-xs font-semibold text-blue-600 dark:text-[#38b6ff] hover:underline">
-          ← Return to Login
+      <div class="pt-4 border-t g-divider">
+        <a href="/auth/login/" class="text-xs font-semibold text-blue-600 dark:text-[#38b6ff] hover:underline">
+          Return to login
         </a>
       </div>
     </div>
