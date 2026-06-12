@@ -11,6 +11,18 @@ class ConversionJobAdmin(admin.ModelAdmin):
 
 @admin.register(SalesInquiry)
 class SalesInquiryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'company', 'created_at')
+    list_display = ('name', 'email', 'company', 'is_contacted', 'created_at')
+    list_filter = ('is_contacted',)
     search_fields = ('name', 'email', 'company')
     ordering = ('-created_at',)
+    actions = ['mark_as_contacted', 'mark_as_not_contacted']
+
+    @admin.action(description="✅ Mark as Contacted")
+    def mark_as_contacted(self, request, queryset):
+        updated = queryset.update(is_contacted=True)
+        self.message_user(request, f"✅ {updated} inquiry(ies) marked as contacted.")
+
+    @admin.action(description="↩️ Mark as Not Contacted")
+    def mark_as_not_contacted(self, request, queryset):
+        updated = queryset.update(is_contacted=False)
+        self.message_user(request, f"↩️ {updated} inquiry(ies) marked as not contacted.")

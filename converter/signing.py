@@ -127,7 +127,6 @@ def _draw_visible_stamp(input_bytes, signer_name, reason, position, page_choice,
     """Draw a visual signature stamp on the PDF using PyMuPDF."""
     try:
         import fitz
-        import qrcode
 
         doc = fitz.open(stream=input_bytes, filetype="pdf")
         if len(doc) == 0:
@@ -178,6 +177,7 @@ def _draw_visible_stamp(input_bytes, signer_name, reason, position, page_choice,
 
         # Generate QR code for styles that require it
         if stamp_style in ['card', 'qr_only']:
+            import qrcode
             qr = qrcode.QRCode(version=1, box_size=8, border=1)
             qr.add_data("https://shiftdocs.io/digital-sign/")
             qr.make(fit=True)
@@ -238,7 +238,7 @@ def _draw_visible_stamp(input_bytes, signer_name, reason, position, page_choice,
         doc.close()
         return out_bytes
     except Exception as e:
-        logger.error("Failed to draw visible stamp: %s", str(e))
+        logger.error("Failed to draw visible stamp: %s", str(e), exc_info=True)
         return input_bytes
 
 

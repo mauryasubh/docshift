@@ -195,6 +195,7 @@ class SalesInquiry(models.Model):
     email = models.EmailField()
     company = models.CharField(max_length=255, blank=True, null=True)
     message = models.TextField()
+    is_contacted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

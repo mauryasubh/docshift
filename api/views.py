@@ -4,6 +4,7 @@ from converter.models import ConversionJob
 from converter.views import TOOL_CONFIG, _dispatch_task
 from django.shortcuts import render
 from .utils import rate_limit_api
+from .tier_utils import get_max_upload_size_for_profile
 
 def api_docs(request):
     """Renders the custom Developer API documentation page."""
@@ -32,9 +33,10 @@ def api_convert(request, tool_slug):
         
     uploaded_file = request.FILES['file']
     
-    # Validate basic size constraints (e.g. 100MB max)
-    if uploaded_file.size > 100 * 1024 * 1024:
-        return JsonResponse({'error': "File is too large. Max size is 100MB."}, status=413)
+    # Validate size constraints based on user's tier
+    max_size = get_max_upload_size_for_profile(request.api_profile)
+    if uploaded_file.size > max_size:
+        return JsonResponse({'error': f'File is too large. Max size is {max_size // (1024*1024)}MB for your plan.'}, status=413)
 
     # Save the job under the user's account
     job = ConversionJob(
@@ -90,9 +92,10 @@ def api_digital_sign(request):
     if not uploaded_file.name.lower().endswith('.pdf'):
         return JsonResponse({'error': 'Only PDF files can be digitally signed.'}, status=400)
         
-    # Validate basic size constraints (e.g. 50MB max)
-    if uploaded_file.size > 50 * 1024 * 1024:
-        return JsonResponse({'error': "File is too large. Max size is 50MB."}, status=413)
+    # Validate size constraints based on user's tier
+    max_size = get_max_upload_size_for_profile(request.api_profile)
+    if uploaded_file.size > max_size:
+        return JsonResponse({'error': f'File is too large. Max size is {max_size // (1024*1024)}MB for your plan.'}, status=413)
 
     # Read bytes
     try:
@@ -164,9 +167,10 @@ def api_digital_verify(request):
     if not uploaded_file.name.lower().endswith('.pdf'):
         return JsonResponse({'error': 'Only PDF files can be verified.'}, status=400)
         
-    # Validate basic size constraints (e.g. 50MB max)
-    if uploaded_file.size > 50 * 1024 * 1024:
-        return JsonResponse({'error': "File is too large. Max size is 50MB."}, status=413)
+    # Validate size constraints based on user's tier
+    max_size = get_max_upload_size_for_profile(request.api_profile)
+    if uploaded_file.size > max_size:
+        return JsonResponse({'error': f'File is too large. Max size is {max_size // (1024*1024)}MB for your plan.'}, status=413)
 
     # Read bytes
     try:
@@ -295,6 +299,10 @@ def stripe_webhook(request):
                 profile.last_quota_reset = timezone.now()
                 
                 profile.save()
+
+                # Send confirmation email
+                from converter.email_utils import send_plan_confirmation_email
+                send_plan_confirmation_email(user, 'Developer', plan_expiry_date=profile.plan_expiry_date)
             except User.DoesNotExist:
                 pass
 
@@ -426,6 +434,10 @@ def razorpay_verify(request):
             profile.api_calls_used_this_month = 0
             
         profile.save()
+
+        # Send confirmation email
+        from converter.email_utils import send_plan_confirmation_email
+        send_plan_confirmation_email(request.user, 'Developer', plan_expiry_date=profile.plan_expiry_date)
         
         return JsonResponse({
             "status": "success",
@@ -481,6 +493,10 @@ def razorpay_webhook(request):
                         profile.api_calls_used_this_month = 0
                     
                     profile.save()
+
+                    # Send confirmation email
+                    from converter.email_utils import send_plan_confirmation_email
+                    send_plan_confirmation_email(user, 'Developer', plan_expiry_date=profile.plan_expiry_date)
                 except User.DoesNotExist:
                     pass
                     

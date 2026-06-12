@@ -220,8 +220,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ── Upload limits ──────────────────────────────────────────
-MAX_UPLOAD_SIZE = 50 * 1024 * 1024   # 50 MB
+# ── Upload limits (tier-based) ─────────────────────────────
+MAX_UPLOAD_SIZE_FREE       = 10 * 1024 * 1024    # 10 MB  (Hobby)
+MAX_UPLOAD_SIZE_DEVELOPER  = 50 * 1024 * 1024    # 50 MB  (Developer)
+MAX_UPLOAD_SIZE_CORPORATE  = 200 * 1024 * 1024   # 200 MB (Corporate)
+MAX_UPLOAD_SIZE            = 50 * 1024 * 1024    # default fallback
+
+# ── API rate limits (per minute, per tier) ──────────────────
+API_RATE_LIMIT_DEVELOPER  = 20
+API_RATE_LIMIT_CORPORATE  = 50
 
 # ── Job expiry tiers ───────────────────────────────────────
 GUEST_EXPIRY_MINUTES = 5      # guests: 5 minutes
@@ -232,6 +239,8 @@ DSIGN_LIMIT_GUEST_SIGN = int(os.environ.get('DSIGN_LIMIT_GUEST_SIGN', 5))
 DSIGN_LIMIT_GUEST_VERIFY = int(os.environ.get('DSIGN_LIMIT_GUEST_VERIFY', 5))
 DSIGN_LIMIT_USER_SIGN = int(os.environ.get('DSIGN_LIMIT_USER_SIGN', 10))
 DSIGN_LIMIT_USER_VERIFY = int(os.environ.get('DSIGN_LIMIT_USER_VERIFY', 10))
+DSIGN_LIMIT_CORPORATE_SIGN = int(os.environ.get('DSIGN_LIMIT_CORPORATE_SIGN', 999999))
+DSIGN_LIMIT_CORPORATE_VERIFY = int(os.environ.get('DSIGN_LIMIT_CORPORATE_VERIFY', 999999))
 
 # ── Celery ─────────────────────────────────────────────────
 CELERY_BROKER_URL        = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
@@ -336,6 +345,7 @@ else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
+SALES_NOTIFICATION_EMAIL = os.environ.get('SALES_NOTIFICATION_EMAIL', 'sales@shiftdocs.io')
 
 # ── Stripe ──────────────────────────────────────────────────
 STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_placeholder')

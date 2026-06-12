@@ -192,3 +192,59 @@ class RegionalPricingViewTests(TestCase):
         self.assertContains(response, '$19')
         self.assertContains(response, 'Coming Soon via Stripe')
         self.assertContains(response, 'for USD invoicing')
+
+
+from django.core import mail
+from django.utils import timezone
+from django.conf import settings
+from converter.email_utils import send_plan_confirmation_email, send_sales_inquiry_emails
+
+class CorporatePlanEmailTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(username="testemailuser", email="testuser@example.com", password="testpassword123")
+
+    def test_send_plan_confirmation_email_developer(self):
+        mail.outbox = []
+        now = timezone.now()
+        success = send_plan_confirmation_email(self.user, 'Developer', plan_expiry_date=now)
+        self.assertTrue(success)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["testuser@example.com"])
+        self.assertIn("Developer Plan", mail.outbox[0].body)
+        self.assertIn("Your ShiftDocs Developer Plan is Active!", mail.outbox[0].subject)
+
+    def test_send_plan_confirmation_email_corporate(self):
+        mail.outbox = []
+        now = timezone.now()
+        success = send_plan_confirmation_email(self.user, 'Corporate', plan_expiry_date=now)
+        self.assertTrue(success)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["testuser@example.com"])
+        self.assertIn("Corporate Plan", mail.outbox[0].body)
+        self.assertIn("Welcome to ShiftDocs Corporate Tier!", mail.outbox[0].subject)
+
+    def test_send_sales_inquiry_emails(self):
+        mail.outbox = []
+        send_sales_inquiry_emails(
+            name="John Doe",
+            email="johndoe@example.com",
+            company="Acme Corp",
+            message="We would like custom pricing."
+        )
+        # It should send 2 emails: one to sales team, one to user
+        self.assertEqual(len(mail.outbox), 2)
+        
+        # Verify sales team notification
+        sales_email = mail.outbox[0]
+        sales_to = getattr(settings, 'SALES_NOTIFICATION_EMAIL', 'sales@shiftdocs.io')
+        self.assertEqual(sales_email.to, [sales_to])
+        self.assertIn("New Corporate Plan Inquiry", sales_email.subject)
+        self.assertIn("Acme Corp", sales_email.body)
+        self.assertIn("John Doe", sales_email.body)
+
+        # Verify user acknowledgement
+        user_email = mail.outbox[1]
+        self.assertEqual(user_email.to, ["johndoe@example.com"])
+        self.assertIn("We've received your ShiftDocs Sales inquiry", user_email.subject)
+        self.assertIn("Acme Corp", user_email.body)

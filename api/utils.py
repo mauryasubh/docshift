@@ -7,7 +7,7 @@ from api.models import Profile
 def rate_limit_api(requests_per_minute=20):
     """
     1) Validates Authorization: Bearer <Key>
-    2) Checks Redis to ensure speed limit isn't exceeded
+    2) Checks Redis to ensure speed limit isn't exceeded (tier-aware)
     3) Checks Database to ensure monthly quota isn't exceeded
     """
     def decorator(view_func):
@@ -25,12 +25,15 @@ def rate_limit_api(requests_per_minute=20):
             except (Profile.DoesNotExist, ValueError, ValidationError):
                 return JsonResponse({'error': 'Invalid API Key'}, status=401)
             
-            # --- Redis Speed Limiter ---
+            # --- Redis Speed Limiter (tier-aware) ---
+            from api.tier_utils import get_api_rate_limit
+            effective_rpm = get_api_rate_limit(profile)
+            
             cache_key = f"rate_limit_{api_key}"
             current_count = cache.get(cache_key, 0)
             
-            if current_count >= requests_per_minute:
-                return JsonResponse({'error': f'Too Many Requests. Limit is {requests_per_minute} per minute.'}, status=429)
+            if current_count >= effective_rpm:
+                return JsonResponse({'error': f'Too Many Requests. Limit is {effective_rpm} per minute for your plan.'}, status=429)
                 
             cache.set(cache_key, current_count + 1, timeout=60)
             
@@ -48,3 +51,4 @@ def rate_limit_api(requests_per_minute=20):
             return view_func(request, *args, **kwargs)
         return _wrapped_view
     return decorator
+

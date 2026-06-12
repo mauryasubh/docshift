@@ -11,7 +11,9 @@ class UploadForm(forms.Form):
     def clean_file(self):
         f = self.cleaned_data.get('file')
         if f:
-            max_size = getattr(settings, 'MAX_UPLOAD_SIZE', 50 * 1024 * 1024)
+            # Use the highest tier limit as a generous upper bound here.
+            # The real per-tier limit is enforced in the view layer.
+            max_size = getattr(settings, 'MAX_UPLOAD_SIZE_CORPORATE', 200 * 1024 * 1024)
             if f.size > max_size:
                 raise forms.ValidationError(
                     f"File too large. Maximum size is {max_size // (1024*1024)}MB."

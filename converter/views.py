@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.conf import settings
 from django.utils import timezone
 from django.core.paginator import Paginator
+from api.tier_utils import get_max_upload_size
 
 from .models import ConversionJob, UserProfile
 from .forms import (
@@ -174,8 +175,18 @@ def _dispatch_task(tool_slug, job, extra_kwargs=None):
     kwargs = {'job_id': str(job.id)}
     if extra_kwargs:
         kwargs.update(extra_kwargs)
+
+    # Route Corporate jobs to priority queue, others to default
+    queue_name = 'default'
+    if job.user:
+        try:
+            if job.user.api_profile.plan_tier == 'Corporate':
+                queue_name = 'priority'
+        except Exception:
+            pass
+
     try:
-        fn.apply_async(kwargs=kwargs)
+        fn.apply_async(kwargs=kwargs, queue=queue_name)
     except Exception as e:
         job.refresh_from_db()
         job.status = 'failed'
@@ -487,7 +498,7 @@ def universal_upload(request):
     if not files:
         return redirect('index')
  
-    max_size = getattr(settings, 'MAX_UPLOAD_SIZE', 50 * 1024 * 1024)
+    max_size = get_max_upload_size(request.user)
     created_ids = []
  
     for f in files:
@@ -1112,7 +1123,7 @@ def url_upload(request):
     if not url.startswith(('http://', 'https://')):
         return redirect('index')
  
-    MAX_SIZE = getattr(settings, 'MAX_UPLOAD_SIZE', 50 * 1024 * 1024)
+    MAX_SIZE = get_max_upload_size(request.user)
     TIMEOUT  = 15   # seconds
  
     try:
@@ -1242,6 +1253,10 @@ def contact_sales(request):
             SalesInquiry.objects.create(
                 name=name, email=email, company=company, message=message
             )
+            # Send notification to sales team & confirmation to customer
+            from .email_utils import send_sales_inquiry_emails
+            send_sales_inquiry_emails(name, email, company, message)
+
             messages.success(request, "Your inquiry has been received! Our sales team will reach out shortly.")
             return redirect('/pricing/?contact=success')
         else:
@@ -1351,9 +1366,9 @@ def digital_sign_api(request):
     if not uploaded.name.lower().endswith('.pdf'):
         return JsonResponse({'error': 'Only PDF files can be signed.'}, status=400)
 
-    max_size = getattr(settings, 'MAX_UPLOAD_SIZE', 50 * 1024 * 1024)
+    max_size = get_max_upload_size(request.user)
     if uploaded.size > max_size:
-        return JsonResponse({'error': 'File too large (max 50 MB).'}, status=400)
+        return JsonResponse({'error': f'File too large (max {max_size // (1024*1024)} MB for your plan).'}, status=400)
 
     # Read the file
     input_bytes = uploaded.read()
@@ -1425,9 +1440,9 @@ def digital_verify_api(request):
     if not uploaded.name.lower().endswith('.pdf'):
         return JsonResponse({'error': 'Only PDF files can be verified.'}, status=400)
 
-    max_size = getattr(settings, 'MAX_UPLOAD_SIZE', 50 * 1024 * 1024)
+    max_size = get_max_upload_size(request.user)
     if uploaded.size > max_size:
-        return JsonResponse({'error': 'File too large (max 50 MB).'}, status=400)
+        return JsonResponse({'error': f'File too large (max {max_size // (1024*1024)} MB for your plan).'}, status=400)
 
     input_bytes = uploaded.read()
 
