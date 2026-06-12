@@ -1,5 +1,6 @@
 import logging
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from django.conf import settings
 from django.utils import timezone
 
@@ -8,6 +9,7 @@ logger = logging.getLogger(__name__)
 def send_plan_confirmation_email(user, plan_tier, plan_expiry_date=None, days=None):
     """
     Sends a confirmation email to the user when they subscribe/upgrade to Developer or Corporate plans.
+    Supports both HTML and plain-text fallbacks.
     """
     if not user.email:
         logger.warning(f"User {user.username} has no email address. Skipping confirmation email.")
@@ -18,17 +20,16 @@ def send_plan_confirmation_email(user, plan_tier, plan_expiry_date=None, days=No
     # Format date
     expiry_str = "N/A"
     if plan_expiry_date:
-        # If timezone aware, convert to local or just format nicely
         expiry_str = plan_expiry_date.strftime("%B %d, %Y")
     elif days:
         expiry_str = f"{days} days"
 
     subject = ""
-    body = ""
+    text_body = ""
 
     if plan_tier == 'Developer':
         subject = "Your ShiftDocs Developer Plan is Active!"
-        body = f"""Hi {user.username},
+        text_body = f"""Hi {user.username},
 
 Thank you for upgrading to the ShiftDocs Developer Plan!
 
@@ -50,7 +51,7 @@ https://shiftdocs.io/
 """
     elif plan_tier == 'Corporate':
         subject = "Welcome to ShiftDocs Corporate Tier!"
-        body = f"""Hi {user.username},
+        text_body = f"""Hi {user.username},
 
 Your ShiftDocs Corporate Plan is now active!
 
@@ -72,17 +73,25 @@ The ShiftDocs Team
 https://shiftdocs.io/
 """
     else:
-        # Ignore free or other tiers for confirmation emails
         return False
 
     try:
-        send_mail(
+        # Render HTML version
+        html_content = render_to_string('emails/plan_confirmation.html', {
+            'username': user.username,
+            'plan_tier': plan_tier,
+            'expiry_date': expiry_str,
+        })
+        
+        msg = EmailMultiAlternatives(
             subject=subject,
-            message=body,
+            body=text_body,
             from_email=from_email,
-            recipient_list=[user.email],
-            fail_silently=True
+            to=[user.email]
         )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send(fail_silently=True)
+        
         logger.info(f"Confirmation email sent to {user.email} for plan {plan_tier}.")
         return True
     except Exception as e:
@@ -94,13 +103,14 @@ def send_sales_inquiry_emails(name, email, company, message):
     """
     1. Sends an alert email to the ShiftDocs sales team (SALES_NOTIFICATION_EMAIL).
     2. Sends a polite auto-acknowledgement email to the user who submitted the form.
+    Supports both HTML and plain-text fallbacks.
     """
     from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@shiftdocs.io')
     sales_email = getattr(settings, 'SALES_NOTIFICATION_EMAIL', 'sales@shiftdocs.io')
     
-    # 1. Alert to Sales Team
+    # 1. Alert to Sales Team (Plain Text fallback)
     sales_subject = f"[Sales Lead] New Corporate Plan Inquiry - {company or name}"
-    sales_body = f"""Hi Team,
+    sales_text_body = f"""Hi Team,
 
 A new Corporate Plan Inquiry has been submitted on ShiftDocs.
 
@@ -117,9 +127,9 @@ You can view and manage all sales inquiries in the Django Admin:
 https://shiftdocs.io/admin/converter/salesinquiry/
 """
 
-    # 2. Acknowledgement to User
+    # 2. Acknowledgement to User (Plain Text fallback)
     user_subject = "We've received your ShiftDocs Sales inquiry"
-    user_body = f"""Hi {name},
+    user_text_body = f"""Hi {name},
 
 Thank you for your interest in the ShiftDocs Corporate Plan!
 
@@ -137,28 +147,39 @@ The ShiftDocs Team
 https://shiftdocs.io/
 """
 
+    context = {
+        'name': name,
+        'email': email,
+        'company': company,
+        'message': message,
+    }
+
     # Send to sales team
     try:
-        send_mail(
+        html_sales = render_to_string('emails/sales_inquiry_alert.html', context)
+        msg_sales = EmailMultiAlternatives(
             subject=sales_subject,
-            message=sales_body,
+            body=sales_text_body,
             from_email=from_email,
-            recipient_list=[sales_email],
-            fail_silently=True
+            to=[sales_email]
         )
+        msg_sales.attach_alternative(html_sales, "text/html")
+        msg_sales.send(fail_silently=True)
         logger.info(f"Sales alert email sent to {sales_email}.")
     except Exception as e:
         logger.error(f"Failed to send sales alert email to {sales_email}: {str(e)}")
 
     # Send to user
     try:
-        send_mail(
+        html_user = render_to_string('emails/sales_inquiry_ack.html', context)
+        msg_user = EmailMultiAlternatives(
             subject=user_subject,
-            message=user_body,
+            body=user_text_body,
             from_email=from_email,
-            recipient_list=[email],
-            fail_silently=True
+            to=[email]
         )
+        msg_user.attach_alternative(html_user, "text/html")
+        msg_user.send(fail_silently=True)
         logger.info(f"Sales acknowledgement email sent to {email}.")
     except Exception as e:
         logger.error(f"Failed to send sales acknowledgement email to {email}: {str(e)}")

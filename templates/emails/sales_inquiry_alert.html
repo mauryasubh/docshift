@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Sales Inquiry</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; padding: 40px 10px;">
+    <tr>
+      <td align="center">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);">
+          
+          <!-- Header Accent -->
+          <tr>
+            <td style="background-color: #0f172a; padding: 32px; text-align: center;">
+              <span style="font-size: 12px; font-weight: 800; letter-spacing: 2px; color: #3b82f6; text-transform: uppercase; display: block; margin-bottom: 8px;">SHIFTDOCS CRM</span>
+              <h2 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; font-family: inherit;">New Corporate Lead</h2>
+            </td>
+          </tr>
+
+          <!-- Content Body -->
+          <tr>
+            <td style="padding: 40px 32px;">
+              <p style="margin-top: 0; margin-bottom: 24px; font-size: 16px; line-height: 1.6; color: #334155; font-weight: 600;">
+                Hi Team,
+              </p>
+              <p style="margin-top: 0; margin-bottom: 24px; font-size: 16px; line-height: 1.6; color: #334155;">
+                A new Corporate Plan inquiry has been submitted. Here are the prospect details:
+              </p>
+
+              <!-- Data Card -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f1f5f9; border-radius: 12px; margin-bottom: 30px; border-collapse: separate; border: 1px solid #e2e8f0;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td width="30%" style="padding-bottom: 16px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Name</td>
+                        <td width="70%" style="padding-bottom: 16px; font-size: 15px; font-weight: 600; color: #0f172a;">{{ name }}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding-bottom: 16px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Email</td>
+                        <td style="padding-bottom: 16px; font-size: 15px; font-weight: 600; color: #3b82f6;"><a href="mailto:{{ email }}" style="color: #3b82f6; text-decoration: none;">{{ email }}</a></td>
+                      </tr>
+                      <tr>
+                        <td style="padding-bottom: 16px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Company</td>
+                        <td style="padding-bottom: 16px; font-size: 15px; font-weight: 600; color: #0f172a;">{{ company|default:"Not specified" }}</td>
+                      </tr>
+                      <tr>
+                        <td style="vertical-align: top; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Message</td>
+                        <td style="font-size: 15px; line-height: 1.5; color: #334155; white-space: pre-wrap;">{{ message }}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA Button -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+                <tr>
+                  <td align="center">
+                    <a href="https://shiftdocs.io/admin/converter/salesinquiry/" target="_blank" style="background-color: #0f172a; color: #ffffff; text-decoration: none; padding: 14px 28px; font-size: 15px; font-weight: 700; border-radius: 8px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.15);">
+                      Manage Leads in Admin
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin-top: 24px; margin-bottom: 0; font-size: 13px; color: #64748b; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 24px; line-height: 1.5;">
+                This inquiry has been saved to the database. Follow up via CRM actions.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
