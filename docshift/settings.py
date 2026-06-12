@@ -344,7 +344,7 @@ if RESEND_API_KEY:
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'hello@shiftdocs.io')
 SALES_NOTIFICATION_EMAIL = os.environ.get('SALES_NOTIFICATION_EMAIL', 'sales@shiftdocs.io')
 
 # ── Stripe ──────────────────────────────────────────────────
