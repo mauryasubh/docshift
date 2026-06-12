@@ -15,7 +15,7 @@ def send_plan_confirmation_email(user, plan_tier, plan_expiry_date=None, days=No
         logger.warning(f"User {user.username} has no email address. Skipping confirmation email.")
         return False
 
-    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@shiftdocs.io')
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'hello@shiftdocs.io')
     
     # Format date
     expiry_str = "N/A"
@@ -105,7 +105,7 @@ def send_sales_inquiry_emails(name, email, company, message):
     2. Sends a polite auto-acknowledgement email to the user who submitted the form.
     Supports both HTML and plain-text fallbacks.
     """
-    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@shiftdocs.io')
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'hello@shiftdocs.io')
     sales_email = getattr(settings, 'SALES_NOTIFICATION_EMAIL', 'sales@shiftdocs.io')
     
     # 1. Alert to Sales Team (Plain Text fallback)
