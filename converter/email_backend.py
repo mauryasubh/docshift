@@ -1,6 +1,9 @@
 import base64
 import logging
-import resend
+try:
+    import resend
+except ImportError:
+    resend = None
 from django.core.mail.backends.base import BaseEmailBackend
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
@@ -17,6 +20,12 @@ class ResendEmailBackend(BaseEmailBackend):
 
     def send_messages(self, email_messages):
         if not email_messages:
+            return 0
+
+        if not resend:
+            logger.error("The 'resend' Python SDK is not installed. Email delivery skipped.")
+            if not self.fail_silently:
+                raise ValueError("The 'resend' Python SDK is not installed.")
             return 0
 
         if not self.api_key:
