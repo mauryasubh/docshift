@@ -4,16 +4,46 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>New Sales Inquiry</title>
+  <style>
+    @media screen and (max-width: 600px) {
+      .email-container {
+        width: 100% !important;
+      }
+      .email-padding {
+        padding: 24px 16px !important;
+      }
+      .email-header {
+        padding: 24px 16px !important;
+      }
+      .responsive-td {
+        display: block !important;
+        width: 100% !important;
+        padding-bottom: 4px !important;
+      }
+      .responsive-td.value-td {
+        padding-bottom: 16px !important;
+      }
+      .cta-button {
+        padding: 12px 20px !important;
+        font-size: 14px !important;
+      }
+    }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; padding: 40px 10px;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc;">
     <tr>
-      <td align="center">
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);">
+      <td align="center" style="padding: 40px 10px;" class="email-padding">
+        <!--[if mso]>
+        <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+        <tr>
+        <td>
+        <![endif]-->
+        <table class="email-container" align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; width: 100%; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border-collapse: collapse;">
           
           <!-- Header Accent -->
           <tr>
-            <td style="background-color: #0f172a; padding: 32px; text-align: center;">
+            <td class="email-header" style="background-color: #0f172a; padding: 32px; text-align: center;">
               <span style="font-size: 12px; font-weight: 800; letter-spacing: 2px; color: #3b82f6; text-transform: uppercase; display: block; margin-bottom: 8px;">SHIFTDOCS CRM</span>
               <h2 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; font-family: inherit;">New Corporate Lead</h2>
             </td>
@@ -21,7 +51,7 @@
 
           <!-- Content Body -->
           <tr>
-            <td style="padding: 40px 32px;">
+            <td class="email-padding" style="padding: 40px 32px;">
               <p style="margin-top: 0; margin-bottom: 24px; font-size: 16px; line-height: 1.6; color: #334155; font-weight: 600;">
                 Hi Team,
               </p>
@@ -32,23 +62,23 @@
               <!-- Data Card -->
               <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f1f5f9; border-radius: 12px; margin-bottom: 30px; border-collapse: separate; border: 1px solid #e2e8f0;">
                 <tr>
-                  <td style="padding: 24px;">
+                  <td class="email-padding" style="padding: 24px;">
                     <table border="0" cellpadding="0" cellspacing="0" width="100%">
                       <tr>
-                        <td width="30%" style="padding-bottom: 16px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Name</td>
-                        <td width="70%" style="padding-bottom: 16px; font-size: 15px; font-weight: 600; color: #0f172a;">{{ name }}</td>
+                        <td class="responsive-td" width="30%" style="padding-bottom: 16px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Name</td>
+                        <td class="responsive-td value-td" width="70%" style="padding-bottom: 16px; font-size: 15px; font-weight: 600; color: #0f172a;">{{ name }}</td>
                       </tr>
                       <tr>
-                        <td style="padding-bottom: 16px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Email</td>
-                        <td style="padding-bottom: 16px; font-size: 15px; font-weight: 600; color: #3b82f6;"><a href="mailto:{{ email }}" style="color: #3b82f6; text-decoration: none;">{{ email }}</a></td>
+                        <td class="responsive-td" style="padding-bottom: 16px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Email</td>
+                        <td class="responsive-td value-td" style="padding-bottom: 16px; font-size: 15px; font-weight: 600; color: #3b82f6;"><a href="mailto:{{ email }}" style="color: #3b82f6; text-decoration: none;">{{ email }}</a></td>
                       </tr>
                       <tr>
-                        <td style="padding-bottom: 16px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Company</td>
-                        <td style="padding-bottom: 16px; font-size: 15px; font-weight: 600; color: #0f172a;">{{ company|default:"Not specified" }}</td>
+                        <td class="responsive-td" style="padding-bottom: 16px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Company</td>
+                        <td class="responsive-td value-td" style="padding-bottom: 16px; font-size: 15px; font-weight: 600; color: #0f172a;">{{ company|default:"Not specified" }}</td>
                       </tr>
                       <tr>
-                        <td style="vertical-align: top; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Message</td>
-                        <td style="font-size: 15px; line-height: 1.5; color: #334155; white-space: pre-wrap;">{{ message }}</td>
+                        <td class="responsive-td" style="vertical-align: top; padding-bottom: 16px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Message</td>
+                        <td class="responsive-td" style="font-size: 15px; line-height: 1.5; color: #334155; white-space: pre-wrap;">{{ message }}</td>
                       </tr>
                     </table>
                   </td>
@@ -59,7 +89,7 @@
               <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
                 <tr>
                   <td align="center">
-                    <a href="https://shiftdocs.io/admin/converter/salesinquiry/" target="_blank" style="background-color: #0f172a; color: #ffffff; text-decoration: none; padding: 14px 28px; font-size: 15px; font-weight: 700; border-radius: 8px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.15);">
+                    <a class="cta-button" href="https://shiftdocs.io/admin/converter/salesinquiry/" target="_blank" style="background-color: #0f172a; color: #ffffff; text-decoration: none; padding: 14px 28px; font-size: 15px; font-weight: 700; border-radius: 8px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.15);">
                       Manage Leads in Admin
                     </a>
                   </td>
@@ -72,6 +102,11 @@
             </td>
           </tr>
         </table>
+        <!--[if mso]>
+        </td>
+        </tr>
+        </table>
+        <![endif]-->
       </td>
     </tr>
   </table>

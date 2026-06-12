@@ -4,21 +4,43 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Confirm Your Email - ShiftDocs</title>
+  <style>
+    @media screen and (max-width: 600px) {
+      .email-container {
+        width: 100% !important;
+      }
+      .email-padding {
+        padding: 24px 16px !important;
+      }
+      .email-header {
+        padding: 24px 16px !important;
+      }
+      .cta-button {
+        padding: 12px 20px !important;
+        font-size: 14px !important;
+      }
+    }
+  </style>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f6f9fc; padding: 40px 0;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f6f9fc;">
     <tr>
-      <td align="center">
-        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #eef2f6;">
+      <td align="center" style="padding: 40px 10px;" class="email-padding">
+        <!--[if (gte mso 9)|(IE)]>
+        <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+        <tr>
+        <td>
+        <![endif]-->
+        <table class="email-container" align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; width: 100%; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #eef2f6; border-collapse: collapse;">
           <!-- Header -->
           <tr>
-            <td align="center" style="background: linear-gradient(135deg, #1a73e8 0%, #4f46e5 60%, #7c3aed 100%); padding: 32px 0;">
+            <td class="email-header" align="center" style="background: linear-gradient(135deg, #1a73e8 0%, #4f46e5 60%, #7c3aed 100%); padding: 32px 24px;">
               <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 800; font-size: 26px; color: #ffffff; letter-spacing: -0.5px;">ShiftDocs</span>
             </td>
           </tr>
           <!-- Content -->
           <tr>
-            <td style="padding: 40px 32px; color: #1e293b;">
+            <td class="email-padding" style="padding: 40px 32px; color: #1e293b;">
               <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 16px 0; color: #0f172a;">Confirm your email address</h1>
               <p style="font-size: 15px; line-height: 24px; color: #475569; margin: 0 0 24px 0;">
                 Hello <strong>{{ user.username }}</strong>,
@@ -31,7 +53,7 @@
               <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 32px auto;">
                 <tr>
                   <td align="center" style="border-radius: 12px; background-color: #1a73e8;">
-                    <a href="{{ activate_url }}" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 15px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 12px; border: 1px solid #1a73e8; transition: background-color 0.2s ease;">
+                    <a class="cta-button" href="{{ activate_url }}" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 15px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 12px; border: 1px solid #1a73e8; transition: background-color 0.2s ease;">
                       Confirm Email Address
                     </a>
                   </td>
@@ -50,12 +72,17 @@
           </tr>
           <!-- Footer -->
           <tr>
-            <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 13px;">
+            <td class="email-padding" style="padding: 24px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 13px;">
               <p style="margin: 0 0 8px 0;">&copy; 2026 ShiftDocs. All rights reserved.</p>
               <p style="margin: 0;">Designed for secure, seamless document operations.</p>
             </td>
           </tr>
         </table>
+        <!--[if (gte mso 9)|(IE)]>
+        </td>
+        </tr>
+        </table>
+        <![endif]-->
       </td>
     </tr>
   </table>
