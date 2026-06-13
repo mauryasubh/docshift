@@ -289,14 +289,15 @@ ACCOUNT_LOGIN_BY_CODE_ENABLED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_REQUIRED        = True
 ACCOUNT_EMAIL_VERIFICATION    = 'mandatory'
-ACCOUNT_PREVENT_ENUMERATION   = False
+ACCOUNT_PREVENT_ENUMERATION   = True
 ACCOUNT_SIGNUP_FIELDS         = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_SESSION_REMEMBER      = True
 
 
-SOCIALACCOUNT_AUTO_SIGNUP   = True
-SOCIALACCOUNT_EMAIL_REQUIRED = True
-SOCIALACCOUNT_LOGIN_ON_GET  = True
+SOCIALACCOUNT_AUTO_SIGNUP       = True
+SOCIALACCOUNT_EMAIL_REQUIRED    = True
+SOCIALACCOUNT_LOGIN_ON_GET      = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
@@ -336,6 +337,9 @@ TESSERACT_CMD = os.environ.get(
     r'C:\Program Files\Tesseract-OCR\tesseract.exe' if os.name == 'nt' else 'tesseract'
 )
 
+# ── Digital Signature Cert Password ───────────────────────
+SIGNING_CERT_PASSWORD = os.environ.get('SIGNING_CERT_PASSWORD', 'ShiftDocs-Default-Signing-Key-2024')
+
 
 # ── Email ──────────────────────────────────────────────────
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
@@ -364,6 +368,27 @@ RAZORPAY_PLAN_PRICE_90_DAYS_INR = int(os.environ.get('RAZORPAY_PLAN_PRICE_90_DAY
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 
 if not DEBUG:
+    # ── Payment key safety check ───────────────────────────────
+    # Crash early if production is still using placeholder payment credentials
+    _PLACEHOLDER_KEYS = {
+        'STRIPE_SECRET_KEY': STRIPE_SECRET_KEY,
+        'STRIPE_WEBHOOK_SECRET': STRIPE_WEBHOOK_SECRET,
+        'RAZORPAY_KEY_SECRET': RAZORPAY_KEY_SECRET,
+        'RAZORPAY_WEBHOOK_SECRET': RAZORPAY_WEBHOOK_SECRET,
+    }
+    _placeholder_warnings = [
+        k for k, v in _PLACEHOLDER_KEYS.items() if 'placeholder' in str(v).lower()
+    ]
+    if _placeholder_warnings:
+        import warnings
+        warnings.warn(
+            f"⚠️  PRODUCTION WARNING: The following payment keys are still set to placeholder values: "
+            f"{', '.join(_placeholder_warnings)}. "
+            f"Set real credentials in your .env file before accepting payments.",
+            RuntimeWarning,
+            stacklevel=1,
+        )
+
     # Always trust the X-Forwarded-Proto header from the reverse proxy/load balancer
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 

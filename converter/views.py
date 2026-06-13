@@ -677,29 +677,6 @@ def dashboard_delete_job(request, uuid):
     return redirect('dashboard')
 
 
-def dashboard_delete_job(request, uuid):
-    job = get_object_or_404(ConversionJob, id=uuid)
-    if request.user.is_authenticated:
-        if job.user != request.user:
-            raise Http404
-    else:
-        ids = request.session.get('dashboard_jobs', [])
-        if str(uuid) not in ids:
-            raise Http404
-    for f in [job.input_file, job.output_file]:
-        if f:
-            try:
-                if os.path.exists(f.path):
-                    os.remove(f.path)
-            except Exception:
-                pass
-    job.delete()
-    if not request.user.is_authenticated:
-        ids = request.session.get('dashboard_jobs', [])
-        request.session['dashboard_jobs'] = [i for i in ids if i != str(uuid)]
-    return redirect('dashboard')
-
-
 # ─────────────────────────────────────────────────────────────
 #  Job Retry
 # ─────────────────────────────────────────────────────────────

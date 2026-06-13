@@ -32,12 +32,19 @@ def analyse_pdf_task(self, session_id):
                 for page in doc:
                     if len(page.get_text("text").strip()) >= MIN_CHARS_FOR_TEXT_PAGE:
                         pages_with_text.add(page.number)
-            for page in doc:
-                if page.number not in pages_with_text:
-                    try:
-                        all_blocks.extend(run_ocr_on_page(page, dpi=150))
-                    except Exception as e:
-                        session.error_message = (session.error_message or '') + f"\nOCR p{page.number+1}: {e}"
+            # Count how many pages actually require OCR
+            pages_to_ocr = [page for page in doc if page.number not in pages_with_text]
+            if session.is_guest and len(pages_to_ocr) > 5:
+                raise RuntimeError(
+                    "OCR is limited to 5 pages for guest users. "
+                    "Please sign up or log in to process larger scanned documents."
+                )
+
+            for page in pages_to_ocr:
+                try:
+                    all_blocks.extend(run_ocr_on_page(page, dpi=150))
+                except Exception as e:
+                    session.error_message = (session.error_message or '') + f"\nOCR p{page.number+1}: {e}"
         images = extract_images(doc)
         render_page_images(doc, str(session.id), dpi=150)
         dims   = page_dimensions(doc)

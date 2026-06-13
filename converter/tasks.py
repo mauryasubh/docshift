@@ -90,18 +90,15 @@ def split_pdf_task(self, job_id, start_page=None, end_page=None):
         s = max(0, (int(start_page) - 1) if start_page else 0)
         e = min(total, int(end_page) if end_page else total)
         e = max(s + 1, e)
-        tmp_dir = tempfile.mkdtemp()
-        files_dict = {}
-        for i in range(s, e):
-            out = fitz.open(); out.insert_pdf(doc, from_page=i, to_page=i)
-            fp = os.path.join(tmp_dir, f"page_{i+1}.pdf")
-            out.save(fp); out.close()
-            files_dict[f"page_{i+1}.pdf"] = fp
-        doc.close()
-        zip_abs, zip_rel = create_zip(files_dict, 'split_pages.zip')
-        for fp in files_dict.values():
-            try: os.remove(fp)
-            except: pass
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            files_dict = {}
+            for i in range(s, e):
+                out = fitz.open(); out.insert_pdf(doc, from_page=i, to_page=i)
+                fp = os.path.join(tmp_dir, f"page_{i+1}.pdf")
+                out.save(fp); out.close()
+                files_dict[f"page_{i+1}.pdf"] = fp
+            doc.close()
+            zip_abs, zip_rel = create_zip(files_dict, 'split_pages.zip')
         job.output_file = zip_rel
         job.output_size = os.path.getsize(zip_abs)
         job.status = 'done'; job.save()
@@ -131,37 +128,34 @@ def pdf_to_images_task(self, job_id, dpi=150, img_format='png'):
         file_ext = ext_map[fmt]
 
         doc = fitz.open(job.input_file.path)
-        tmp_dir = tempfile.mkdtemp()
-        files_dict = {}
-        mat = fitz.Matrix(dpi / 72, dpi / 72)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            files_dict = {}
+            mat = fitz.Matrix(dpi / 72, dpi / 72)
 
-        for i, page in enumerate(doc):
-            pix = page.get_pixmap(matrix=mat, alpha=False)
-            img_filename = f"page_{i + 1}{file_ext}"
-            img_abs = os.path.join(tmp_dir, img_filename)
+            for i, page in enumerate(doc):
+                pix = page.get_pixmap(matrix=mat, alpha=False)
+                img_filename = f"page_{i + 1}{file_ext}"
+                img_abs = os.path.join(tmp_dir, img_filename)
 
-            if fmt == 'png':
-                pix.save(img_abs)
-            else:
-                img_bytes = pix.tobytes('png')
-                img = Image.open(io.BytesIO(img_bytes))
-                if img.mode in ('RGBA', 'P', 'LA'):
-                    bg = Image.new('RGB', img.size, (255, 255, 255))
-                    if img.mode == 'P':
-                        img = img.convert('RGBA')
-                    bg.paste(img, mask=img.split()[3] if img.mode == 'RGBA' else None)
-                    img = bg
-                elif img.mode != 'RGB':
-                    img = img.convert('RGB')
-                img.save(img_abs, pil_fmt[fmt], quality=85, optimize=True)
+                if fmt == 'png':
+                    pix.save(img_abs)
+                else:
+                    img_bytes = pix.tobytes('png')
+                    img = Image.open(io.BytesIO(img_bytes))
+                    if img.mode in ('RGBA', 'P', 'LA'):
+                        bg = Image.new('RGB', img.size, (255, 255, 255))
+                        if img.mode == 'P':
+                            img = img.convert('RGBA')
+                        bg.paste(img, mask=img.split()[3] if img.mode == 'RGBA' else None)
+                        img = bg
+                    elif img.mode != 'RGB':
+                        img = img.convert('RGB')
+                    img.save(img_abs, pil_fmt[fmt], quality=85, optimize=True)
 
-            files_dict[img_filename] = img_abs
+                files_dict[img_filename] = img_abs
 
-        doc.close()
-        zip_abs, zip_rel = create_zip(files_dict, f'pdf_images_{fmt}.zip')
-        for fp in files_dict.values():
-            try: os.remove(fp)
-            except: pass
+            doc.close()
+            zip_abs, zip_rel = create_zip(files_dict, f'pdf_images_{fmt}.zip')
         job.output_file = zip_rel
         job.output_size = os.path.getsize(zip_abs)
         job.status = 'done'; job.save()
@@ -1419,54 +1413,50 @@ def extract_images_task(self, job_id):
         from PIL import Image
         import io
 
-        doc      = fitz.open(job.input_file.path)
-        tmp_dir  = tempfile.mkdtemp()
-        files_dict  = {}
-        img_counter = 0
-        MIN_SIZE    = 10   # skip images smaller than 10×10 px
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            files_dict  = {}
+            img_counter = 0
+            MIN_SIZE    = 10   # skip images smaller than 10×10 px
 
-        for page_num, page in enumerate(doc, start=1):
-            image_list = page.get_images(full=True)
-            for img_info in image_list:
-                xref = img_info[0]
-                try:
-                    base_image = doc.extract_image(xref)
-                    img_bytes  = base_image['image']
-                    img_ext    = base_image['ext']   # 'png', 'jpeg', etc.
+            for page_num, page in enumerate(doc, start=1):
+                image_list = page.get_images(full=True)
+                for img_info in image_list:
+                    xref = img_info[0]
+                    try:
+                        base_image = doc.extract_image(xref)
+                        img_bytes  = base_image['image']
+                        img_ext    = base_image['ext']   # 'png', 'jpeg', etc.
 
-                    # Check dimensions via PIL — skip tiny decorative images
-                    pil_img = Image.open(io.BytesIO(img_bytes))
-                    iw, ih  = pil_img.size
-                    if iw < MIN_SIZE or ih < MIN_SIZE:
-                        continue
+                        # Check dimensions via PIL — skip tiny decorative images
+                        pil_img = Image.open(io.BytesIO(img_bytes))
+                        iw, ih  = pil_img.size
+                        if iw < MIN_SIZE or ih < MIN_SIZE:
+                            continue
 
-                    img_counter += 1
-                    # Always save as PNG for consistency
-                    if pil_img.mode in ('RGBA', 'P', 'LA'):
-                        pil_img = pil_img.convert('RGBA')
-                    elif pil_img.mode not in ('RGB', 'RGBA', 'L'):
-                        pil_img = pil_img.convert('RGB')
+                        img_counter += 1
+                        # Always save as PNG for consistency
+                        if pil_img.mode in ('RGBA', 'P', 'LA'):
+                            pil_img = pil_img.convert('RGBA')
+                        elif pil_img.mode not in ('RGB', 'RGBA', 'L'):
+                            pil_img = pil_img.convert('RGB')
 
-                    filename  = f'page{page_num:03d}_img{img_counter:03d}.png'
-                    save_path = os.path.join(tmp_dir, filename)
-                    pil_img.save(save_path, 'PNG', optimize=True)
-                    files_dict[filename] = save_path
+                        filename  = f'page{page_num:03d}_img{img_counter:03d}.png'
+                        save_path = os.path.join(tmp_dir, filename)
+                        pil_img.save(save_path, 'PNG', optimize=True)
+                        files_dict[filename] = save_path
 
-                except Exception:
-                    continue   # skip unreadable images silently
+                    except Exception:
+                        continue   # skip unreadable images silently
 
-        doc.close()
+            doc.close()
 
-        if not files_dict:
-            raise RuntimeError(
-                'No images found in this PDF. '
-                'The file may contain no embedded images, or only very small decorative elements.'
-            )
+            if not files_dict:
+                raise RuntimeError(
+                    'No images found in this PDF. '
+                    'The file may contain no embedded images, or only very small decorative elements.'
+                )
 
-        zip_abs, zip_rel = create_zip(files_dict, 'extracted_images.zip')
-        for fp in files_dict.values():
-            try: os.remove(fp)
-            except: pass
+            zip_abs, zip_rel = create_zip(files_dict, 'extracted_images.zip')
 
         job.output_file = zip_rel
         job.output_size = os.path.getsize(zip_abs)

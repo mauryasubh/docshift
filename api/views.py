@@ -5,6 +5,9 @@ from converter.views import TOOL_CONFIG, _dispatch_task
 from django.shortcuts import render
 from .utils import rate_limit_api
 from .tier_utils import get_max_upload_size_for_profile
+import logging
+
+logger = logging.getLogger(__name__)
 
 def api_docs(request):
     """Renders the custom Developer API documentation page."""
@@ -443,8 +446,15 @@ def razorpay_verify(request):
             "status": "success",
             "message": "Plan successfully upgraded to Developer!"
         })
+    except razorpay.errors.SignatureVerificationError as e:
+        logger.warning("Razorpay signature verification failed: %s", e)
+        return JsonResponse({"error": "Payment signature verification failed."}, status=400)
+    except json.JSONDecodeError:
+        logger.warning("Razorpay verify received invalid JSON body")
+        return JsonResponse({"error": "Invalid request body."}, status=400)
     except Exception as e:
-        return JsonResponse({"error": f"Verification failed: {str(e)}"}, status=400)
+        logger.exception("Unexpected error in razorpay_verify")
+        return JsonResponse({"error": "Verification failed. Please contact support."}, status=400)
 
 
 @csrf_exempt
@@ -501,6 +511,10 @@ def razorpay_webhook(request):
                     pass
                     
         return HttpResponse(status=200)
-    except Exception:
-        # Invalid signature or error processing
+    except razorpay.errors.SignatureVerificationError as e:
+        logger.warning("Razorpay webhook signature verification failed: %s", e)
+        return HttpResponse(status=400)
+    except Exception as e:
+        # Log unexpected errors for debugging instead of silently swallowing
+        logger.exception("Unexpected error in razorpay_webhook: %s", e)
         return HttpResponse(status=400)

@@ -43,8 +43,21 @@ def _ensure_pkcs12():
     cert_dir = _get_cert_dir()
     p12_path = cert_dir / 'shiftdocs_sign.p12'
 
+    from cryptography.hazmat.primitives.serialization import pkcs12
+
     if p12_path.exists():
-        return str(p12_path)
+        try:
+            pkcs12.load_key_and_certificates(
+                p12_path.read_bytes(),
+                _get_cert_password()
+            )
+            return str(p12_path)
+        except Exception:
+            logger.warning("Could not load existing PKCS#12 certificate. Regenerating to ensure proper encryption.")
+            try:
+                p12_path.unlink()
+            except Exception:
+                pass
 
     # Generate RSA 2048 key
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -84,13 +97,14 @@ def _ensure_pkcs12():
         .sign(key, hashes.SHA256())
     )
 
-    # Serialize to PKCS#12 (no password for simplicity)
-    p12_data = serialization.pkcs12.serialize_key_and_certificates(
+    # Serialize to PKCS#12 with password encryption
+    password = _get_cert_password()
+    p12_data = pkcs12.serialize_key_and_certificates(
         name=b"ShiftDocs Signing",
         key=key,
         cert=cert,
         cas=None,
-        encryption_algorithm=serialization.NoEncryption(),
+        encryption_algorithm=serialization.BestAvailableEncryption(password),
     )
     p12_path.write_bytes(p12_data)
 
@@ -100,6 +114,15 @@ def _ensure_pkcs12():
 
 # Cached signer instance
 _signer_cache = None
+
+
+def _get_cert_password():
+    """Return the PKCS#12 encryption password from environment/settings."""
+    from django.conf import settings
+    password = getattr(settings, 'SIGNING_CERT_PASSWORD', None)
+    if not password:
+        password = os.environ.get('SIGNING_CERT_PASSWORD', 'ShiftDocs-Default-Signing-Key-2024')
+    return password.encode() if isinstance(password, str) else password
 
 
 def _get_signer():
@@ -113,7 +136,7 @@ def _get_signer():
     p12_path = _ensure_pkcs12()
     signer = SimpleSigner.load_pkcs12(
         pfx_file=p12_path,
-        passphrase=None,
+        passphrase=_get_cert_password(),
     )
     _signer_cache = signer
     return signer
@@ -373,6 +396,7 @@ def verify_pdf(input_bytes):
             import asyncio
             from pyhanko.sign.validation import async_validate_pdf_signature
 
+            loop = None
             try:
                 loop = asyncio.new_event_loop()
                 status = loop.run_until_complete(
@@ -381,7 +405,6 @@ def verify_pdf(input_bytes):
                         signer_validation_context=None,
                     )
                 )
-                loop.close()
 
                 sig_info['intact'] = status.intact
                 sig_info['valid'] = status.intact
@@ -403,6 +426,9 @@ def verify_pdf(input_bytes):
                     sig_info['intact'] = False
                     sig_info['valid'] = False
                     any_tampered = True
+            finally:
+                if loop is not None:
+                    loop.close()
 
         except Exception as e:
             sig_info['intact'] = False
