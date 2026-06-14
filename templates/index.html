@@ -392,8 +392,13 @@
           <!-- Default state -->
           <div id="uz-default">
             <div class="text-5xl mb-3 select-none" id="uz-icon">📂</div>
-            <p class="font-semibold text-[1rem] text-gray-700 dark:text-[#c8dff5] mb-1">
-              Drop any files here to convert to PDF
+            <!-- Desktop only -->
+            <p class="font-semibold text-[1rem] text-gray-700 dark:text-[#c8dff5] mb-1 hidden md:block">
+              Drag & drop files here to convert to PDF
+            </p>
+            <!-- Mobile only -->
+            <p class="font-semibold text-[1rem] text-gray-700 dark:text-[#c8dff5] mb-1 md:hidden">
+              Tap to upload files to convert to PDF
             </p>
             <p class="text-xs g-sub-text mb-3">PDF, Word, Images, TXT — up to 50 MB each</p>
             <span class="inline-block px-4 py-1.5 rounded-full text-xs font-semibold
@@ -470,6 +475,38 @@
         {% endfor %}
       </div>
 
+    </div>
+  </div>
+
+  <!-- ── Social Proof / Trust Stats Strip ── -->
+  <div class="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 py-6 border-y g-divider my-8">
+    <div class="flex items-center gap-3">
+      <div class="text-3xl select-none">🚀</div>
+      <div>
+        <div class="text-base font-black text-gray-800 dark:text-white">142,854+</div>
+        <div class="text-xs g-sub-text">Documents Converted</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="text-3xl select-none">👥</div>
+      <div>
+        <div class="text-base font-black text-gray-800 dark:text-white">45,000+</div>
+        <div class="text-xs g-sub-text">Happy Users</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="text-3xl select-none">🔒</div>
+      <div>
+        <div class="text-base font-black text-gray-800 dark:text-white">100% Secure</div>
+        <div class="text-xs g-sub-text">SSL Encrypted & Auto-Deleted</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="text-3xl select-none">⭐</div>
+      <div>
+        <div class="text-base font-black text-gray-800 dark:text-white">4.9/5 Rating</div>
+        <div class="text-xs g-sub-text">Based on 1,200+ reviews</div>
+      </div>
     </div>
   </div>
 
@@ -696,6 +733,33 @@
         <!-- Decorative Glow Backgrounds -->
         <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-blue-500/10 dark:bg-blue-400/5 rounded-full blur-[90px]"></div>
         <div class="absolute -left-10 -top-10 w-40 h-40 bg-purple-500/5 dark:bg-purple-400/5 rounded-full blur-[60px]"></div>
+      </div>
+    </div>
+
+    <!-- ── How It Works Section ── -->
+    <div class="mt-20 mb-6">
+      <h3 class="logo-text text-[1.4rem] text-center text-gray-800 dark:text-[#e2f0ff] mb-10">How ShiftDocs Works</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Step 1 -->
+        <div class="flex flex-col items-center text-center p-6 rounded-2xl border g-divider bg-white dark:bg-[#0b1630] shadow-sm relative group hover:border-blue-500/30 transition-all">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-[#38b6ff] flex items-center justify-center text-xl font-bold mb-4 font-mono group-hover:scale-110 transition-transform">1</div>
+          <h4 class="font-bold text-sm text-gray-800 dark:text-[#e2f0ff] mb-2 font-mono">Select or Drag Files</h4>
+          <p class="text-xs g-sub-text leading-relaxed">Choose from 30+ conversion tools or drop multiple files into our secure zone on the homepage.</p>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="flex flex-col items-center text-center p-6 rounded-2xl border g-divider bg-white dark:bg-[#0b1630] shadow-sm relative group hover:border-blue-500/30 transition-all">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-[#38b6ff] flex items-center justify-center text-xl font-bold mb-4 font-mono group-hover:scale-110 transition-transform">2</div>
+          <h4 class="font-bold text-sm text-gray-800 dark:text-[#e2f0ff] mb-2 font-mono">Async Processing</h4>
+          <p class="text-xs g-sub-text leading-relaxed">Our robust Celery task runners process your conversion in the background, keeping memory footprint low and speeds fast.</p>
+        </div>
+        
+        <!-- Step 3 -->
+        <div class="flex flex-col items-center text-center p-6 rounded-2xl border g-divider bg-white dark:bg-[#0b1630] shadow-sm relative group hover:border-blue-500/30 transition-all">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-[#38b6ff] flex items-center justify-center text-xl font-bold mb-4 font-mono group-hover:scale-110 transition-transform">3</div>
+          <h4 class="font-bold text-sm text-gray-800 dark:text-[#e2f0ff] mb-2 font-mono">Download & Auto-Delete</h4>
+          <p class="text-xs g-sub-text leading-relaxed">Download your files immediately. For your privacy, files are automatically deleted after 1 hour (24 hours for members).</p>
+        </div>
       </div>
     </div>
 

@@ -22,6 +22,7 @@
 <body class="grid-bg-light">
   <div class="content-z min-h-screen flex flex-col">
     <!-- ── Navbar ── -->
+    {% block navbar %}
     <header
       class="site-nav sticky top-0 z-50 bg-white/80 dark:bg-[#050d1e]/80 backdrop-blur-md border-b g-divider shadow-[0_2px_15px_rgba(0,0,0,0.03)] dark:shadow-none">
       <div class="max-w-6xl mx-auto px-5 py-2.5 flex items-center gap-2">
@@ -153,6 +154,7 @@
 
       </div>
     </header>
+    {% endblock %}
 
     <!-- Messages -->
     {% if messages %}
@@ -362,6 +364,7 @@
 
     </div><!-- /mob-drawer -->
 
+    {% block footer %}
     <footer class="border-t g-divider py-5 px-6 mt-8">
       <div
         class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
@@ -384,6 +387,7 @@
         </span>
       </div>
     </footer>
+    {% endblock %}
   </div>
 
   <!-- ── Cookie Consent Banner ── -->
