@@ -1,11 +1,14 @@
 {% extends "base.html" %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
 {% block title %}Sign In — ShiftDocs{% endblock %}
 
 {% block extra_head %}
 <style>
   /* ── Full-page split layout — no scrollbar ── */
   .auth-page {
-    min-height: calc(100vh - 62px);
+    height: 100vh;
+    height: 100dvh;
     display: grid;
     grid-template-columns: 1fr 1fr;
     overflow: hidden;
@@ -351,6 +354,16 @@
   <!-- ── RIGHT: Form ── -->
   <div class="auth-right">
     <div class="auth-form-box">
+
+      <!-- Mobile Logo -->
+      <div class="md:hidden flex flex-col items-center mb-6">
+        <a href="/" class="flex flex-col items-center gap-2 group no-underline">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center font-mono font-black text-lg
+                    bg-blue-600 dark:bg-transparent dark:border dark:border-[rgba(56,182,255,.35)]
+                    text-white dark:text-[#38b6ff] group-hover:scale-105 transition-transform">DS</div>
+          <span class="logo-text text-base text-gray-800 dark:text-[#e2f0ff]">ShiftDocs</span>
+        </a>
+      </div>
 
       <h1 class="auth-heading">Welcome back</h1>
       <p class="text-sm g-sub-text mb-5">Sign in to your ShiftDocs account</p>
