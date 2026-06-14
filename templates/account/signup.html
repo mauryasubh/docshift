@@ -13,24 +13,6 @@
     overflow: hidden;
   }
 
-  @media (max-width: 768px) {
-    .auth-page {
-      grid-template-columns: 1fr;
-      height: auto;
-      min-height: 100vh;
-      min-height: 100dvh;
-      overflow: visible;
-    }
-
-    .auth-left {
-      display: none;
-    }
-
-    .auth-right {
-      overflow-y: visible;
-      padding: 1.5rem 1rem;
-    }
-  }
 
   .auth-left {
     background: linear-gradient(145deg, #059669 0%, #1a73e8 50%, #4f46e5 100%);
@@ -339,6 +321,24 @@
     grid-template-columns: 1fr 1fr;
     gap: .65rem;
     margin-bottom: .65rem;
+  }
+  @media (max-width: 768px) {
+    .auth-page {
+      grid-template-columns: 1fr;
+      height: auto;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: visible;
+    }
+
+    .auth-left {
+      display: none !important;
+    }
+
+    .auth-right {
+      overflow-y: visible;
+      padding: 1.5rem 1rem;
+    }
   }
 </style>
 {% endblock %}
