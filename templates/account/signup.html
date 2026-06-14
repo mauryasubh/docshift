@@ -16,10 +16,19 @@
   @media (max-width: 768px) {
     .auth-page {
       grid-template-columns: 1fr;
+      height: auto;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: visible;
     }
 
     .auth-left {
       display: none;
+    }
+
+    .auth-right {
+      overflow-y: visible;
+      padding: 1.5rem 1rem;
     }
   }
 
