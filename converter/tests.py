@@ -248,3 +248,23 @@ class CorporatePlanEmailTests(TestCase):
         self.assertEqual(user_email.to, ["johndoe@example.com"])
         self.assertIn("We've received your ShiftDocs Sales inquiry", user_email.subject)
         self.assertIn("Acme Corp", user_email.body)
+
+
+class StaticViewsTests(TestCase):
+    def test_robots_txt(self):
+        response = self.client.get('/robots.txt')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'text/plain')
+        content = response.content.decode('utf-8')
+        self.assertIn('User-agent: *', content)
+        self.assertIn('Sitemap: https://shiftdocs.io/sitemap.xml', content)
+
+    def test_sitemap_xml(self):
+        response = self.client.get('/sitemap.xml')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/xml')
+        xml_content = response.content.decode('utf-8')
+        self.assertIn('https://shiftdocs.io/', xml_content)
+        self.assertIn('https://shiftdocs.io/tool/compress_pdf/', xml_content)
+        self.assertIn('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', xml_content)
+
