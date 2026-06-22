@@ -11,13 +11,8 @@ def health_check(request):
 def robots_txt(request):
     lines = [
         "User-agent: *",
-        "Disallow: /admin/",
-        "Disallow: /auth/",
-        "Disallow: /dashboard/",
-        "Disallow: /job/",
-        "Disallow: /editor/session/",
-        "Disallow: /api/v1/",
         "Allow: /",
+        "",
         "Sitemap: https://shiftdocs.io/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
