@@ -268,3 +268,25 @@ class StaticViewsTests(TestCase):
         self.assertIn('https://shiftdocs.io/tool/compress_pdf/', xml_content)
         self.assertIn('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', xml_content)
 
+
+class TailwindSetupTests(TestCase):
+    def test_tailwind_compiled_css_exists(self):
+        from django.contrib.staticfiles.storage import staticfiles_storage
+        self.assertTrue(staticfiles_storage.exists('css/tailwind.css'))
+
+    def test_pages_use_compiled_tailwind_css_and_no_cdn(self):
+        from django.contrib.staticfiles.storage import staticfiles_storage
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        
+        html = response.content.decode('utf-8')
+        # Get the actual url rendered by {% static 'css/tailwind.css' %}
+        expected_url = staticfiles_storage.url('css/tailwind.css')
+        self.assertIn(expected_url, html)
+        
+        # Check that we do not have the CDN script
+        self.assertNotIn('cdn.tailwindcss.com', html)
+        # Check that we do not have the old inline tailwind.config
+        self.assertNotIn('tailwind.config = {', html)
+
+

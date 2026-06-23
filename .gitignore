@@ -64,3 +64,6 @@ plan_for_later/
 Cleaning up navbar design - Claude.html
 nixpacks.toml
 tailwind_guide/
+
+# ── Node / Tailwind ───────────────────────────────────────
+node_modules/

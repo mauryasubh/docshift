@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %}{{ tool.name }} — ShiftDocs{% endblock %}
+{% block title %}{% if tool.meta_title %}{{ tool.meta_title }}{% else %}{{ tool.name }} — ShiftDocs{% endif %}{% endblock %}
+{% block meta_description %}{% if tool.meta_description %}{{ tool.meta_description }}{% else %}{{ tool.description }}{% endif %}{% endblock %}
 
 {% block extra_head %}
 {% load static %}

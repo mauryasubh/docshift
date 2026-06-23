@@ -1,3 +1,4 @@
+@layer components {
 .drop-pulse {
   animation: drop-pulse 2.5s ease-in-out infinite;
 }
@@ -483,4 +484,5 @@ html.dark .drag-handle {
 
 html.dark .merge-order-badge {
   background: linear-gradient(135deg, #38b6ff, #818cf8);
+}
 }

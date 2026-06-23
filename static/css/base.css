@@ -5,7 +5,7 @@
      {% load static %}
      <link rel="stylesheet" href="{% static 'css/docshift.css' %}">
    ============================================================ */
-
+@layer base {
 *,
 *::before,
 *::after {
@@ -1095,4 +1095,5 @@ html.dark .mob-hamburger:hover {
   background: rgba(56, 182, 255, 0.08);
   border-color: #38b6ff;
   color: #38b6ff;
+}
 }

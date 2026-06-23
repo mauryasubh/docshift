@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════
    Stage 3 — Digital Signature & Verification (Minimalist)
    ═══════════════════════════════════════════════════════════ */
-
+@layer components {
 /* ── Gradient text ── */
 .grad {
   background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
@@ -394,4 +394,5 @@ html.dark .dsign-usecase-mini {
   .dsign-drop { padding: 2rem 1.2rem; }
   .dsign-info-card { padding: 1rem; }
   .dsign-dev-note { padding: 1.2rem; }
+}
 }
