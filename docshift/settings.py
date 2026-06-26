@@ -137,7 +137,15 @@ elif DATABASE_URL:
         )
     }
 elif USE_POSTGRES:
-    # Local dev with PostgreSQL
+    # Local dev / AWS RDS with PostgreSQL
+    _pg_options = {}
+    _sslmode = os.environ.get('DB_SSLMODE', '')
+    _sslrootcert = os.environ.get('DB_SSLROOTCERT', '')
+    if _sslmode:
+        _pg_options['sslmode'] = _sslmode
+    if _sslrootcert:
+        _pg_options['sslrootcert'] = str(BASE_DIR / _sslrootcert) if not os.path.isabs(_sslrootcert) else _sslrootcert
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -148,6 +156,8 @@ elif USE_POSTGRES:
             'PORT':     os.environ.get('DB_PORT', '5432'),
         }
     }
+    if _pg_options:
+        DATABASES['default']['OPTIONS'] = _pg_options
 else:
     # SQLite fallback (testing only)
     DATABASES = {
